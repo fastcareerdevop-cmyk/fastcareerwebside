@@ -13,6 +13,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.reviewAssessment = exports.getAllAssessments = exports.getMyAssessment = exports.submitAssessment = exports.uploadVideo = exports.uploadAudio = void 0;
+const mongoose_1 = __importDefault(require("mongoose"));
+const prisma_1 = __importDefault(require("../config/prisma"));
 const Assessment_1 = __importDefault(require("../models/Assessment"));
 const path_1 = __importDefault(require("path"));
 const cloudinary_1 = require("cloudinary");
@@ -163,7 +165,7 @@ exports.uploadVideo = uploadVideo;
 // @route   POST /api/assessments/submit
 // @access  Private (Candidate)
 const submitAssessment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     try {
         const candidateId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
         const { answers } = req.body;
@@ -198,6 +200,47 @@ const submitAssessment = (req, res) => __awaiter(void 0, void 0, void 0, functio
             };
         });
         // Check if candidate already has an assessment
+        const candidateUserId = ((_b = req.user) === null || _b === void 0 ? void 0 : _b.id) || (candidateId === null || candidateId === void 0 ? void 0 : candidateId.toString());
+        if (prisma_1.default && candidateUserId) {
+            try {
+                const existingPg = yield prisma_1.default.assessment.findFirst({
+                    where: { candidateId: candidateUserId }
+                });
+                let pgAssessment;
+                if (existingPg) {
+                    pgAssessment = yield prisma_1.default.assessment.update({
+                        where: { id: existingPg.id },
+                        data: {
+                            answers: processedAnswers,
+                            mcqScore,
+                            totalMcqQuestions: 2,
+                            status: 'submitted'
+                        }
+                    });
+                }
+                else {
+                    pgAssessment = yield prisma_1.default.assessment.create({
+                        data: {
+                            candidateId: candidateUserId,
+                            answers: processedAnswers,
+                            mcqScore,
+                            totalMcqQuestions: 2,
+                            status: 'submitted'
+                        }
+                    });
+                }
+                return res.status(201).json({
+                    message: 'Assessment submitted successfully! Fast-track evaluation initiated.',
+                    assessment: Object.assign(Object.assign({}, pgAssessment), { _id: pgAssessment.id })
+                });
+            }
+            catch (pgErr) {
+                console.warn('Prisma submitAssessment warning:', pgErr);
+                if (mongoose_1.default.connection.readyState !== 1) {
+                    return res.status(500).json({ message: 'Error submitting assessment' });
+                }
+            }
+        }
         let assessment = yield Assessment_1.default.findOne({ candidate: candidateId });
         if (assessment) {
             assessment.answers = processedAnswers;
@@ -230,18 +273,38 @@ exports.submitAssessment = submitAssessment;
 // @route   GET /api/assessments/my
 // @access  Private (Candidate)
 const getMyAssessment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     try {
         const candidateId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
-        const assessment = yield Assessment_1.default.findOne({ candidate: candidateId });
-        if (!assessment) {
-            res.json(null);
-            return;
+        const candidateUserId = ((_b = req.user) === null || _b === void 0 ? void 0 : _b.id) || (candidateId === null || candidateId === void 0 ? void 0 : candidateId.toString());
+        if (prisma_1.default && candidateUserId) {
+            try {
+                const pgAssessment = yield prisma_1.default.assessment.findFirst({
+                    where: { candidateId: candidateUserId }
+                });
+                if (pgAssessment) {
+                    const baseUrl = getBaseUrl(req);
+                    const a = Object.assign(Object.assign({}, pgAssessment), { _id: pgAssessment.id });
+                    a.answers = normalizeAnswers(a.answers, baseUrl);
+                    return res.json(a);
+                }
+            }
+            catch (e) {
+                console.warn('Prisma getMyAssessment warning:', e);
+            }
         }
-        const baseUrl = getBaseUrl(req);
-        const a = assessment.toObject();
-        a.answers = normalizeAnswers(a.answers, baseUrl);
-        res.json(a);
+        if (mongoose_1.default.connection.readyState === 1) {
+            const assessment = yield Assessment_1.default.findOne({ candidate: candidateId });
+            if (!assessment) {
+                res.json(null);
+                return;
+            }
+            const baseUrl = getBaseUrl(req);
+            const a = assessment.toObject();
+            a.answers = normalizeAnswers(a.answers, baseUrl);
+            return res.json(a);
+        }
+        res.json(null);
     }
     catch (error) {
         console.error('Error fetching candidate assessment:', error);
@@ -254,19 +317,42 @@ exports.getMyAssessment = getMyAssessment;
 // @access  Private (Admin / Employer)
 const getAllAssessments = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const assessments = yield Assessment_1.default.find({})
-            .populate('candidate', 'firstName lastName email phone qualifications caPortfolio experience personalDetails resumeUrl')
-            .populate('reviewedBy', 'firstName lastName email')
-            .sort({ createdAt: -1 });
-        // Filter out submissions where candidate account was deleted
-        const validAssessments = assessments.filter(a => a.candidate);
-        const baseUrl = getBaseUrl(req);
-        const formattedAssessments = validAssessments.map(doc => {
-            const a = doc.toObject();
-            a.answers = normalizeAnswers(a.answers, baseUrl);
-            return a;
-        });
-        res.json(formattedAssessments);
+        if (prisma_1.default) {
+            try {
+                const pgAssessments = yield prisma_1.default.assessment.findMany({
+                    orderBy: { createdAt: 'desc' },
+                    include: {
+                        candidate: {
+                            select: { id: true, firstName: true, lastName: true, email: true, phone: true, qualifications: true, caPortfolio: true, resumeUrl: true }
+                        },
+                        reviewedBy: {
+                            select: { id: true, firstName: true, lastName: true, email: true }
+                        }
+                    }
+                });
+                const baseUrl = getBaseUrl(req);
+                const formatted = pgAssessments.map(a => (Object.assign(Object.assign({}, a), { _id: a.id, candidate: a.candidate ? Object.assign(Object.assign({}, a.candidate), { _id: a.candidate.id }) : null, reviewedBy: a.reviewedBy ? Object.assign(Object.assign({}, a.reviewedBy), { _id: a.reviewedBy.id }) : null, answers: normalizeAnswers(a.answers, baseUrl) })));
+                return res.json(formatted);
+            }
+            catch (e) {
+                console.warn('Prisma getAllAssessments warning:', e);
+            }
+        }
+        if (mongoose_1.default.connection.readyState === 1) {
+            const assessments = yield Assessment_1.default.find({})
+                .populate('candidate', 'firstName lastName email phone qualifications caPortfolio experience personalDetails resumeUrl')
+                .populate('reviewedBy', 'firstName lastName email')
+                .sort({ createdAt: -1 });
+            const validAssessments = assessments.filter(a => a.candidate);
+            const baseUrl = getBaseUrl(req);
+            const formattedAssessments = validAssessments.map(doc => {
+                const a = doc.toObject();
+                a.answers = normalizeAnswers(a.answers, baseUrl);
+                return a;
+            });
+            return res.json(formattedAssessments);
+        }
+        res.json([]);
     }
     catch (error) {
         console.error('Error fetching assessments for admin:', error);
@@ -278,28 +364,57 @@ exports.getAllAssessments = getAllAssessments;
 // @route   PUT /api/assessments/:id/review
 // @access  Private (Admin / Employer)
 const reviewAssessment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b, _c;
     try {
         const { status, adminNotes, adminRating } = req.body;
-        const reviewerId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
-        const assessment = yield Assessment_1.default.findById(req.params.id);
-        if (!assessment) {
-            res.status(404).json({ message: 'Assessment not found' });
-            return;
+        const reviewerId = ((_a = req.user) === null || _a === void 0 ? void 0 : _a.id) || ((_c = (_b = req.user) === null || _b === void 0 ? void 0 : _b._id) === null || _c === void 0 ? void 0 : _c.toString());
+        const assessmentId = String(req.params.id || '');
+        if (prisma_1.default && assessmentId) {
+            try {
+                const updateData = {};
+                if (status)
+                    updateData.status = status;
+                if (adminNotes !== undefined)
+                    updateData.adminNotes = adminNotes;
+                if (adminRating !== undefined)
+                    updateData.adminRating = adminRating;
+                if (reviewerId)
+                    updateData.reviewedById = reviewerId;
+                updateData.reviewedAt = new Date();
+                const updated = yield prisma_1.default.assessment.update({
+                    where: { id: assessmentId },
+                    data: updateData
+                });
+                return res.json({
+                    message: 'Assessment review updated successfully',
+                    assessment: Object.assign(Object.assign({}, updated), { _id: updated.id })
+                });
+            }
+            catch (e) {
+                console.warn('Prisma reviewAssessment warning:', e);
+            }
         }
-        if (status)
-            assessment.status = status;
-        if (adminNotes !== undefined)
-            assessment.adminNotes = adminNotes;
-        if (adminRating !== undefined)
-            assessment.adminRating = adminRating;
-        assessment.reviewedBy = reviewerId;
-        assessment.reviewedAt = new Date();
-        const updated = yield assessment.save();
-        res.json({
-            message: 'Assessment review updated successfully',
-            assessment: updated
-        });
+        if (mongoose_1.default.connection.readyState === 1 && mongoose_1.default.Types.ObjectId.isValid(assessmentId)) {
+            const assessment = yield Assessment_1.default.findById(assessmentId);
+            if (!assessment) {
+                res.status(404).json({ message: 'Assessment not found' });
+                return;
+            }
+            if (status)
+                assessment.status = status;
+            if (adminNotes !== undefined)
+                assessment.adminNotes = adminNotes;
+            if (adminRating !== undefined)
+                assessment.adminRating = adminRating;
+            assessment.reviewedBy = reviewerId;
+            assessment.reviewedAt = new Date();
+            const updated = yield assessment.save();
+            return res.json({
+                message: 'Assessment review updated successfully',
+                assessment: updated
+            });
+        }
+        res.status(404).json({ message: 'Assessment not found' });
     }
     catch (error) {
         console.error('Error reviewing assessment:', error);

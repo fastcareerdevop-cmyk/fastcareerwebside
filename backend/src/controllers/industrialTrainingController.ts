@@ -1,4 +1,6 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
+import prisma from '../config/prisma';
 import IndustrialTraining from '../models/IndustrialTraining';
 import User from '../models/User';
 import bcrypt from 'bcrypt';
@@ -173,6 +175,108 @@ export const submitIndustrialTraining = async (req: Request, res: Response): Pro
     }
 
     const cleanEmail = email.trim().toLowerCase();
+
+    if (prisma) {
+      try {
+        const existing = await prisma.industrialTraining.findFirst({
+          where: { email: { equals: cleanEmail, mode: 'insensitive' } }
+        });
+
+        const appData = {
+          name: name.trim(),
+          email: cleanEmail,
+          phone: cleanPhone.slice(-10),
+          currentLocation: currentLocation.trim(),
+          currentState: currentState.trim(),
+          permanentLocation: permanentLocation.trim(),
+          permanentState: permanentState.trim(),
+          dob: dob || '',
+          gender: gender || '',
+          caInterBatch: caInterBatch || '',
+          bothGroups1stAttempt: bothGroups1stAttempt || 'No',
+          group1: bothGroups1stAttempt === 'Yes' ? '1st Attempt' : (group1 || '1st Attempt'),
+          group2: bothGroups1stAttempt === 'Yes' ? '1st Attempt' : (group2 || '1st Attempt'),
+          group1Batch: bothGroups1stAttempt === 'Yes' ? caInterBatch : (group1Batch || caInterBatch || null),
+          group2Batch: bothGroups1stAttempt === 'Yes' ? caInterBatch : (group2Batch || caInterBatch || null),
+          caInterRank: caInterRank || 'No Rank',
+          articleshipFirmName: articleshipFirmName.trim(),
+          articleshipStartMonthYear: articleshipStartMonthYear.trim(),
+          big6Articleship: big6Articleship || '',
+          preferredCities: Array.isArray(preferredCities) ? preferredCities : [],
+          preferredSectors: Array.isArray(preferredSectors) ? preferredSectors : [],
+          remarks: (remarks || '').trim(),
+          resumeUrl: (resumeUrl || '').trim(),
+          isVerified: isVerified !== false,
+          verificationMethod: verificationMethod || 'Verified & Declared',
+          verificationCode: verificationCode || null,
+          status: 'Applied'
+        };
+
+        let pgApp;
+        if (existing) {
+          pgApp = await prisma.industrialTraining.update({
+            where: { id: existing.id },
+            data: appData
+          });
+        } else {
+          pgApp = await prisma.industrialTraining.create({
+            data: appData
+          });
+        }
+
+        // Also sync/create User in Prisma if not exists
+        try {
+          const existingUser = await prisma.user.findFirst({
+            where: { email: { equals: cleanEmail, mode: 'insensitive' } }
+          });
+          const nameParts = name.trim().split(' ');
+          const firstName = nameParts[0] || 'Candidate';
+          const lastName = nameParts.slice(1).join(' ') || '';
+
+          if (!existingUser) {
+            const hashedPassword = await bcrypt.hash('Fast@1234', 10);
+            await prisma.user.create({
+              data: {
+                firstName,
+                lastName,
+                email: cleanEmail,
+                password: hashedPassword,
+                role: 'candidate',
+                phone: cleanPhone.slice(-10),
+                phoneNormalized: cleanPhone.slice(-10),
+                resumeUrl: (resumeUrl || '').trim(),
+                profileCompleted: true,
+                personalDetails: {
+                  phone: cleanPhone.slice(-10),
+                  currentCity: currentLocation.trim(),
+                  dateOfBirth: dob || ''
+                },
+                caPortfolio: {
+                  isFresherCA: false,
+                  industrialTrainee: true,
+                  natureOfWork: articleshipFirmName.trim()
+                }
+              }
+            });
+          }
+        } catch (uErr) {
+          console.warn('Prisma sync user warning:', uErr);
+        }
+
+        res.status(201).json({
+          success: true,
+          message: 'Industrial Training application submitted successfully!',
+          data: { ...pgApp, _id: pgApp.id }
+        });
+        return;
+      } catch (pgErr) {
+        console.warn('Prisma submitIndustrialTraining warning:', pgErr);
+        if (mongoose.connection.readyState !== 1) {
+          res.status(500).json({ message: 'Failed to submit application.' });
+          return;
+        }
+      }
+    }
 
     // Check if application already exists for this email
     let application = await IndustrialTraining.findOne({ email: cleanEmail });
@@ -361,13 +465,53 @@ export const getIndustrialTrainingApplications = async (req: Request, res: Respo
       query.bothGroups1stAttempt = firstAttempt;
     }
 
-    const applications = await IndustrialTraining.find(query).sort({ createdAt: -1 });
+    if (prisma) {
+      try {
+        const whereClause: any = {};
+        if (search) {
+          whereClause.OR = [
+            { name: { contains: search as string, mode: 'insensitive' } },
+            { email: { contains: search as string, mode: 'insensitive' } },
+            { phone: { contains: search as string, mode: 'insensitive' } },
+            { currentLocation: { contains: search as string, mode: 'insensitive' } },
+            { articleshipFirmName: { contains: search as string, mode: 'insensitive' } }
+          ];
+        }
+        if (batch) {
+          whereClause.caInterBatch = batch as string;
+        }
+        if (firstAttempt) {
+          whereClause.bothGroups1stAttempt = firstAttempt as string;
+        }
 
-    res.status(200).json({
-      success: true,
-      count: applications.length,
-      data: applications
-    });
+        const pgApps = await prisma.industrialTraining.findMany({
+          where: whereClause,
+          orderBy: { createdAt: 'desc' }
+        });
+
+        res.status(200).json({
+          success: true,
+          count: pgApps.length,
+          data: pgApps.map(a => ({ ...a, _id: a.id }))
+        });
+        return;
+      } catch (e) {
+        console.warn('Prisma getIndustrialTrainings warning:', e);
+      }
+    }
+
+    if (mongoose.connection.readyState === 1) {
+      const applications = await IndustrialTraining.find(query).sort({ createdAt: -1 });
+
+      res.status(200).json({
+        success: true,
+        count: applications.length,
+        data: applications
+      });
+      return;
+    }
+
+    res.status(200).json({ success: true, count: 0, data: [] });
   } catch (error: any) {
     console.error('Error fetching Industrial Training applications:', error);
     res.status(500).json({ message: 'Failed to fetch applications.' });
@@ -380,7 +524,22 @@ export const getIndustrialTrainingApplications = async (req: Request, res: Respo
  */
 export const exportIndustrialTrainingExcel = async (req: Request, res: Response): Promise<void> => {
   try {
-    const applications = await IndustrialTraining.find().sort({ createdAt: -1 });
+    let applications: any[] = [];
+
+    if (prisma) {
+      try {
+        const pgApps = await prisma.industrialTraining.findMany({
+          orderBy: { createdAt: 'desc' }
+        });
+        applications = pgApps.map(a => ({ ...a, _id: a.id }));
+      } catch (e) {
+        console.warn('Prisma exportIndustrialTrainingExcel warning:', e);
+      }
+    }
+
+    if (applications.length === 0 && mongoose.connection.readyState === 1) {
+      applications = await IndustrialTraining.find().sort({ createdAt: -1 });
+    }
 
     // Format data with the EXACT headers from the user's two screenshots:
     // Screenshot 1: Name, Email Address, Phone Number, Current Location, Current State, Permanent Location, Permanent State, DOB, Gender, CA Inter Batch, CA both Group in 1st Attempt
@@ -456,13 +615,29 @@ export const exportIndustrialTrainingExcel = async (req: Request, res: Response)
  */
 export const deleteIndustrialTrainingApplication = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
-    const deleted = await IndustrialTraining.findByIdAndDelete(id);
-    if (!deleted) {
-      res.status(404).json({ message: 'Application not found' });
+    const id = String(req.params.id || '');
+
+    if (prisma && id) {
+      try {
+        await prisma.industrialTraining.delete({ where: { id } });
+        res.status(200).json({ success: true, message: 'Application deleted successfully.' });
+        return;
+      } catch (e) {
+        console.warn('Prisma deleteIndustrialTrainingApplication warning:', e);
+      }
+    }
+
+    if (mongoose.connection.readyState === 1) {
+      const deleted = await IndustrialTraining.findByIdAndDelete(id);
+      if (!deleted) {
+        res.status(404).json({ message: 'Application not found' });
+        return;
+      }
+      res.status(200).json({ success: true, message: 'Application deleted successfully.' });
       return;
     }
-    res.status(200).json({ success: true, message: 'Application deleted successfully.' });
+
+    res.status(404).json({ message: 'Application not found' });
   } catch (error: any) {
     console.error('Error deleting Industrial Training application:', error);
     res.status(500).json({ message: 'Failed to delete application.' });

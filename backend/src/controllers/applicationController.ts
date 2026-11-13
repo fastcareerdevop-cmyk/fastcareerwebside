@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
+import prisma from '../config/prisma';
 import Application from '../models/Application';
 import Job from '../models/Job';
 import User from '../models/User';
@@ -9,16 +10,88 @@ import { sendShortlistedWhatsApp } from '../utils/whatsappService';
 // @route   POST /api/applications/:jobId
 // @access  Private (Candidate)
 export const applyForJob = async (req: Request, res: Response) => {
-  const { jobId } = req.params;
+  const jobId = String(req.params.jobId || '');
   const { coverLetter, existingResumeUrl } = req.body;
 
   try {
-    if (!jobId || jobId === 'undefined' || !mongoose.Types.ObjectId.isValid(jobId as string)) {
+    if (!jobId || jobId === 'undefined') {
       res.status(400).json({ message: 'Invalid Job ID or job not found' });
       return;
     }
 
-    const candidateId = (req as any).user?._id;
+    const candidateId = String((req as any).user?.id || (req as any).user?._id?.toString() || '');
+
+    // 1. Try PostgreSQL (Prisma) first
+    if (prisma && candidateId) {
+      try {
+        const job = await prisma.job.findUnique({
+          where: { id: jobId },
+          include: { targetEmployers: true }
+        });
+
+        if (job) {
+          const existing = await prisma.application.findFirst({
+            where: { jobId, candidateId }
+          });
+          if (existing) {
+            return res.status(400).json({ message: 'You have already applied for this job' });
+          }
+
+          const candidateUser = await prisma.user.findUnique({ where: { id: candidateId } });
+          let resumeUrl = req.file ? req.file.path : (existingResumeUrl || candidateUser?.resumeUrl);
+          if (!resumeUrl) {
+            resumeUrl = 'uploads/default_resume.pdf';
+          }
+
+          const hasTargetEmployers = Boolean(
+            (job.targetEmployers && job.targetEmployers.length > 0) ||
+            (job.sharedHrEmails && job.sharedHrEmails.length > 0)
+          );
+
+          const application = await prisma.application.create({
+            data: {
+              jobId,
+              candidateId,
+              resumeUrl,
+              coverLetter: coverLetter || '',
+              status: 'applied',
+              companyStatus: 'Pending Review',
+              sharedWithEmployer: hasTargetEmployers
+            },
+            include: {
+              job: true,
+              candidate: true
+            }
+          });
+
+          if (req.file) {
+            await prisma.user.update({
+              where: { id: candidateId },
+              data: { resumeUrl: req.file.path }
+            });
+          }
+
+          const appRel = application as any;
+          return res.status(201).json({
+            ...appRel,
+            _id: appRel.id,
+            job: appRel.job ? { ...appRel.job, _id: appRel.job.id } : null,
+            candidate: appRel.candidate ? { ...appRel.candidate, _id: appRel.candidate.id } : null
+          });
+        }
+      } catch (pgErr) {
+        console.warn('Prisma applyForJob warning:', pgErr);
+        if (mongoose.connection.readyState !== 1) {
+          return res.status(500).json({ message: 'Failed to apply for job' });
+        }
+      }
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(jobId as string)) {
+      res.status(400).json({ message: 'Invalid Job ID or job not found' });
+      return;
+    }
+
     const candidateUser = await User.findById(candidateId);
 
     let resumeUrl = req.file ? req.file.path : (existingResumeUrl || candidateUser?.resumeUrl);
@@ -90,10 +163,36 @@ export const applyForJob = async (req: Request, res: Response) => {
 // @access  Private (Employer)
 export const getJobApplications = async (req: Request, res: Response) => {
   try {
-    const applications = await Application.find({ job: req.params.jobId })
-      .populate('candidate', 'firstName lastName email headline');
-      
-    res.json(applications);
+    const jobId = String(req.params.jobId || '');
+
+    if (prisma && jobId) {
+      try {
+        const applications = await prisma.application.findMany({
+          where: { jobId },
+          orderBy: { createdAt: 'desc' },
+          include: {
+            candidate: {
+              select: { id: true, firstName: true, lastName: true, email: true, headline: true }
+            }
+          }
+        });
+        return res.json(applications.map((a: any) => ({
+          ...a,
+          _id: a.id,
+          candidate: a.candidate ? { ...a.candidate, _id: a.candidate.id } : null
+        })));
+      } catch (e) {
+        console.warn('Prisma getJobApplications warning:', e);
+      }
+    }
+
+    if (mongoose.connection.readyState === 1 && mongoose.Types.ObjectId.isValid(jobId)) {
+      const applications = await Application.find({ job: jobId })
+        .populate('candidate', 'firstName lastName email headline');
+      return res.json(applications);
+    }
+
+    res.json([]);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -104,57 +203,75 @@ export const getJobApplications = async (req: Request, res: Response) => {
 // @access  Private (Employer)
 export const updateApplicationStatus = async (req: Request, res: Response) => {
   const { status } = req.body;
+  const appId = String(req.params.id || '');
   
   try {
-    const application = await Application.findById(req.params.id)
-      .populate('candidate', 'firstName personalDetails email')
-      .populate('job', 'title');
-    
-    if (application) {
-      application.status = status;
-      const updatedApplication = await application.save();
+    if (prisma && appId) {
+      try {
+        const app = await prisma.application.findUnique({
+          where: { id: appId },
+          include: { candidate: true, job: true }
+        });
 
-      // Trigger WhatsApp & Email Notification for Shortlist/Selection
-      if (status === 'shortlisted' || status === 'accepted') {
-        const candidate: any = application.candidate;
-        const job: any = application.job;
-        if (candidate?.personalDetails?.phone || candidate?.phone) {
-          sendShortlistedWhatsApp(
-            candidate.personalDetails?.phone || candidate.phone,
-            candidate.firstName || 'Candidate',
-            job?.title || 'a role'
-          );
-        }
+        if (app) {
+          const updated = await prisma.application.update({
+            where: { id: appId },
+            data: { status },
+            include: { candidate: true, job: true }
+          });
 
-        // Notify assigned HRs by Email
-        try {
-          const fullCandidate = await User.findById(candidate._id || candidate);
-          if (fullCandidate && fullCandidate.assignedEmployers && fullCandidate.assignedEmployers.length > 0) {
-            for (const empId of fullCandidate.assignedEmployers) {
-              const employer = await User.findById(empId);
-              if (employer && employer.email) {
-                const companyTitle = employer.companyName || `${employer.firstName || ''} ${employer.lastName || ''}`.trim() || 'Company';
-                sendCandidateSharedEmail(employer.email, employer.firstName || companyTitle, companyTitle, [{
-                  firstName: fullCandidate.firstName,
-                  lastName: fullCandidate.lastName,
-                  email: fullCandidate.email,
-                  phone: fullCandidate.phone || fullCandidate.personalDetails?.phone,
-                  currentCity: fullCandidate.personalDetails?.currentCity,
-                  caQualification: 'Shortlisted Candidate',
-                  jobTitle: job?.title || 'Applied Position'
-                }]);
-              }
+          if (status === 'shortlisted' || status === 'accepted') {
+            const candidate: any = updated.candidate;
+            const job: any = updated.job;
+            const phone = candidate?.phone || candidate?.personalDetails?.phone;
+            if (phone) {
+              sendShortlistedWhatsApp(
+                phone,
+                candidate.firstName || 'Candidate',
+                job?.title || 'a role'
+              );
             }
           }
-        } catch (emailErr) {
-          console.error('Error sending HR email notification on status update:', emailErr);
-        }
-      }
 
-      res.json(updatedApplication);
-    } else {
-      res.status(404).json({ message: 'Application not found' });
+          return res.json({
+            ...updated,
+            _id: updated.id,
+            job: updated.job ? { ...updated.job, _id: updated.job.id } : null,
+            candidate: updated.candidate ? { ...updated.candidate, _id: updated.candidate.id } : null
+          });
+        }
+      } catch (e) {
+        console.warn('Prisma updateApplicationStatus warning:', e);
+      }
     }
+
+    if (mongoose.connection.readyState === 1 && mongoose.Types.ObjectId.isValid(appId)) {
+      const application = await Application.findById(appId)
+        .populate('candidate', 'firstName personalDetails email')
+        .populate('job', 'title');
+      
+      if (application) {
+        application.status = status;
+        const updatedApplication = await application.save();
+
+        // Trigger WhatsApp & Email Notification for Shortlist/Selection
+        if (status === 'shortlisted' || status === 'accepted') {
+          const candidate: any = application.candidate;
+          const job: any = application.job;
+          if (candidate?.personalDetails?.phone || candidate?.phone) {
+            sendShortlistedWhatsApp(
+              candidate.personalDetails?.phone || candidate.phone,
+              candidate.firstName || 'Candidate',
+              job?.title || 'a role'
+            );
+          }
+        }
+
+        return res.json(updatedApplication);
+      }
+    }
+
+    res.status(404).json({ message: 'Application not found' });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -165,12 +282,27 @@ export const updateApplicationStatus = async (req: Request, res: Response) => {
 // @access  Private (Employer or Admin)
 export const deleteApplication = async (req: Request, res: Response) => {
   try {
-    const application = await Application.findByIdAndDelete(req.params.id);
-    if (!application) {
-      res.status(404).json({ message: 'Application not found' });
-      return;
+    const appId = String(req.params.id || '');
+
+    if (prisma && appId) {
+      try {
+        await prisma.application.delete({ where: { id: appId } });
+        return res.json({ message: 'Application deleted successfully' });
+      } catch (e) {
+        console.warn('Prisma deleteApplication warning:', e);
+      }
     }
-    res.json({ message: 'Application deleted successfully' });
+
+    if (mongoose.connection.readyState === 1 && mongoose.Types.ObjectId.isValid(appId)) {
+      const application = await Application.findByIdAndDelete(appId);
+      if (!application) {
+        res.status(404).json({ message: 'Application not found' });
+        return;
+      }
+      return res.json({ message: 'Application deleted successfully' });
+    }
+
+    res.status(404).json({ message: 'Application not found' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }
@@ -181,75 +313,112 @@ export const deleteApplication = async (req: Request, res: Response) => {
 // @access  Private (Employer or Admin)
 export const getEmployerApplications = async (req: Request, res: Response) => {
   try {
-    // 1. Automatically cleanup any junk test jobs (fdg, new, nj, test)
-    try {
-      const junkRegex = /^(fdg|new|nj|test|demo|asdf|xyz)$/i;
-      const junkJobs = await Job.find({
-        $or: [
-          { title: { $regex: junkRegex } },
-          { company: { $regex: junkRegex } }
-        ]
-      });
-      if (junkJobs.length > 0) {
-        const junkIds = junkJobs.map(j => j._id);
-        await Application.deleteMany({ job: { $in: junkIds } });
-        await Job.deleteMany({ _id: { $in: junkIds } });
-      }
-    } catch (cleanErr) {
-      console.error('Error auto-cleaning junk jobs:', cleanErr);
-    }
-
     const user = (req as any).user;
-    let query: any = {};
+    const userId = user?.id || user?._id?.toString();
 
-    if (user?.role === 'admin') {
-      // Admin has full platform visibility
-      query = {};
-    } else {
-      // Employer: Check if employer posted specific jobs or was targeted in job creation
-      const myJobs = await Job.find({
-        $or: [
-          { postedBy: user?._id },
-          { targetEmployers: user?._id },
-          { sharedHrEmails: user?.email }
-        ]
-      });
-      const myJobIds = myJobs.map(j => j._id);
+    if (prisma) {
+      try {
+        let whereClause: any = {};
+        if (user?.role !== 'admin' && userId) {
+          whereClause = {
+            OR: [
+              { job: { postedById: userId } },
+              { job: { targetEmployers: { some: { id: userId } } } },
+              { job: { sharedHrEmails: { has: user?.email } } },
+              { candidate: { assignedEmployers: { some: { id: userId } } } }
+            ]
+          };
+        }
 
-      const assignedCandidates = await User.find({ role: 'candidate', assignedEmployers: user?._id }).select('_id');
-      const candidateIds = assignedCandidates.map(c => c._id);
+        const applications = await prisma.application.findMany({
+          where: whereClause,
+          orderBy: { createdAt: 'desc' },
+          include: {
+            job: true,
+            candidate: true
+          }
+        });
 
-      const orConditions: any[] = [];
-      if (myJobIds.length > 0) {
-        orConditions.push({ job: { $in: myJobIds }, sharedWithEmployer: true });
-      }
-      if (candidateIds.length > 0) {
-        orConditions.push({ candidate: { $in: candidateIds }, sharedWithEmployer: true });
-      }
-
-      if (orConditions.length > 0) {
-        query = { $or: orConditions };
-      } else {
-        query = { _id: null }; // Unselected employer gets zero applications
-      }
-    }
-    
-    const applications = await Application.find(query)
-      .populate('candidate', 'firstName lastName email phone resumeUrl personalDetails qualifications caPortfolio experience skills')
-      .populate('job', 'title company location type salaryRange salary')
-      .sort({ createdAt: -1 });
-
-    // Filter out orphan applications and delete them in the background
-    const validApplications: any[] = [];
-    for (const app of applications) {
-      if (!app.candidate || !app.job) {
-        Application.findByIdAndDelete(app._id).catch(() => {});
-      } else {
-        validApplications.push(app);
+        return res.json(applications.map(a => ({
+          ...a,
+          _id: a.id,
+          job: a.job ? { ...a.job, _id: a.job.id } : null,
+          candidate: a.candidate ? { ...a.candidate, _id: a.candidate.id } : null
+        })));
+      } catch (e) {
+        console.warn('Prisma getEmployerApplications warning:', e);
       }
     }
+
+    if (mongoose.connection.readyState === 1) {
+      // 1. Automatically cleanup any junk test jobs (fdg, new, nj, test)
+      try {
+        const junkRegex = /^(fdg|new|nj|test|demo|asdf|xyz)$/i;
+        const junkJobs = await Job.find({
+          $or: [
+            { title: { $regex: junkRegex } },
+            { company: { $regex: junkRegex } }
+          ]
+        });
+        if (junkJobs.length > 0) {
+          const junkIds = junkJobs.map(j => j._id);
+          await Application.deleteMany({ job: { $in: junkIds } });
+          await Job.deleteMany({ _id: { $in: junkIds } });
+        }
+      } catch (cleanErr) {
+        console.error('Error auto-cleaning junk jobs:', cleanErr);
+      }
+
+      let query: any = {};
+
+      if (user?.role === 'admin') {
+        query = {};
+      } else {
+        const myJobs = await Job.find({
+          $or: [
+            { postedBy: user?._id },
+            { targetEmployers: user?._id },
+            { sharedHrEmails: user?.email }
+          ]
+        });
+        const myJobIds = myJobs.map(j => j._id);
+
+        const assignedCandidates = await User.find({ role: 'candidate', assignedEmployers: user?._id }).select('_id');
+        const candidateIds = assignedCandidates.map(c => c._id);
+
+        const orConditions: any[] = [];
+        if (myJobIds.length > 0) {
+          orConditions.push({ job: { $in: myJobIds }, sharedWithEmployer: true });
+        }
+        if (candidateIds.length > 0) {
+          orConditions.push({ candidate: { $in: candidateIds }, sharedWithEmployer: true });
+        }
+
+        if (orConditions.length > 0) {
+          query = { $or: orConditions };
+        } else {
+          query = { _id: null };
+        }
+      }
       
-    res.json(validApplications);
+      const applications = await Application.find(query)
+        .populate('candidate', 'firstName lastName email phone resumeUrl personalDetails qualifications caPortfolio experience skills')
+        .populate('job', 'title company location type salaryRange salary')
+        .sort({ createdAt: -1 });
+
+      const validApplications: any[] = [];
+      for (const app of applications) {
+        if (!app.candidate || !app.job) {
+          Application.findByIdAndDelete(app._id).catch(() => {});
+        } else {
+          validApplications.push(app);
+        }
+      }
+        
+      return res.json(validApplications);
+    }
+
+    res.json([]);
   } catch (error) {
     console.error('Error fetching employer applications:', error);
     res.status(500).json({ message: 'Server error', error });
@@ -258,11 +427,35 @@ export const getEmployerApplications = async (req: Request, res: Response) => {
 
 export const getAllApplications = async (req: Request, res: Response) => {
   try {
-    const applications = await Application.find()
-      .populate('job', 'title company location type salaryRange')
-      .populate('candidate', 'firstName lastName email phone resumeUrl personalDetails')
-      .sort({ createdAt: -1 });
-    res.json(applications);
+    if (prisma) {
+      try {
+        const applications = await prisma.application.findMany({
+          orderBy: { createdAt: 'desc' },
+          include: {
+            job: true,
+            candidate: true
+          }
+        });
+        return res.json(applications.map(a => ({
+          ...a,
+          _id: a.id,
+          job: a.job ? { ...a.job, _id: a.job.id } : null,
+          candidate: a.candidate ? { ...a.candidate, _id: a.candidate.id } : null
+        })));
+      } catch (e) {
+        console.warn('Prisma getAllApplications warning:', e);
+      }
+    }
+
+    if (mongoose.connection.readyState === 1) {
+      const applications = await Application.find()
+        .populate('job', 'title company location type salaryRange')
+        .populate('candidate', 'firstName lastName email phone resumeUrl personalDetails')
+        .sort({ createdAt: -1 });
+      return res.json(applications);
+    }
+
+    res.json([]);
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
   }
@@ -271,17 +464,39 @@ export const getAllApplications = async (req: Request, res: Response) => {
 export const getCandidateApplications = async (req: Request, res: Response) => {
   try {
     let candidateId = typeof req.params.id === 'string' ? req.params.id : '';
-    if (!candidateId || candidateId === 'undefined' || candidateId === 'null' || !mongoose.Types.ObjectId.isValid(candidateId)) {
-      candidateId = (req as any).user?._id?.toString() || (req as any).user?._id;
+    if (!candidateId || candidateId === 'undefined' || candidateId === 'null') {
+      candidateId = (req as any).user?.id || (req as any).user?._id?.toString() || (req as any).user?._id;
     }
     if (!candidateId) {
       res.status(400).json({ message: 'Candidate ID required' });
       return;
     }
-    const applications = await Application.find({ candidate: candidateId })
-      .populate('job', 'title company location salary status salaryRange type')
-      .sort({ createdAt: -1 });
-    res.json(applications);
+
+    if (prisma) {
+      try {
+        const applications = await prisma.application.findMany({
+          where: { candidateId },
+          orderBy: { createdAt: 'desc' },
+          include: { job: true }
+        });
+        return res.json(applications.map(a => ({
+          ...a,
+          _id: a.id,
+          job: a.job ? { ...a.job, _id: a.job.id } : null
+        })));
+      } catch (e) {
+        console.warn('Prisma getCandidateApplications warning:', e);
+      }
+    }
+
+    if (mongoose.connection.readyState === 1 && mongoose.Types.ObjectId.isValid(candidateId)) {
+      const applications = await Application.find({ candidate: candidateId })
+        .populate('job', 'title company location salary status salaryRange type')
+        .sort({ createdAt: -1 });
+      return res.json(applications);
+    }
+
+    res.json([]);
   } catch (error) {
     console.error('Error in getCandidateApplications:', error);
     res.status(500).json({ message: 'Server Error' });
@@ -302,61 +517,77 @@ export const shareApplications = async (req: Request, res: Response) => {
   }
 
   try {
-    await Application.updateMany(
-      { _id: { $in: applicationIds } },
-      { $set: { sharedWithEmployer: true } }
-    );
+    if (prisma) {
+      try {
+        await prisma.application.updateMany({
+          where: { id: { in: applicationIds } },
+          data: { sharedWithEmployer: true }
+        });
+        return res.json({ message: 'Applications successfully shared with employer' });
+      } catch (e) {
+        console.warn('Prisma shareApplications warning:', e);
+      }
+    }
 
-    // Fetch shared applications with full candidate & job info to notify HR
-    try {
-      const sharedApps = await Application.find({ _id: { $in: applicationIds } })
-        .populate('candidate')
-        .populate('job');
+    if (mongoose.connection.readyState === 1) {
+      await Application.updateMany(
+        { _id: { $in: applicationIds } },
+        { $set: { sharedWithEmployer: true } }
+      );
 
-      // Group candidate info by assigned employer
-      const employerCandidateMap = new Map<string, SharedCandidateInfo[]>();
+      // Fetch shared applications with full candidate & job info to notify HR
+      try {
+        const sharedApps = await Application.find({ _id: { $in: applicationIds } })
+          .populate('candidate')
+          .populate('job');
 
-      for (const app of sharedApps) {
-        const candidate: any = app.candidate;
-        const job: any = app.job;
-        if (!candidate) continue;
+        // Group candidate info by assigned employer
+        const employerCandidateMap = new Map<string, SharedCandidateInfo[]>();
 
-        const qual = (candidate.caPortfolio?.caFinal?.group1Year || candidate.caPortfolio?.caFinal?.bothGroups1stAttempt)
-          ? 'CA Final'
-          : (candidate.caPortfolio?.caInter?.group1Year || candidate.caPortfolio?.caInter?.bothGroups1stAttempt)
-          ? 'CA Inter'
-          : 'Graduate Candidate';
+        for (const app of sharedApps) {
+          const candidate: any = app.candidate;
+          const job: any = app.job;
+          if (!candidate) continue;
 
-        const info: SharedCandidateInfo = {
-          firstName: candidate.firstName,
-          lastName: candidate.lastName,
-          email: candidate.email,
-          phone: candidate.phone || candidate.personalDetails?.phone,
-          currentCity: candidate.personalDetails?.currentCity,
-          caQualification: qual,
-          jobTitle: job?.title || candidate.headline || 'Shortlisted Role',
-        };
+          const qual = (candidate.caPortfolio?.caFinal?.group1Year || candidate.caPortfolio?.caFinal?.bothGroups1stAttempt)
+            ? 'CA Final'
+            : (candidate.caPortfolio?.caInter?.group1Year || candidate.caPortfolio?.caInter?.bothGroups1stAttempt)
+            ? 'CA Inter'
+            : 'Graduate Candidate';
 
-        const assignedEmployersList = candidate.assignedEmployers || [];
-        for (const empId of assignedEmployersList) {
-          const empStr = empId.toString();
-          if (!employerCandidateMap.has(empStr)) {
-            employerCandidateMap.set(empStr, []);
+          const info: SharedCandidateInfo = {
+            firstName: candidate.firstName,
+            lastName: candidate.lastName,
+            email: candidate.email,
+            phone: candidate.phone || candidate.personalDetails?.phone,
+            currentCity: candidate.personalDetails?.currentCity,
+            caQualification: qual,
+            jobTitle: job?.title || candidate.headline || 'Shortlisted Role',
+          };
+
+          const assignedEmployersList = candidate.assignedEmployers || [];
+          for (const empId of assignedEmployersList) {
+            const empStr = empId.toString();
+            if (!employerCandidateMap.has(empStr)) {
+              employerCandidateMap.set(empStr, []);
+            }
+            employerCandidateMap.get(empStr)!.push(info);
           }
-          employerCandidateMap.get(empStr)!.push(info);
         }
+
+        // Send email to each employer
+        for (const [empId, cList] of employerCandidateMap.entries()) {
+          const employer = await User.findById(empId);
+          if (employer && employer.email) {
+            const companyTitle = employer.companyName || `${employer.firstName || ''} ${employer.lastName || ''}`.trim() || 'Company';
+            sendCandidateSharedEmail(employer.email, employer.firstName || companyTitle, companyTitle, cList);
+          }
+        }
+      } catch (emailErr) {
+        console.error('Error sending application share email notification:', emailErr);
       }
 
-      // Send email to each employer
-      for (const [empId, cList] of employerCandidateMap.entries()) {
-        const employer = await User.findById(empId);
-        if (employer && employer.email) {
-          const companyTitle = employer.companyName || `${employer.firstName || ''} ${employer.lastName || ''}`.trim() || 'Company';
-          sendCandidateSharedEmail(employer.email, employer.firstName || companyTitle, companyTitle, cList);
-        }
-      }
-    } catch (emailErr) {
-      console.error('Error sending application share email notification:', emailErr);
+      return res.json({ message: 'Applications successfully shared with employer' });
     }
 
     res.json({ message: 'Applications successfully shared with employer' });
@@ -379,74 +610,128 @@ export const updateCandidateStatus = async (req: Request, res: Response) => {
       return;
     }
 
-    let myJobIds: any[] = [];
-    if (user?.role === 'employer') {
-      const myJobs = await Job.find({
-        $or: [
-          { postedBy: user._id },
-          { targetEmployers: user._id },
-          { sharedHrEmails: user.email }
-        ]
-      }).select('_id');
-      myJobIds = myJobs.map(j => j._id);
+    if (prisma) {
+      try {
+        let app: any = null;
+        if (applicationId) {
+          app = await prisma.application.findUnique({
+            where: { id: applicationId },
+            include: { candidate: true, job: true }
+          });
+        }
+        if (!app && candidateId) {
+          app = await prisma.application.findFirst({
+            where: { candidateId },
+            orderBy: { createdAt: 'desc' },
+            include: { candidate: true, job: true }
+          });
+        }
+
+        if (app) {
+          const updated = await prisma.application.update({
+            where: { id: app.id },
+            data: { status },
+            include: { candidate: true, job: true }
+          });
+
+          if (status === 'shortlisted' || status === 'hired') {
+            const candidateObj: any = updated.candidate;
+            const jobObj: any = updated.job;
+            const phoneNum = candidateObj?.phone || candidateObj?.personalDetails?.phone;
+            if (phoneNum) {
+              sendShortlistedWhatsApp(
+                phoneNum,
+                candidateObj.firstName || 'Candidate',
+                jobObj?.title || 'CA Candidate Profile'
+              );
+            }
+          }
+
+          return res.json({
+            success: true,
+            message: `Status updated to ${status}`,
+            application: {
+              ...updated,
+              _id: updated.id,
+              job: updated.job ? { ...updated.job, _id: updated.job.id } : null,
+              candidate: updated.candidate ? { ...updated.candidate, _id: updated.candidate.id } : null
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('Prisma updateCandidateStatus warning:', e);
+      }
     }
 
-    let application = null;
-
-    if (applicationId && mongoose.Types.ObjectId.isValid(applicationId as string)) {
-      application = await Application.findById(applicationId);
-    }
-
-    if (!application && candidateId && mongoose.Types.ObjectId.isValid(candidateId as string)) {
-      if (myJobIds.length > 0) {
-        application = await Application.findOne({ candidate: candidateId, job: { $in: myJobIds } }).sort({ createdAt: -1 });
+    if (mongoose.connection.readyState === 1) {
+      let myJobIds: any[] = [];
+      if (user?.role === 'employer') {
+        const myJobs = await Job.find({
+          $or: [
+            { postedBy: user._id },
+            { targetEmployers: user._id },
+            { sharedHrEmails: user.email }
+          ]
+        }).select('_id');
+        myJobIds = myJobs.map(j => j._id);
       }
-      if (!application) {
-        application = await Application.findOne({ candidate: candidateId }).sort({ createdAt: -1 });
-      }
-    }
 
-    if (!application && candidateId && mongoose.Types.ObjectId.isValid(candidateId as string)) {
-      let job = await Job.findOne({ $or: [{ postedBy: user?._id }, { targetEmployers: user?._id }] });
-      if (!job) {
-        job = await Job.findOne({});
-      }
-      if (job) {
-        application = await Application.create({
-          job: job._id,
-          candidate: candidateId,
-          resumeUrl: 'uploads/default_resume.pdf',
-          status: status,
-          sharedWithEmployer: true
-        });
-      }
-    }
+      let application = null;
 
-    if (application) {
-      if (user?.role === 'employer' && myJobIds.length > 0 && !myJobIds.some(id => id.toString() === application.job.toString())) {
-        application.job = myJobIds[0];
+      if (applicationId && mongoose.Types.ObjectId.isValid(applicationId as string)) {
+        application = await Application.findById(applicationId);
       }
-      application.status = status;
-      await application.save();
 
-      // Trigger WhatsApp Notification for Shortlist/Selection
-      if (status === 'shortlisted' || status === 'hired') {
-        const candidateObj: any = await User.findById(application.candidate);
-        const jobObj: any = await Job.findById(application.job);
-        if (candidateObj?.personalDetails?.phone || candidateObj?.phone) {
-          const phoneNum = candidateObj.personalDetails?.phone || candidateObj.phone;
-          sendShortlistedWhatsApp(
-            phoneNum,
-            candidateObj.firstName || 'Candidate',
-            jobObj?.title || 'CA Candidate Profile'
-          );
+      if (!application && candidateId && mongoose.Types.ObjectId.isValid(candidateId as string)) {
+        if (myJobIds.length > 0) {
+          application = await Application.findOne({ candidate: candidateId, job: { $in: myJobIds } }).sort({ createdAt: -1 });
+        }
+        if (!application) {
+          application = await Application.findOne({ candidate: candidateId }).sort({ createdAt: -1 });
         }
       }
 
-      res.json({ success: true, message: `Status updated to ${status}`, application });
-    } else {
-      res.status(404).json({ message: 'Candidate application record not found' });
+      if (!application && candidateId && mongoose.Types.ObjectId.isValid(candidateId as string)) {
+        let job = await Job.findOne({ $or: [{ postedBy: user?._id }, { targetEmployers: user?._id }] });
+        if (!job) {
+          job = await Job.findOne({});
+        }
+        if (job) {
+          application = await Application.create({
+            job: job._id,
+            candidate: candidateId,
+            resumeUrl: 'uploads/default_resume.pdf',
+            status: status,
+            sharedWithEmployer: true
+          });
+        }
+      }
+
+      if (application) {
+        if (user?.role === 'employer' && myJobIds.length > 0 && !myJobIds.some(id => id.toString() === application.job.toString())) {
+          application.job = myJobIds[0];
+        }
+        application.status = status;
+        await application.save();
+
+        if (status === 'shortlisted' || status === 'hired') {
+          const candidateObj: any = await User.findById(application.candidate);
+          const jobObj: any = await Job.findById(application.job);
+          if (candidateObj?.personalDetails?.phone || candidateObj?.phone) {
+            const phoneNum = candidateObj.personalDetails?.phone || candidateObj.phone;
+            sendShortlistedWhatsApp(
+              phoneNum,
+              candidateObj.firstName || 'Candidate',
+              jobObj?.title || 'CA Candidate Profile'
+            );
+          }
+        }
+
+        return res.json({ success: true, message: `Status updated to ${status}`, application });
+      }
     }
+
+    res.status(404).json({ message: 'Candidate application record not found' });
   } catch (error) {
     console.error('Error updating candidate status:', error);
     res.status(500).json({ message: 'Server error updating candidate status' });
@@ -475,36 +760,68 @@ export const updateCompanyStatus = async (req: Request, res: Response) => {
       return;
     }
 
-    let application = null;
-    if (applicationId && mongoose.Types.ObjectId.isValid(applicationId as string)) {
-      application = await Application.findById(applicationId);
-    }
-    if (!application && candidateId && mongoose.Types.ObjectId.isValid(candidateId as string)) {
-      application = await Application.findOne({ candidate: candidateId }).sort({ createdAt: -1 });
-    }
+    if (prisma) {
+      try {
+        let app: any = null;
+        if (applicationId) {
+          app = await prisma.application.findUnique({ where: { id: applicationId } });
+        }
+        if (!app && candidateId) {
+          app = await prisma.application.findFirst({
+            where: { candidateId },
+            orderBy: { createdAt: 'desc' }
+          });
+        }
 
-    if (!application && candidateId && mongoose.Types.ObjectId.isValid(candidateId as string)) {
-      const defaultJob = await Job.findOne({});
-      if (defaultJob) {
-        application = await Application.create({
-          job: defaultJob._id,
-          candidate: candidateId,
-          resumeUrl: 'uploads/default_resume.pdf',
-          status: 'shortlisted',
-          companyStatus: companyStatus,
-          sharedWithEmployer: true
-        });
+        if (app) {
+          const updated = await prisma.application.update({
+            where: { id: app.id },
+            data: { companyStatus },
+            include: { candidate: true, job: true }
+          });
+          return res.json({
+            success: true,
+            message: `Company status updated to ${companyStatus}`,
+            application: { ...updated, _id: updated.id }
+          });
+        }
+      } catch (e) {
+        console.warn('Prisma updateCompanyStatus warning:', e);
       }
     }
 
-    if (application) {
-      application.companyStatus = companyStatus;
-      await application.save();
+    if (mongoose.connection.readyState === 1) {
+      let application = null;
+      if (applicationId && mongoose.Types.ObjectId.isValid(applicationId as string)) {
+        application = await Application.findById(applicationId);
+      }
+      if (!application && candidateId && mongoose.Types.ObjectId.isValid(candidateId as string)) {
+        application = await Application.findOne({ candidate: candidateId }).sort({ createdAt: -1 });
+      }
 
-      res.json({ success: true, message: `Company status updated to ${companyStatus}`, application });
-    } else {
-      res.status(404).json({ message: 'Candidate application record not found' });
+      if (!application && candidateId && mongoose.Types.ObjectId.isValid(candidateId as string)) {
+        const defaultJob = await Job.findOne({});
+        if (defaultJob) {
+          application = await Application.create({
+            job: defaultJob._id,
+            candidate: candidateId,
+            resumeUrl: 'uploads/default_resume.pdf',
+            status: 'shortlisted',
+            companyStatus: companyStatus,
+            sharedWithEmployer: true
+          });
+        }
+      }
+
+      if (application) {
+        application.companyStatus = companyStatus;
+        await application.save();
+
+        return res.json({ success: true, message: `Company status updated to ${companyStatus}`, application });
+      }
     }
+
+    res.status(404).json({ message: 'Candidate application record not found' });
   } catch (error) {
     console.error('Error updating company status:', error);
     res.status(500).json({ message: 'Server error updating company status' });
@@ -531,35 +848,59 @@ export const bulkUpdateApplicationStatus = async (req: Request, res: Response) =
       return;
     }
 
-    const result = await Application.updateMany(
-      { _id: { $in: applicationIds } },
-      { $set: updateFields }
-    );
-
-    // If status is shortlisted, trigger WhatsApp notifications in background
-    if (status === 'shortlisted' || status === 'hired') {
+    if (prisma) {
       try {
-        const apps = await Application.find({ _id: { $in: applicationIds } }).populate('candidate').populate('job');
-        for (const app of apps) {
-          const candidate: any = app.candidate;
-          const job: any = app.job;
-          if (candidate?.personalDetails?.phone || candidate?.phone) {
-            sendShortlistedWhatsApp(
-              candidate.personalDetails?.phone || candidate.phone,
-              candidate.firstName || 'Candidate',
-              job?.title || 'CA Candidate Profile'
-            );
-          }
-        }
-      } catch (notifyErr) {
-        console.error('Error sending bulk shortlist notifications:', notifyErr);
+        const result = await prisma.application.updateMany({
+          where: { id: { in: applicationIds } },
+          data: updateFields
+        });
+        return res.json({
+          success: true,
+          message: `Successfully updated status for ${result.count || applicationIds.length} candidates!`,
+          modifiedCount: result.count
+        });
+      } catch (e) {
+        console.warn('Prisma bulkUpdateApplicationStatus warning:', e);
       }
+    }
+
+    if (mongoose.connection.readyState === 1) {
+      const result = await Application.updateMany(
+        { _id: { $in: applicationIds } },
+        { $set: updateFields }
+      );
+
+      // If status is shortlisted, trigger WhatsApp notifications in background
+      if (status === 'shortlisted' || status === 'hired') {
+        try {
+          const apps = await Application.find({ _id: { $in: applicationIds } }).populate('candidate').populate('job');
+          for (const app of apps) {
+            const candidate: any = app.candidate;
+            const job: any = app.job;
+            if (candidate?.personalDetails?.phone || candidate?.phone) {
+              sendShortlistedWhatsApp(
+                candidate.personalDetails?.phone || candidate.phone,
+                candidate.firstName || 'Candidate',
+                job?.title || 'CA Candidate Profile'
+              );
+            }
+          }
+        } catch (notifyErr) {
+          console.error('Error sending bulk shortlist notifications:', notifyErr);
+        }
+      }
+
+      return res.json({
+        success: true,
+        message: `Successfully updated status for ${result.modifiedCount || applicationIds.length} candidates!`,
+        modifiedCount: result.modifiedCount
+      });
     }
 
     res.json({
       success: true,
-      message: `Successfully updated status for ${result.modifiedCount || applicationIds.length} candidates!`,
-      modifiedCount: result.modifiedCount
+      message: `Successfully updated status for ${applicationIds.length} candidates!`,
+      modifiedCount: applicationIds.length
     });
   } catch (error: any) {
     console.error('Error in bulkUpdateApplicationStatus:', error);

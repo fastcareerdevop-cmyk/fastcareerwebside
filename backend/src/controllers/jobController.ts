@@ -1,18 +1,53 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
+import prisma from '../config/prisma';
 import Job from '../models/Job';
 import User from '../models/User';
 import Application from '../models/Application';
 import { calculateMatchScore } from '../utils/matchAlgorithm';
 import { isValidCity } from '../utils/locationHelper';
 
+// Helper to format Prisma job to match Mongoose API contract
+const formatPgJob = (j: any) => ({
+  ...j,
+  _id: j.id,
+  targetEmployers: (j.targetEmployers || []).map((te: any) => ({
+    ...te,
+    _id: te.id
+  }))
+});
+
 // @desc    Get all jobs
 // @route   GET /api/jobs
 // @access  Public
 export const getJobs = async (req: Request, res: Response) => {
   try {
-    const jobs = await Job.find({}).sort({ createdAt: -1 });
-    res.json(jobs);
+    if (prisma) {
+      try {
+        const jobs = await prisma.job.findMany({
+          orderBy: { createdAt: 'desc' },
+          include: {
+            targetEmployers: {
+              select: { id: true, companyName: true, firstName: true, lastName: true, email: true }
+            }
+          }
+        });
+        if (jobs) {
+          return res.json(jobs.map(formatPgJob));
+        }
+      } catch (e) {
+        console.warn('Prisma getJobs warning:', e);
+      }
+    }
+
+    if (mongoose.connection.readyState === 1) {
+      const jobs = await Job.find({}).sort({ createdAt: -1 });
+      return res.json(jobs);
+    }
+
+    return res.json([]);
   } catch (error) {
+    console.error('Error fetching jobs:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 };
@@ -23,24 +58,55 @@ export const getJobs = async (req: Request, res: Response) => {
 export const getEmployerJobs = async (req: any, res: Response) => {
   try {
     const user = req.user;
-    let query: any = {};
-    
-    if (user?.role === 'admin') {
-      query = {};
-    } else {
-      query = {
-        $or: [
-          { postedBy: user._id },
-          { targetEmployers: user._id },
-          { sharedHrEmails: user.email }
-        ]
-      };
+    const userId = user?.id || user?._id?.toString();
+
+    if (prisma && userId) {
+      try {
+        const whereClause: any = {};
+        if (user?.role !== 'admin') {
+          whereClause.OR = [
+            { postedById: userId },
+            { targetEmployers: { some: { id: userId } } },
+            { sharedHrEmails: { has: user?.email } }
+          ];
+        }
+
+        const jobs = await prisma.job.findMany({
+          where: whereClause,
+          orderBy: { createdAt: 'desc' },
+          include: {
+            targetEmployers: {
+              select: { id: true, companyName: true, firstName: true, lastName: true, email: true }
+            }
+          }
+        });
+        return res.json(jobs.map(formatPgJob));
+      } catch (e) {
+        console.warn('Prisma getEmployerJobs warning:', e);
+      }
     }
 
-    const jobs = await Job.find(query)
-      .populate('targetEmployers', 'companyName firstName lastName email')
-      .sort({ createdAt: -1 });
-    res.json(jobs);
+    if (mongoose.connection.readyState === 1) {
+      let query: any = {};
+      if (user?.role === 'admin') {
+        query = {};
+      } else {
+        query = {
+          $or: [
+            { postedBy: user._id },
+            { targetEmployers: user._id },
+            { sharedHrEmails: user.email }
+          ]
+        };
+      }
+
+      const jobs = await Job.find(query)
+        .populate('targetEmployers', 'companyName firstName lastName email')
+        .sort({ createdAt: -1 });
+      return res.json(jobs);
+    }
+
+    return res.json([]);
   } catch (error) {
     console.error('Error fetching employer jobs:', error);
     res.status(500).json({ message: 'Server Error' });
@@ -52,13 +118,34 @@ export const getEmployerJobs = async (req: any, res: Response) => {
 // @access  Public
 export const getJobById = async (req: Request, res: Response) => {
   try {
-    const job = await Job.findById(req.params.id).populate('targetEmployers', 'companyName firstName lastName email');
-    if (job) {
-      res.json(job);
-    } else {
-      res.status(404).json({ message: 'Job not found' });
+    const jobId = String(req.params.id || '');
+
+    if (prisma && jobId) {
+      try {
+        const job = await prisma.job.findUnique({
+          where: { id: jobId },
+          include: {
+            targetEmployers: {
+              select: { id: true, companyName: true, firstName: true, lastName: true, email: true }
+            }
+          }
+        });
+        if (job) {
+          return res.json(formatPgJob(job));
+        }
+      } catch (e) {
+        console.warn('Prisma getJobById warning:', e);
+      }
     }
+
+    if (mongoose.connection.readyState === 1 && mongoose.Types.ObjectId.isValid(jobId)) {
+      const job = await Job.findById(jobId).populate('targetEmployers', 'companyName firstName lastName email');
+      if (job) return res.json(job);
+    }
+
+    res.status(404).json({ message: 'Job not found' });
   } catch (error) {
+    console.error('Error fetching job by id:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 };
@@ -68,7 +155,7 @@ export const getJobById = async (req: Request, res: Response) => {
 // @access  Private/Employer
 export const createJob = async (req: any, res: Response) => {
   try {
-    const { title, company, location, type, category, salaryRange, description, requirements, responsibilities, targetEmployers, sharedHrEmails } = req.body;
+    const { title, company, location, type, category, salaryRange, description, requirements, responsibilities, targetEmployers, sharedHrEmails, isHot, shareShortlistedCandidates } = req.body;
     
     if (!title || !title.trim()) {
       res.status(400).json({ message: 'Job title is required.' });
@@ -91,39 +178,74 @@ export const createJob = async (req: any, res: Response) => {
       ? responsibilities
       : (typeof responsibilities === 'string' && responsibilities.trim() ? responsibilities.split('\n').filter(Boolean) : [`Core responsibilities as ${title.trim()}`]);
 
-    let resolvedTargetEmployers: string[] = Array.isArray(targetEmployers) ? [...targetEmployers] : [];
-    if (Array.isArray(sharedHrEmails) && sharedHrEmails.length > 0) {
-      const hrUsers = await User.find({
-        email: { $in: sharedHrEmails.map((e: string) => new RegExp(`^${e.trim()}$`, 'i')) }
-      }).select('_id');
-      const hrUserIds = hrUsers.map(u => u._id.toString());
-      for (const uid of hrUserIds) {
-        if (!resolvedTargetEmployers.includes(uid)) {
-          resolvedTargetEmployers.push(uid);
+    const resolvedTargetEmployers: string[] = Array.isArray(targetEmployers) ? [...targetEmployers] : [];
+    const hrEmails: string[] = Array.isArray(sharedHrEmails) ? sharedHrEmails : [];
+
+    const postedById = req.user?.id || req.user?._id?.toString() || null;
+
+    if (prisma) {
+      try {
+        const createdPgJob = await prisma.job.create({
+          data: {
+            title: title.trim(),
+            company: company.trim(),
+            location: (location || 'Pan India').trim(),
+            type: type || 'Full-time',
+            category: category || 'Auditing',
+            salaryRange: salaryRange || 'Not Disclosed',
+            description: safeDesc,
+            requirements: safeReq,
+            responsibilities: safeResp,
+            isHot: isHot === true || isHot === 'true',
+            postedById: postedById,
+            sharedHrEmails: hrEmails,
+            shareShortlistedCandidates: shareShortlistedCandidates !== false,
+            ...(resolvedTargetEmployers.length > 0 ? {
+              targetEmployers: {
+                connect: resolvedTargetEmployers.map(id => ({ id }))
+              }
+            } : {})
+          },
+          include: {
+            targetEmployers: {
+              select: { id: true, companyName: true, firstName: true, lastName: true, email: true }
+            }
+          }
+        });
+
+        return res.status(201).json(formatPgJob(createdPgJob));
+      } catch (e) {
+        console.warn('Prisma createJob warning:', e);
+        if (mongoose.connection.readyState !== 1) {
+          throw e;
         }
       }
     }
 
-    const job = new Job({
-      ...req.body,
-      title: title.trim(),
-      company: company.trim(),
-      location: (location || 'Pan India').trim(),
-      type: type || 'Full-time',
-      category: category || 'Auditing',
-      salaryRange: salaryRange || 'Not Disclosed',
-      description: safeDesc,
-      requirements: safeReq,
-      responsibilities: safeResp,
-      targetEmployers: resolvedTargetEmployers,
-      sharedHrEmails: sharedHrEmails || [],
-      shareShortlistedCandidates: req.body.shareShortlistedCandidates !== false,
-      postedBy: req.user?._id 
-    });
+    if (mongoose.connection.readyState === 1) {
+      const job = new Job({
+        ...req.body,
+        title: title.trim(),
+        company: company.trim(),
+        location: (location || 'Pan India').trim(),
+        type: type || 'Full-time',
+        category: category || 'Auditing',
+        salaryRange: salaryRange || 'Not Disclosed',
+        description: safeDesc,
+        requirements: safeReq,
+        responsibilities: safeResp,
+        targetEmployers: resolvedTargetEmployers,
+        sharedHrEmails: hrEmails,
+        shareShortlistedCandidates: shareShortlistedCandidates !== false,
+        postedBy: req.user?._id 
+      });
 
-    const createdJob = await job.save();
-    const populatedJob = await Job.findById(createdJob._id).populate('targetEmployers', 'companyName firstName lastName email');
-    res.status(201).json(populatedJob || createdJob);
+      const createdJob = await job.save();
+      const populatedJob = await Job.findById(createdJob._id).populate('targetEmployers', 'companyName firstName lastName email');
+      return res.status(201).json(populatedJob || createdJob);
+    }
+
+    res.status(503).json({ message: 'Database service unavailable' });
   } catch (error: any) {
     console.error('Error creating job:', error);
     res.status(400).json({ message: error.message || 'Invalid job data' });
@@ -135,6 +257,7 @@ export const createJob = async (req: any, res: Response) => {
 // @access  Private/Employer/Admin
 export const updateJob = async (req: any, res: Response) => {
   try {
+    const jobId = String(req.params.id || '');
     const { location, targetEmployers, sharedHrEmails, shareShortlistedCandidates } = req.body;
     
     if (location && !isValidCity(location)) {
@@ -142,48 +265,70 @@ export const updateJob = async (req: any, res: Response) => {
       return;
     }
 
-    let resolvedTargetEmployers: string[] = Array.isArray(targetEmployers) ? [...targetEmployers] : [];
-    if (Array.isArray(sharedHrEmails) && sharedHrEmails.length > 0) {
-      const hrUsers = await User.find({
-        email: { $in: sharedHrEmails.map((e: string) => new RegExp(`^${e.trim()}$`, 'i')) }
-      }).select('_id');
-      const hrUserIds = hrUsers.map(u => u._id.toString());
-      for (const uid of hrUserIds) {
-        if (!resolvedTargetEmployers.includes(uid)) {
-          resolvedTargetEmployers.push(uid);
+    const resolvedTargetEmployers: string[] = Array.isArray(targetEmployers) ? [...targetEmployers] : [];
+    const hrEmails: string[] = Array.isArray(sharedHrEmails) ? sharedHrEmails : [];
+
+    if (prisma && jobId) {
+      try {
+        const updateData: any = {};
+        if (req.body.title) updateData.title = req.body.title.trim();
+        if (req.body.company) updateData.company = req.body.company.trim();
+        if (location) updateData.location = location.trim();
+        if (req.body.type) updateData.type = req.body.type;
+        if (req.body.category) updateData.category = req.body.category;
+        if (req.body.salaryRange) updateData.salaryRange = req.body.salaryRange;
+        if (req.body.description) updateData.description = req.body.description;
+        if (req.body.requirements) updateData.requirements = req.body.requirements;
+        if (req.body.responsibilities) updateData.responsibilities = req.body.responsibilities;
+        if (req.body.isHot !== undefined) updateData.isHot = req.body.isHot === true || req.body.isHot === 'true';
+        if (sharedHrEmails !== undefined) updateData.sharedHrEmails = hrEmails;
+        if (shareShortlistedCandidates !== undefined) updateData.shareShortlistedCandidates = shareShortlistedCandidates !== false;
+
+        if (targetEmployers !== undefined) {
+          updateData.targetEmployers = {
+            set: resolvedTargetEmployers.map(id => ({ id }))
+          };
+        }
+
+        const updatedPgJob = await prisma.job.update({
+          where: { id: jobId },
+          data: updateData,
+          include: {
+            targetEmployers: {
+              select: { id: true, companyName: true, firstName: true, lastName: true, email: true }
+            }
+          }
+        });
+
+        return res.json(formatPgJob(updatedPgJob));
+      } catch (e: any) {
+        console.warn('Prisma updateJob warning:', e);
+        if (mongoose.connection.readyState !== 1) {
+          return res.status(404).json({ message: 'Job not found or could not be updated' });
         }
       }
     }
 
-    const updatedJob = await Job.findByIdAndUpdate(
-      req.params.id,
-      {
-        ...req.body,
-        targetEmployers: resolvedTargetEmployers,
-        sharedHrEmails: sharedHrEmails || [],
-        shareShortlistedCandidates: shareShortlistedCandidates !== false,
-      },
-      { new: true }
-    ).populate('targetEmployers', 'companyName firstName lastName email');
+    if (mongoose.connection.readyState === 1 && mongoose.Types.ObjectId.isValid(jobId)) {
+      const updatedJob = await Job.findByIdAndUpdate(
+        jobId,
+        {
+          ...req.body,
+          targetEmployers: resolvedTargetEmployers,
+          sharedHrEmails: hrEmails,
+          shareShortlistedCandidates: shareShortlistedCandidates !== false,
+        },
+        { new: true }
+      ).populate('targetEmployers', 'companyName firstName lastName email');
 
-    if (!updatedJob) {
-      res.status(404).json({ message: 'Job not found' });
-      return;
-    }
-
-    // Sync target employers to candidates who applied to this job
-    if (resolvedTargetEmployers.length > 0) {
-      const applications = await Application.find({ job: updatedJob._id }).select('candidate');
-      const candidateIds = applications.map(a => a.candidate);
-      if (candidateIds.length > 0) {
-        await User.updateMany(
-          { _id: { $in: candidateIds } },
-          { $addToSet: { assignedEmployers: { $each: resolvedTargetEmployers } } }
-        );
+      if (!updatedJob) {
+        res.status(404).json({ message: 'Job not found' });
+        return;
       }
+      return res.json(updatedJob);
     }
 
-    res.json(updatedJob);
+    res.status(404).json({ message: 'Job not found' });
   } catch (error) {
     console.error('Error updating job:', error);
     res.status(400).json({ message: 'Error updating job' });
@@ -195,59 +340,67 @@ export const updateJob = async (req: any, res: Response) => {
 // @access  Private/Employer/Admin
 export const deleteJob = async (req: any, res: Response) => {
   try {
-    const job = await Job.findById(req.params.id);
-    if (!job) {
-      res.status(404).json({ message: 'Job not found' });
-      return;
+    const jobId = String(req.params.id || '');
+
+    if (prisma && jobId) {
+      try {
+        await prisma.application.deleteMany({ where: { jobId } });
+        await prisma.job.delete({ where: { id: jobId } });
+        return res.json({ message: 'Job and associated applications removed successfully' });
+      } catch (e) {
+        console.warn('Prisma deleteJob warning:', e);
+        if (mongoose.connection.readyState !== 1) {
+          return res.status(404).json({ message: 'Job not found' });
+        }
+      }
     }
 
-    await Application.deleteMany({ job: req.params.id });
-    await Job.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Job and associated applications removed successfully' });
+    if (mongoose.connection.readyState === 1 && mongoose.Types.ObjectId.isValid(jobId)) {
+      await Application.deleteMany({ job: jobId });
+      await Job.findByIdAndDelete(jobId);
+      return res.json({ message: 'Job and associated applications removed successfully' });
+    }
+
+    res.status(404).json({ message: 'Job not found' });
   } catch (error) {
     console.error('Error deleting job:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 };
 
-// @desc    Cleanup junk / test jobs (e.g. fdg, new, nj) and orphan applications
+// @desc    Cleanup junk / test jobs
 // @route   POST /api/jobs/cleanup-test-jobs
 // @access  Private/Employer/Admin
 export const cleanupTestJobs = async (req: Request, res: Response) => {
   try {
     const junkRegex = /^(fdg|new|nj|test|demo|asdf|xyz)$/i;
-    const junkJobs = await Job.find({
-      $or: [
-        { title: { $regex: junkRegex } },
-        { company: { $regex: junkRegex } }
-      ]
-    });
-    
-    const junkIds = junkJobs.map(j => j._id);
-    if (junkIds.length > 0) {
-      await Application.deleteMany({ job: { $in: junkIds } });
-      await Job.deleteMany({ _id: { $in: junkIds } });
+    if (prisma) {
+      try {
+        await prisma.job.deleteMany({
+          where: {
+            OR: [
+              { title: { in: ['fdg', 'new', 'nj', 'test', 'demo', 'asdf', 'xyz'] } },
+              { company: { in: ['fdg', 'new', 'nj', 'test', 'demo', 'asdf', 'xyz'] } }
+            ]
+          }
+        });
+      } catch (e) {}
     }
-
-    // Clean orphan applications where candidate or job is missing
-    const allApps = await Application.find({});
-    let removedOrphans = 0;
-    for (const app of allApps) {
-      const candidateExists = await User.exists({ _id: app.candidate });
-      const jobExists = await Job.exists({ _id: app.job });
-      if (!candidateExists || !jobExists) {
-        await Application.findByIdAndDelete(app._id);
-        removedOrphans++;
+    if (mongoose.connection.readyState === 1) {
+      const junkJobs = await Job.find({
+        $or: [
+          { title: { $regex: junkRegex } },
+          { company: { $regex: junkRegex } }
+        ]
+      });
+      const junkIds = junkJobs.map(j => j._id);
+      if (junkIds.length > 0) {
+        await Application.deleteMany({ job: { $in: junkIds } });
+        await Job.deleteMany({ _id: { $in: junkIds } });
       }
     }
-
-    res.json({
-      message: 'Cleanup successful',
-      deletedJobsCount: junkIds.length,
-      deletedOrphanApplicationsCount: removedOrphans
-    });
+    res.json({ message: 'Cleanup successful' });
   } catch (error) {
-    console.error('Error cleaning up test jobs:', error);
     res.status(500).json({ message: 'Server error during cleanup', error });
   }
 };
@@ -257,19 +410,34 @@ export const cleanupTestJobs = async (req: Request, res: Response) => {
 // @access  Private
 export const getJobMatchScore = async (req: Request, res: Response) => {
   try {
-    const job = await Job.findById(req.params.id);
-    const user = await User.findById(req.params.userId);
+    const jobId = String(req.params.id || '');
+    const userId = String(req.params.userId || '');
 
-    if (!job || !user) {
+    let jobObj: any = null;
+    let userObj: any = null;
+
+    if (prisma) {
+      try {
+        jobObj = await prisma.job.findUnique({ where: { id: jobId } });
+        userObj = await prisma.user.findUnique({ where: { id: userId } });
+      } catch (e) {}
+    }
+
+    if (!jobObj && mongoose.connection.readyState === 1 && mongoose.Types.ObjectId.isValid(jobId)) {
+      jobObj = await Job.findById(jobId);
+    }
+    if (!userObj && mongoose.connection.readyState === 1 && mongoose.Types.ObjectId.isValid(userId)) {
+      userObj = await User.findById(userId);
+    }
+
+    if (!jobObj || !userObj) {
       res.status(404).json({ message: 'Job or User not found' });
       return;
     }
 
-    const matchScore = calculateMatchScore(user, job);
-    
+    const matchScore = calculateMatchScore(userObj, jobObj);
     res.json({ matchScore });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 };
-

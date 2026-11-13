@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
+import prisma from '../config/prisma';
 import Assessment from '../models/Assessment';
 import User from '../models/User';
 import path from 'path';
@@ -195,6 +196,49 @@ export const submitAssessment = async (req: Request, res: Response) => {
     });
 
     // Check if candidate already has an assessment
+    const candidateUserId = (req as any).user?.id || candidateId?.toString();
+
+    if (prisma && candidateUserId) {
+      try {
+        const existingPg = await prisma.assessment.findFirst({
+          where: { candidateId: candidateUserId }
+        });
+
+        let pgAssessment;
+        if (existingPg) {
+          pgAssessment = await prisma.assessment.update({
+            where: { id: existingPg.id },
+            data: {
+              answers: processedAnswers,
+              mcqScore,
+              totalMcqQuestions: 2,
+              status: 'submitted'
+            }
+          });
+        } else {
+          pgAssessment = await prisma.assessment.create({
+            data: {
+              candidateId: candidateUserId,
+              answers: processedAnswers,
+              mcqScore,
+              totalMcqQuestions: 2,
+              status: 'submitted'
+            }
+          });
+        }
+
+        return res.status(201).json({
+          message: 'Assessment submitted successfully! Fast-track evaluation initiated.',
+          assessment: { ...pgAssessment, _id: pgAssessment.id }
+        });
+      } catch (pgErr) {
+        console.warn('Prisma submitAssessment warning:', pgErr);
+        if (mongoose.connection.readyState !== 1) {
+          return res.status(500).json({ message: 'Error submitting assessment' });
+        }
+      }
+    }
+
     let assessment = await Assessment.findOne({ candidate: candidateId });
 
     if (assessment) {
@@ -229,15 +273,37 @@ export const submitAssessment = async (req: Request, res: Response) => {
 export const getMyAssessment = async (req: Request, res: Response) => {
   try {
     const candidateId = (req as any).user?._id;
-    const assessment = await Assessment.findOne({ candidate: candidateId });
-    if (!assessment) {
-      res.json(null);
-      return;
+    const candidateUserId = (req as any).user?.id || candidateId?.toString();
+
+    if (prisma && candidateUserId) {
+      try {
+        const pgAssessment = await prisma.assessment.findFirst({
+          where: { candidateId: candidateUserId }
+        });
+        if (pgAssessment) {
+          const baseUrl = getBaseUrl(req);
+          const a = { ...pgAssessment, _id: pgAssessment.id };
+          a.answers = normalizeAnswers(a.answers as any, baseUrl);
+          return res.json(a);
+        }
+      } catch (e) {
+        console.warn('Prisma getMyAssessment warning:', e);
+      }
     }
-    const baseUrl = getBaseUrl(req);
-    const a = assessment.toObject();
-    a.answers = normalizeAnswers(a.answers, baseUrl);
-    res.json(a);
+
+    if (mongoose.connection.readyState === 1) {
+      const assessment = await Assessment.findOne({ candidate: candidateId });
+      if (!assessment) {
+        res.json(null);
+        return;
+      }
+      const baseUrl = getBaseUrl(req);
+      const a = assessment.toObject();
+      a.answers = normalizeAnswers(a.answers, baseUrl);
+      return res.json(a);
+    }
+
+    res.json(null);
   } catch (error) {
     console.error('Error fetching candidate assessment:', error);
     res.status(500).json({ message: 'Server error', error });
@@ -249,21 +315,53 @@ export const getMyAssessment = async (req: Request, res: Response) => {
 // @access  Private (Admin / Employer)
 export const getAllAssessments = async (req: Request, res: Response) => {
   try {
-    const assessments = await Assessment.find({})
-      .populate('candidate', 'firstName lastName email phone qualifications caPortfolio experience personalDetails resumeUrl')
-      .populate('reviewedBy', 'firstName lastName email')
-      .sort({ createdAt: -1 });
+    if (prisma) {
+      try {
+        const pgAssessments = await prisma.assessment.findMany({
+          orderBy: { createdAt: 'desc' },
+          include: {
+            candidate: {
+              select: { id: true, firstName: true, lastName: true, email: true, phone: true, qualifications: true, caPortfolio: true, resumeUrl: true }
+            },
+            reviewedBy: {
+              select: { id: true, firstName: true, lastName: true, email: true }
+            }
+          }
+        });
 
-    // Filter out submissions where candidate account was deleted
-    const validAssessments = assessments.filter(a => a.candidate);
-    const baseUrl = getBaseUrl(req);
-    const formattedAssessments = validAssessments.map(doc => {
-      const a = doc.toObject();
-      a.answers = normalizeAnswers(a.answers, baseUrl);
-      return a;
-    });
+        const baseUrl = getBaseUrl(req);
+        const formatted = pgAssessments.map(a => ({
+          ...a,
+          _id: a.id,
+          candidate: a.candidate ? { ...a.candidate, _id: a.candidate.id } : null,
+          reviewedBy: a.reviewedBy ? { ...a.reviewedBy, _id: a.reviewedBy.id } : null,
+          answers: normalizeAnswers(a.answers as any, baseUrl)
+        }));
 
-    res.json(formattedAssessments);
+        return res.json(formatted);
+      } catch (e) {
+        console.warn('Prisma getAllAssessments warning:', e);
+      }
+    }
+
+    if (mongoose.connection.readyState === 1) {
+      const assessments = await Assessment.find({})
+        .populate('candidate', 'firstName lastName email phone qualifications caPortfolio experience personalDetails resumeUrl')
+        .populate('reviewedBy', 'firstName lastName email')
+        .sort({ createdAt: -1 });
+
+      const validAssessments = assessments.filter(a => a.candidate);
+      const baseUrl = getBaseUrl(req);
+      const formattedAssessments = validAssessments.map(doc => {
+        const a = doc.toObject();
+        a.answers = normalizeAnswers(a.answers, baseUrl);
+        return a;
+      });
+
+      return res.json(formattedAssessments);
+    }
+
+    res.json([]);
   } catch (error) {
     console.error('Error fetching assessments for admin:', error);
     res.status(500).json({ message: 'Server error', error });
@@ -276,26 +374,54 @@ export const getAllAssessments = async (req: Request, res: Response) => {
 export const reviewAssessment = async (req: Request, res: Response) => {
   try {
     const { status, adminNotes, adminRating } = req.body;
-    const reviewerId = (req as any).user?._id;
+    const reviewerId = (req as any).user?.id || (req as any).user?._id?.toString();
+    const assessmentId = String(req.params.id || '');
 
-    const assessment = await Assessment.findById(req.params.id);
-    if (!assessment) {
-      res.status(404).json({ message: 'Assessment not found' });
-      return;
+    if (prisma && assessmentId) {
+      try {
+        const updateData: any = {};
+        if (status) updateData.status = status;
+        if (adminNotes !== undefined) updateData.adminNotes = adminNotes;
+        if (adminRating !== undefined) updateData.adminRating = adminRating;
+        if (reviewerId) updateData.reviewedById = reviewerId;
+        updateData.reviewedAt = new Date();
+
+        const updated = await prisma.assessment.update({
+          where: { id: assessmentId },
+          data: updateData
+        });
+
+        return res.json({
+          message: 'Assessment review updated successfully',
+          assessment: { ...updated, _id: updated.id }
+        });
+      } catch (e) {
+        console.warn('Prisma reviewAssessment warning:', e);
+      }
     }
 
-    if (status) assessment.status = status;
-    if (adminNotes !== undefined) assessment.adminNotes = adminNotes;
-    if (adminRating !== undefined) assessment.adminRating = adminRating;
+    if (mongoose.connection.readyState === 1 && mongoose.Types.ObjectId.isValid(assessmentId)) {
+      const assessment = await Assessment.findById(assessmentId);
+      if (!assessment) {
+        res.status(404).json({ message: 'Assessment not found' });
+        return;
+      }
 
-    assessment.reviewedBy = reviewerId;
-    assessment.reviewedAt = new Date();
+      if (status) assessment.status = status;
+      if (adminNotes !== undefined) assessment.adminNotes = adminNotes;
+      if (adminRating !== undefined) assessment.adminRating = adminRating;
 
-    const updated = await assessment.save();
-    res.json({
-      message: 'Assessment review updated successfully',
-      assessment: updated
-    });
+      assessment.reviewedBy = reviewerId;
+      assessment.reviewedAt = new Date();
+
+      const updated = await assessment.save();
+      return res.json({
+        message: 'Assessment review updated successfully',
+        assessment: updated
+      });
+    }
+
+    res.status(404).json({ message: 'Assessment not found' });
   } catch (error) {
     console.error('Error reviewing assessment:', error);
     res.status(500).json({ message: 'Server error', error });
