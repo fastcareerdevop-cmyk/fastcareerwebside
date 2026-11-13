@@ -8,6 +8,13 @@ export interface IUser extends Document {
   password?: string;
   role: 'candidate' | 'employer' | 'admin' | 'employee';
   phone?: string;
+  phoneNormalized?: string;
+  passwordResetOtpHash?: string;
+  passwordResetOtpExpires?: Date;
+  passwordResetOtpSentAt?: Date;
+  passwordResetOtpAttempts?: number;
+  passwordResetTokenHash?: string;
+  passwordResetTokenExpires?: Date;
   // Candidate specific
   headline?: string;
   resumeUrl?: string;
@@ -125,6 +132,13 @@ const UserSchema: Schema = new Schema(
     password: { type: String, required: true },
     role: { type: String, enum: ['candidate', 'employer', 'admin', 'employee'], default: 'candidate' },
     phone: { type: String },
+    phoneNormalized: { type: String },
+    passwordResetOtpHash: { type: String },
+    passwordResetOtpExpires: { type: Date },
+    passwordResetOtpSentAt: { type: Date },
+    passwordResetOtpAttempts: { type: Number, default: 0 },
+    passwordResetTokenHash: { type: String },
+    passwordResetTokenExpires: { type: Date },
     
     // --- Candidate specific fields ---
     headline: { type: String },
@@ -238,6 +252,11 @@ const UserSchema: Schema = new Schema(
     assignedEmployers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   },
   { timestamps: true }
+);
+
+UserSchema.index(
+  { phoneNormalized: 1 },
+  { unique: true, partialFilterExpression: { phoneNormalized: { $type: 'string' } } }
 );
 
 // Encrypt password before saving

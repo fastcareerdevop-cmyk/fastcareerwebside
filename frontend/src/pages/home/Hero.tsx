@@ -252,7 +252,7 @@ export const Hero = () => {
           className="inline-flex items-center gap-2 bg-[#fff7ed] border border-[#fed7aa] px-3.5 py-1.5 rounded-full mb-3.5 shadow-2xs w-fit hover:scale-105 transition-transform"
         >
           <Briefcase size={14} className="text-[#ea580c] fill-[#ea580c] shrink-0" />
-          <span className="text-[11px] font-black text-[#ea580c] tracking-wider uppercase">
+          <span className="text-[11px] font-black text-blue-700 tracking-wider uppercase">
             INDIA'S LEADING NON-IT PLACEMENT PARTNER • SINCE 2008
           </span>
         </motion.div>
@@ -264,7 +264,7 @@ export const Hero = () => {
           className="text-3xl sm:text-4xl lg:text-[38px] xl:text-[42px] font-black text-[#0b192c] leading-[1.14] tracking-tight mb-3.5"
         >
           Recruiters of <br />
-          <span className="text-[#ea580c]">Non-IT for India</span> <br />
+          <span className="text-blue-700">Non-IT for India</span> <br />
           Finance, Accounts &amp; <br />
           Commerce Talent
         </motion.h1>
@@ -276,9 +276,9 @@ export const Hero = () => {
           className="text-xs sm:text-sm text-slate-600 mb-5 max-w-md leading-relaxed font-medium"
         >
           <strong className="text-slate-900 font-bold">Fast Career Consultants Private Limited</strong> bridges
-          India's top <strong className="text-[#ea580c] font-bold">Non-IT talent</strong> — Finance, Accounts,
+          India's top <strong className="text-blue-700 font-bold">Non-IT talent</strong> — Finance, Accounts,
           Banking &amp; Commerce professionals — with{' '}
-          <strong className="text-[#ea580c] font-bold">300+</strong> corporates across all major industries Pan-India.
+          <strong className="text-blue-700 font-bold">300+</strong> corporates across all major industries Pan-India.
         </motion.p>
 
         <motion.div

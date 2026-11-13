@@ -4,6 +4,35 @@ import Job from '../models/Job';
 import Application from '../models/Application';
 import bcrypt from 'bcrypt';
 import generateToken from '../utils/generateToken';
+import { createHash, randomBytes, randomInt } from 'crypto';
+import { sendPasswordResetOtp } from '../utils/emailService';
+
+const normalizePhone = (phone: string) => phone.replace(/\D/g, '');
+
+const phoneLookup = (phone: string) => {
+  const formattedPhonePattern = `^(?:\\+?91\\D*)?${phone.split('').join('\\D*')}$`;
+  return {
+    $or: [
+      { phoneNormalized: phone },
+      { phone: { $regex: formattedPhonePattern } },
+      { 'personalDetails.phone': { $regex: formattedPhonePattern } },
+    ],
+  };
+};
+
+const findUserByEmail = (email: string) =>
+  User.findOne({
+    email: { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+  });
+
+const clearPasswordResetState = (user: InstanceType<typeof User>) => {
+  user.passwordResetOtpHash = undefined;
+  user.passwordResetOtpExpires = undefined;
+  user.passwordResetOtpSentAt = undefined;
+  user.passwordResetOtpAttempts = 0;
+  user.passwordResetTokenHash = undefined;
+  user.passwordResetTokenExpires = undefined;
+};
 
 // @desc    Auth user & get token
 // @route   POST /api/users/login
@@ -128,6 +157,22 @@ export const registerUser = async (req: Request, res: Response) => {
       return;
     }
 
+    const normalizedPhone = typeof phone === 'string' ? normalizePhone(phone) : '';
+    if ((role === 'candidate' || phone) && normalizedPhone.length !== 10) {
+      res.status(400).json({ message: 'Please enter a valid 10-digit mobile number.' });
+      return;
+    }
+
+    if (normalizedPhone) {
+      const existingPhone = await User.findOne(phoneLookup(normalizedPhone)).select('_id');
+      if (existingPhone) {
+        res.status(400).json({
+          message: 'This mobile number is already registered. Please sign in or use a different number.',
+        });
+        return;
+      }
+    }
+
     const user = await User.create({
       firstName: firstName?.trim(),
       lastName: lastName?.trim(),
@@ -136,6 +181,7 @@ export const registerUser = async (req: Request, res: Response) => {
       password,
       role: role || 'candidate',
       phone: phone || '',
+      ...(normalizedPhone ? { phoneNormalized: normalizedPhone } : {}),
       resumeUrl: resumeUrl || '',
       linkedinUrl: linkedinUrl || '',
       profileCompleted: false,
@@ -185,6 +231,12 @@ export const registerUser = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Registration Error:', error);
     if (error.code === 11000 || error.message?.includes('duplicate key')) {
+      if (error.keyPattern?.phoneNormalized || error.keyValue?.phoneNormalized || error.message?.includes('phoneNormalized')) {
+        res.status(400).json({
+          message: 'This mobile number is already registered. Please sign in or use a different number.',
+        });
+        return;
+      }
       res.status(400).json({ 
         message: 'This email address is already registered in the system. Please sign in to your account or enter a different email.' 
       });
@@ -232,6 +284,31 @@ export const updateUserProfile = async (req: Request, res: Response) => {
     const user = await User.findById(userId);
 
     if (user) {
+      const requestedPhone = req.body.phone !== undefined ? req.body.phone : req.body.personalDetails?.phone;
+      if (requestedPhone !== undefined) {
+        const normalizedPhone = typeof requestedPhone === 'string' ? normalizePhone(requestedPhone) : '';
+        if (normalizedPhone && normalizedPhone.length !== 10) {
+          res.status(400).json({ message: 'Please enter a valid 10-digit mobile number.' });
+          return;
+        }
+
+        if (normalizedPhone) {
+          const existingPhone = await User.findOne({
+            _id: { $ne: user._id },
+            ...phoneLookup(normalizedPhone),
+          }).select('_id');
+          if (existingPhone) {
+            res.status(400).json({
+              message: 'This mobile number is already registered. Please use a different number.',
+            });
+            return;
+          }
+        }
+
+        user.phone = requestedPhone;
+        user.phoneNormalized = normalizedPhone || undefined;
+      }
+
       user.firstName = req.body.firstName || user.firstName;
       user.lastName = req.body.lastName || user.lastName;
       user.email = req.body.email || user.email;
@@ -1008,5 +1085,159 @@ export const checkEmail = async (req: Request, res: Response) => {
     res.json({ exists: !!userExists });
   } catch (error) {
     res.status(500).json({ message: 'Error checking email' });
+  }
+};
+
+// @route   GET /api/users/check-phone
+// @access  Public
+export const checkPhone = async (req: Request, res: Response) => {
+  try {
+    const phone = normalizePhone((req.query.phone as string) || '');
+    if (phone.length !== 10) {
+      res.status(400).json({ message: 'Please enter a valid 10-digit mobile number.' });
+      return;
+    }
+
+    const userExists = await User.findOne(phoneLookup(phone)).select('_id');
+    res.json({ exists: !!userExists });
+  } catch (error) {
+    console.error('Error checking phone number:', error);
+    res.status(500).json({ message: 'Unable to check this mobile number right now.' });
+  }
+};
+
+// @route   POST /api/users/forgot-password
+// @access  Public
+export const requestPasswordResetOtp = async (req: Request, res: Response) => {
+  const email = typeof req.body.email === 'string' ? req.body.email.toLowerCase().trim() : '';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    res.status(400).json({ message: 'Please enter a valid email address.' });
+    return;
+  }
+
+  const genericResponse = {
+    message: 'If an account exists for this email, a verification code has been sent.',
+  };
+
+  try {
+    const user = await findUserByEmail(email);
+    if (!user) {
+      res.json(genericResponse);
+      return;
+    }
+
+    const now = new Date();
+    if (user.passwordResetOtpSentAt && now.getTime() - user.passwordResetOtpSentAt.getTime() < 60_000) {
+      res.json(genericResponse);
+      return;
+    }
+
+    const otp = randomInt(0, 10_000).toString().padStart(4, '0');
+    user.passwordResetOtpHash = await bcrypt.hash(otp, 10);
+    user.passwordResetOtpExpires = new Date(now.getTime() + 10 * 60_000);
+    user.passwordResetOtpSentAt = now;
+    user.passwordResetOtpAttempts = 0;
+    user.passwordResetTokenHash = undefined;
+    user.passwordResetTokenExpires = undefined;
+    await user.save();
+
+    try {
+      await sendPasswordResetOtp(user.email, otp);
+    } catch (error) {
+      console.error('Unable to send password reset email:', error);
+      clearPasswordResetState(user);
+      await user.save();
+      res.status(503).json({ message: 'Unable to send the verification email right now. Please try again later.' });
+      return;
+    }
+
+    res.json(genericResponse);
+  } catch (error) {
+    console.error('Error requesting password reset:', error);
+    res.status(500).json({ message: 'Unable to start password reset. Please try again.' });
+  }
+};
+
+// @route   POST /api/users/verify-password-reset-otp
+// @access  Public
+export const verifyPasswordResetOtp = async (req: Request, res: Response) => {
+  const email = typeof req.body.email === 'string' ? req.body.email.toLowerCase().trim() : '';
+  const otp = typeof req.body.otp === 'string' ? req.body.otp.trim() : '';
+  if (!email || !/^\d{4}$/.test(otp)) {
+    res.status(400).json({ message: 'Enter the 4-digit verification code sent to your email.' });
+    return;
+  }
+
+  try {
+    const user = await findUserByEmail(email);
+    const now = new Date();
+    if (!user?.passwordResetOtpHash || !user.passwordResetOtpExpires || user.passwordResetOtpExpires <= now) {
+      res.status(400).json({ message: 'This verification code is invalid or expired. Please request a new one.' });
+      return;
+    }
+
+    if ((user.passwordResetOtpAttempts || 0) >= 5) {
+      res.status(429).json({ message: 'Too many incorrect codes. Request a new verification code and try again.' });
+      return;
+    }
+
+    if (!(await bcrypt.compare(otp, user.passwordResetOtpHash))) {
+      user.passwordResetOtpAttempts = (user.passwordResetOtpAttempts || 0) + 1;
+      await user.save();
+      res.status(user.passwordResetOtpAttempts >= 5 ? 429 : 400).json({
+        message: user.passwordResetOtpAttempts >= 5
+          ? 'Too many incorrect codes. Request a new verification code and try again.'
+          : 'The verification code is incorrect. Please check the email and try again.',
+      });
+      return;
+    }
+
+    const resetToken = randomBytes(32).toString('hex');
+    user.passwordResetOtpHash = undefined;
+    user.passwordResetOtpExpires = undefined;
+    user.passwordResetOtpAttempts = 0;
+    user.passwordResetTokenHash = createHash('sha256').update(resetToken).digest('hex');
+    user.passwordResetTokenExpires = new Date(now.getTime() + 10 * 60_000);
+    await user.save();
+
+    res.json({ resetToken });
+  } catch (error) {
+    console.error('Error verifying password reset code:', error);
+    res.status(500).json({ message: 'Unable to verify the code right now. Please try again.' });
+  }
+};
+
+// @route   POST /api/users/reset-password
+// @access  Public
+export const resetPassword = async (req: Request, res: Response) => {
+  const email = typeof req.body.email === 'string' ? req.body.email.toLowerCase().trim() : '';
+  const resetToken = typeof req.body.resetToken === 'string' ? req.body.resetToken : '';
+  const password = typeof req.body.password === 'string' ? req.body.password : '';
+
+  if (!email || !resetToken || password.length < 6) {
+    res.status(400).json({ message: 'Password must be at least 6 characters long.' });
+    return;
+  }
+
+  try {
+    const tokenHash = createHash('sha256').update(resetToken).digest('hex');
+    const user = await findUserByEmail(email);
+    if (
+      !user ||
+      user.passwordResetTokenHash !== tokenHash ||
+      !user.passwordResetTokenExpires ||
+      user.passwordResetTokenExpires <= new Date()
+    ) {
+      res.status(400).json({ message: 'Password reset session is invalid or expired. Please start again.' });
+      return;
+    }
+
+    user.password = password;
+    clearPasswordResetState(user);
+    await user.save();
+    res.json({ message: 'Password reset successfully. You can now sign in with your new password.' });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({ message: 'Unable to reset the password right now. Please try again.' });
   }
 };

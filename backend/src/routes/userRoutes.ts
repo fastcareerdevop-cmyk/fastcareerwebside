@@ -14,7 +14,11 @@ import {
   downloadCandidateResumesZip,
   seedLiveCandidates, seed50Candidates, cleanupDbAndFixResumes, seed10CandidatesController,
   getCandidateResume,
-  checkEmail
+  checkEmail,
+  checkPhone,
+  requestPasswordResetOtp,
+  verifyPasswordResetOtp,
+  resetPassword
 } from '../controllers/userController';
 import { protect, admin, employerOrAdmin } from '../middleware/authMiddleware';
 import excelUpload from '../middleware/excelUploadMiddleware';
@@ -37,7 +41,11 @@ router.get('/test-live-whatsapp', async (req, res) => {
 
 router.route('/').post(registerUser);
 router.get('/check-email', checkEmail);
+router.get('/check-phone', checkPhone);
 router.post('/login', authUser);
+router.post('/forgot-password', requestPasswordResetOtp);
+router.post('/verify-password-reset-otp', verifyPasswordResetOtp);
+router.post('/reset-password', resetPassword);
 router.post('/upload-resume', upload.single('resume'), (req, res) => {
   if (req.file) {
     const url = req.file.path.startsWith('http') 

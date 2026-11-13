@@ -29,6 +29,7 @@ import {
 import { register, reset } from '../../store/authSlice';
 import type { AppDispatch, RootState } from '../../store';
 import api from '../../services/api';
+import authService from '../../services/authService';
 import {
   ALL_CITIES,
   ATTEMPTS,
@@ -334,6 +335,7 @@ export const Register = () => {
   const [formError, setFormError] = useState<string>('');
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [isCheckingPhone, setIsCheckingPhone] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -370,6 +372,37 @@ export const Register = () => {
       return true;
     } finally {
       setIsCheckingEmail(false);
+    }
+  };
+
+  const checkPhoneUnique = async (phoneVal: string): Promise<string | undefined> => {
+    const normalized = phoneVal.replace(/\D/g, '');
+    if (normalized.length !== 10) {
+      return 'Please enter a valid 10-digit mobile number.';
+    }
+
+    try {
+      setIsCheckingPhone(true);
+      const { exists } = await authService.checkPhone(normalized);
+      if (exists) {
+        const message = 'This mobile number is already registered. Please sign in or use a different number.';
+        setFieldErrors(prev => ({ ...prev, phone: message }));
+        return message;
+      }
+
+      setFieldErrors(prev => {
+        const copy = { ...prev };
+        delete copy.phone;
+        return copy;
+      });
+      return undefined;
+    } catch (error) {
+      console.error('Error checking phone number:', error);
+      const message = 'Unable to verify this mobile number right now. Please try again.';
+      setFieldErrors(prev => ({ ...prev, phone: message }));
+      return message;
+    } finally {
+      setIsCheckingPhone(false);
     }
   };
 
@@ -657,6 +690,13 @@ export const Register = () => {
         }
       } catch (err) {
         console.error('Error checking email uniqueness:', err);
+      }
+    }
+
+    if (role === 'candidate' && !newErrors.phone && phone.replace(/\D/g, '').length === 10) {
+      const phoneError = await checkPhoneUnique(phone);
+      if (phoneError) {
+        newErrors.phone = phoneError;
       }
     }
 
@@ -1006,7 +1046,10 @@ export const Register = () => {
                   </div>
 
                   <div>
-                    <label htmlFor="phone" className="block text-xs font-semibold text-slate-700 mb-1.5">Mobile Number *</label>
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <label htmlFor="phone" className="block text-xs font-semibold text-slate-700">Mobile Number *</label>
+                      {isCheckingPhone && <span className="text-[11px] text-slate-400">Checking number...</span>}
+                    </div>
                     <div className="flex">
                       <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-slate-200 bg-slate-50 text-slate-600 text-xs font-semibold">
                         +91
@@ -1028,6 +1071,8 @@ export const Register = () => {
                             setFieldErrors(prev => ({ ...prev, phone: 'Please fill this field: Mobile Number' }));
                           } else if (clean.length !== 10) {
                             setFieldErrors(prev => ({ ...prev, phone: 'Please enter a valid 10-digit mobile number.' }));
+                          } else if (role === 'candidate') {
+                            void checkPhoneUnique(clean);
                           }
                         }}
                         placeholder="98765 43210"

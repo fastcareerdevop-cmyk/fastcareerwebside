@@ -54,6 +54,13 @@ const UserSchema = new mongoose_1.Schema({
     password: { type: String, required: true },
     role: { type: String, enum: ['candidate', 'employer', 'admin', 'employee'], default: 'candidate' },
     phone: { type: String },
+    phoneNormalized: { type: String },
+    passwordResetOtpHash: { type: String },
+    passwordResetOtpExpires: { type: Date },
+    passwordResetOtpSentAt: { type: Date },
+    passwordResetOtpAttempts: { type: Number, default: 0 },
+    passwordResetTokenHash: { type: String },
+    passwordResetTokenExpires: { type: Date },
     // --- Candidate specific fields ---
     headline: { type: String },
     resumeUrl: { type: String },
@@ -160,6 +167,7 @@ const UserSchema = new mongoose_1.Schema({
     companyWebsite: { type: String },
     assignedEmployers: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'User' }],
 }, { timestamps: true });
+UserSchema.index({ phoneNormalized: 1 }, { unique: true, partialFilterExpression: { phoneNormalized: { $type: 'string' } } });
 // Encrypt password before saving
 UserSchema.pre('save', function () {
     return __awaiter(this, void 0, void 0, function* () {

@@ -1,0 +1,240 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                        String    @id @default(cuid())
+  mongoVersion              Int?      @map("__v")
+  firstName                 String
+  lastName                  String
+  email                     String    @unique
+  password                  String
+  role                      String    @default("candidate")
+  phone                     String?
+  phoneNormalized           String?   @unique
+  passwordResetOtpHash      String?
+  passwordResetOtpExpires   DateTime?
+  passwordResetOtpSentAt    DateTime?
+  passwordResetOtpAttempts  Int       @default(0)
+  passwordResetTokenHash    String?
+  passwordResetTokenExpires DateTime?
+  headline                  String?
+  resumeUrl                 String?
+  linkedinUrl               String    @default("")
+  skills                    String[]  @default([])
+  experience                Float?
+  profileCompleted          Boolean   @default(false)
+  personalDetails           Json?
+  caPortfolio               Json?
+  qualifications            Json?
+  experienceInfo            Json?
+  companyName               String?
+  companyWebsite            String?
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+
+  assignedEmployers   User[]             @relation("CandidateAssignedEmployers")
+  assignedCandidates  User[]             @relation("CandidateAssignedEmployers")
+  jobsPosted          Job[]              @relation("PostedJobs")
+  jobsTargeted        Job[]              @relation("TargetEmployers")
+  applications        Application[]      @relation("CandidateApplications")
+  assessments         Assessment[]       @relation("AssessmentCandidate")
+  assessmentsReviewed Assessment[]       @relation("AssessmentReviewer")
+  feedback            Feedback[]
+  sharedJobsSubmitted SharedJob[]
+  referrals           Referral[]
+  jobChangeRequests   JobChangeRequest[]
+
+  @@map("users")
+}
+
+model Job {
+  id                         String   @id @default(cuid())
+  mongoVersion               Int?     @map("__v")
+  title                      String
+  company                    String
+  location                   String
+  type                       String
+  category                   String
+  salaryRange                String
+  description                String   @default("")
+  requirements               String[] @default([])
+  responsibilities           String[] @default([])
+  isHot                      Boolean  @default(false)
+  postedById                 String?
+  sharedHrEmails             String[] @default([])
+  shareShortlistedCandidates Boolean  @default(true)
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  postedBy        User?         @relation("PostedJobs", fields: [postedById], references: [id], onDelete: SetNull)
+  targetEmployers User[]        @relation("TargetEmployers")
+  applications    Application[]
+
+  @@index([postedById])
+  @@map("jobs")
+}
+
+model Application {
+  id                 String   @id @default(cuid())
+  mongoVersion       Int?     @map("__v")
+  jobId              String
+  candidateId        String
+  resumeUrl          String
+  coverLetter        String?
+  status             String   @default("applied")
+  companyStatus      String   @default("Pending Review")
+  sharedWithEmployer Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  job       Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  candidate User @relation("CandidateApplications", fields: [candidateId], references: [id], onDelete: Restrict)
+
+  @@index([jobId])
+  @@index([candidateId])
+  @@map("applications")
+}
+
+model Assessment {
+  id                String    @id @default(cuid())
+  mongoVersion      Int?      @map("__v")
+  candidateId       String
+  answers           Json      @default("[]")
+  mcqScore          Float     @default(0)
+  totalMcqQuestions Int       @default(2)
+  status            String    @default("submitted")
+  adminNotes        String    @default("")
+  adminRating       Float?
+  reviewedById      String?
+  reviewedAt        DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  candidate  User  @relation("AssessmentCandidate", fields: [candidateId], references: [id], onDelete: Restrict)
+  reviewedBy User? @relation("AssessmentReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([candidateId])
+  @@index([reviewedById])
+  @@map("assessments")
+}
+
+model IndustrialTraining {
+  id                        String   @id @default(cuid())
+  mongoVersion              Int?     @map("__v")
+  name                      String
+  email                     String
+  phone                     String
+  currentLocation           String
+  currentState              String
+  permanentLocation         String
+  permanentState            String
+  dob                       String
+  gender                    String
+  caInterBatch              String
+  bothGroups1stAttempt      String   @default("No")
+  group1                    String
+  group2                    String
+  group1Batch               String?
+  group2Batch               String?
+  caInterRank               String   @default("No Rank")
+  articleshipFirmName       String
+  articleshipStartMonthYear String
+  big6Articleship           String   @default("")
+  preferredCities           String[] @default([])
+  preferredSectors          String[] @default([])
+  remarks                   String   @default("")
+  resumeUrl                 String   @default("")
+  isVerified                Boolean  @default(true)
+  verificationMethod        String   @default("OTP & ICAI Declaration")
+  verificationCode          String?
+  status                    String   @default("Applied")
+  notes                     String?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@map("industrial_trainings")
+}
+
+model Feedback {
+  id            String   @id @default(cuid())
+  mongoVersion  Int?     @map("__v")
+  rating        Float
+  message       String
+  submittedById String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  submittedBy User? @relation(fields: [submittedById], references: [id], onDelete: SetNull)
+
+  @@index([submittedById])
+  @@map("feedback")
+}
+
+model SharedJob {
+  id              String   @id @default(cuid())
+  mongoVersion    Int?     @map("__v")
+  industry        String
+  companyName     String
+  jobDescription  String?
+  location        String?
+  region          String?
+  noOfPost        Int
+  concernedPerson String?
+  mobileNo        String?
+  emailId         String?
+  submittedById   String?
+  status          String   @default("Pending")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  submittedBy User? @relation(fields: [submittedById], references: [id], onDelete: SetNull)
+
+  @@index([submittedById])
+  @@map("shared_jobs")
+}
+
+model Referral {
+  id           String   @id @default(cuid())
+  mongoVersion Int?     @map("__v")
+  friendName   String
+  friendEmail  String
+  friendPhone  String?
+  resumeUrl    String?
+  referredById String?
+  status       String   @default("Pending")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  referredBy User? @relation(fields: [referredById], references: [id], onDelete: SetNull)
+
+  @@index([referredById])
+  @@map("referrals")
+}
+
+model JobChangeRequest {
+  id                 String   @id @default(cuid())
+  mongoVersion       Int?     @map("__v")
+  currentCompany     String
+  currentDesignation String
+  currentCTC         String
+  expectedCTC        String
+  noticePeriod       String
+  reason             String?
+  requestedById      String?
+  status             String   @default("Pending")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  requestedBy User? @relation(fields: [requestedById], references: [id], onDelete: SetNull)
+
+  @@index([requestedById])
+  @@map("job_change_requests")
+}

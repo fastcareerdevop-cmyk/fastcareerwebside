@@ -32,7 +32,11 @@ router.get('/test-live-whatsapp', (req, res) => __awaiter(void 0, void 0, void 0
 }));
 router.route('/').post(userController_1.registerUser);
 router.get('/check-email', userController_1.checkEmail);
+router.get('/check-phone', userController_1.checkPhone);
 router.post('/login', userController_1.authUser);
+router.post('/forgot-password', userController_1.requestPasswordResetOtp);
+router.post('/verify-password-reset-otp', userController_1.verifyPasswordResetOtp);
+router.post('/reset-password', userController_1.resetPassword);
 router.post('/upload-resume', uploadMiddleware_1.default.single('resume'), (req, res) => {
     if (req.file) {
         const url = req.file.path.startsWith('http')

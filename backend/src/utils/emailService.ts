@@ -21,6 +21,30 @@ const createTransporter = () => {
   });
 };
 
+export const sendPasswordResetOtp = async (email: string, otp: string) => {
+  const emailUser = process.env.EMAIL_USER || process.env.SMTP_USER;
+  const emailPass = process.env.EMAIL_PASS || process.env.SMTP_PASS;
+
+  if (!emailUser || !emailPass) {
+    throw new Error('Email delivery is not configured.');
+  }
+
+  await createTransporter().sendMail({
+    from: `Fast Careers <${emailUser}>`,
+    to: email,
+    subject: 'Your Fast Careers password reset code',
+    text: `Your password reset code is ${otp}. It expires in 10 minutes. If you did not request this, you can ignore this email.`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; color: #0f172a;">
+        <h2 style="margin: 0 0 16px;">Reset your password</h2>
+        <p>Use this verification code to reset your Fast Careers password:</p>
+        <p style="font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #2563eb;">${otp}</p>
+        <p>This code expires in 10 minutes. If you did not request this, you can ignore this email.</p>
+      </div>
+    `,
+  });
+};
+
 export interface SharedCandidateInfo {
   firstName: string;
   lastName?: string;

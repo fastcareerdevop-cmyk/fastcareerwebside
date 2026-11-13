@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendCandidateSharedEmail = void 0;
+exports.sendCandidateSharedEmail = exports.sendPasswordResetOtp = void 0;
 const nodemailer_1 = __importDefault(require("nodemailer"));
 // Helper to create Nodemailer Transporter
 const createTransporter = () => {
@@ -31,6 +31,28 @@ const createTransporter = () => {
         auth: { user, pass },
     });
 };
+const sendPasswordResetOtp = (email, otp) => __awaiter(void 0, void 0, void 0, function* () {
+    const emailUser = process.env.EMAIL_USER || process.env.SMTP_USER;
+    const emailPass = process.env.EMAIL_PASS || process.env.SMTP_PASS;
+    if (!emailUser || !emailPass) {
+        throw new Error('Email delivery is not configured.');
+    }
+    yield createTransporter().sendMail({
+        from: `Fast Careers <${emailUser}>`,
+        to: email,
+        subject: 'Your Fast Careers password reset code',
+        text: `Your password reset code is ${otp}. It expires in 10 minutes. If you did not request this, you can ignore this email.`,
+        html: `
+      <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; color: #0f172a;">
+        <h2 style="margin: 0 0 16px;">Reset your password</h2>
+        <p>Use this verification code to reset your Fast Careers password:</p>
+        <p style="font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #2563eb;">${otp}</p>
+        <p>This code expires in 10 minutes. If you did not request this, you can ignore this email.</p>
+      </div>
+    `,
+    });
+});
+exports.sendPasswordResetOtp = sendPasswordResetOtp;
 /**
  * Send Email Notification to Company HR when Admin shares/assigns shortlisted candidate profiles
  */

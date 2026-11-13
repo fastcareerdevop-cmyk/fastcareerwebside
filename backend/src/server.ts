@@ -13,14 +13,16 @@ import candidateDashboardRoutes from './routes/candidateDashboardRoutes';
 import assessmentRoutes from './routes/assessmentRoutes';
 import connectDB from './config/db';
 import { seedAdmin } from './utils/seeder';
+import prisma, { checkPostgresConnection } from './config/prisma';
 
 dotenv.config();
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-// Connect to MongoDB
+// Connect Databases
 connectDB().then(() => {
   seedAdmin(); // Ensure admin exists on server start
 });
+checkPostgresConnection();
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;

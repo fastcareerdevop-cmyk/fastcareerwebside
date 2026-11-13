@@ -1,14 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.calculateMatchScore = void 0;
-/**
- * Calculates a match score (0-100) between a candidate and a job.
- *
- * Weights:
- * - Skills Match: 60%
- * - Experience Match: 30%
- * - Category Match: 10%
- */
 const calculateMatchScore = (candidate, job) => {
     let score = 0;
     // 1. Category Match (10 points max)

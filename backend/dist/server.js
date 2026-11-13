@@ -27,12 +27,14 @@ const candidateDashboardRoutes_1 = __importDefault(require("./routes/candidateDa
 const assessmentRoutes_1 = __importDefault(require("./routes/assessmentRoutes"));
 const db_1 = __importDefault(require("./config/db"));
 const seeder_1 = require("./utils/seeder");
+const prisma_1 = require("./config/prisma");
 dotenv_1.default.config();
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-// Connect to MongoDB
+// Connect Databases
 (0, db_1.default)().then(() => {
     (0, seeder_1.seedAdmin)(); // Ensure admin exists on server start
 });
+(0, prisma_1.checkPostgresConnection)();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
 // CORS configuration

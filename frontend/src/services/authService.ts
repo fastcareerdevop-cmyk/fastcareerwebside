@@ -57,6 +57,14 @@ export interface UserResponse {
   [key: string]: any;
 }
 
+export interface PasswordResetTokenResponse {
+  resetToken: string;
+}
+
+export interface MessageResponse {
+  message: string;
+}
+
 // Register user
 const register = async (userData: RegisterData): Promise<UserResponse> => {
   const response = await api.post('/users', userData);
@@ -81,6 +89,26 @@ const login = async (userData: LoginData): Promise<UserResponse> => {
   return response.data;
 };
 
+const requestPasswordResetOtp = async (email: string): Promise<MessageResponse> => {
+  const response = await api.post('/users/forgot-password', { email });
+  return response.data;
+};
+
+const verifyPasswordResetOtp = async (email: string, otp: string): Promise<PasswordResetTokenResponse> => {
+  const response = await api.post('/users/verify-password-reset-otp', { email, otp });
+  return response.data;
+};
+
+const resetPassword = async (email: string, resetToken: string, password: string): Promise<MessageResponse> => {
+  const response = await api.post('/users/reset-password', { email, resetToken, password });
+  return response.data;
+};
+
+const checkPhone = async (phone: string): Promise<{ exists: boolean }> => {
+  const response = await api.get(`/users/check-phone?phone=${encodeURIComponent(phone)}`);
+  return response.data;
+};
+
 // Logout user
 const logout = () => {
   localStorage.removeItem('user');
@@ -90,6 +118,10 @@ const logout = () => {
 const authService = {
   register,
   login,
+  requestPasswordResetOtp,
+  verifyPasswordResetOtp,
+  resetPassword,
+  checkPhone,
   logout,
 };
 

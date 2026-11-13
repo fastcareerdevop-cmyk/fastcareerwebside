@@ -1,4 +1,5 @@
 import toast from 'react-hot-toast';
+import { isAxiosError } from 'axios';
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -13,11 +14,14 @@ import {
   ArrowRight,
   ShieldCheck,
   GraduationCap,
-  AlertCircle
+  AlertCircle,
+  KeyRound,
+  X
 } from 'lucide-react';
 import { login, reset } from '../../store/authSlice';
 import type { AppDispatch, RootState } from '../../store';
 import { IndustrialTrainingModal } from '../../components/IndustrialTrainingModal';
+import authService from '../../services/authService';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
@@ -27,6 +31,16 @@ export const Login = () => {
   const [industrialModalOpen, setIndustrialModalOpen] = useState(false);
   const [activeRole, setActiveRole] = useState<'candidate' | 'employer'>('candidate');
   const [formError, setFormError] = useState<string>('');
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotStep, setForgotStep] = useState<'email' | 'otp' | 'password'>('email');
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [resetOtp, setResetOtp] = useState('');
+  const [resetToken, setResetToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [resetError, setResetError] = useState('');
+  const [resetNotice, setResetNotice] = useState('');
+  const [isResetLoading, setIsResetLoading] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
@@ -88,15 +102,102 @@ export const Login = () => {
     }
   };
 
+  const closeForgotPassword = () => {
+    setForgotOpen(false);
+    setForgotStep('email');
+    setForgotEmail('');
+    setResetOtp('');
+    setResetToken('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setResetError('');
+    setResetNotice('');
+  };
+
   const handleForgotPassword = (e: React.MouseEvent) => {
     e.preventDefault();
-    toast(
-      'To reset your password, please check your registered email or contact support@fastcareers.com',
-      {
-        icon: '🔑',
-        duration: 5000,
-      }
-    );
+    setForgotEmail(email.trim());
+    setForgotStep('email');
+    setResetError('');
+    setResetNotice('');
+    setForgotOpen(true);
+  };
+
+  const sendPasswordResetCode = async () => {
+    const trimmedEmail = forgotEmail.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setResetError('Please enter a valid email address.');
+      return;
+    }
+
+    setIsResetLoading(true);
+    setResetError('');
+    try {
+      const response = await authService.requestPasswordResetOtp(trimmedEmail);
+      setForgotEmail(trimmedEmail);
+      setForgotStep('otp');
+      setResetNotice(response.message);
+    } catch (error) {
+      const message = isAxiosError<{ message?: string }>(error)
+        ? error.response?.data?.message
+        : undefined;
+      setResetError(message || 'Unable to send a verification code. Please try again.');
+    } finally {
+      setIsResetLoading(false);
+    }
+  };
+
+  const verifyPasswordResetCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^\d{4}$/.test(resetOtp)) {
+      setResetError('Enter the 4-digit verification code from your email.');
+      return;
+    }
+
+    setIsResetLoading(true);
+    setResetError('');
+    try {
+      const response = await authService.verifyPasswordResetOtp(forgotEmail, resetOtp);
+      setResetToken(response.resetToken);
+      setForgotStep('password');
+      setResetNotice('Code verified. Choose a new password for your account.');
+    } catch (error) {
+      const message = isAxiosError<{ message?: string }>(error)
+        ? error.response?.data?.message
+        : undefined;
+      setResetError(message || 'Unable to verify this code. Please try again.');
+    } finally {
+      setIsResetLoading(false);
+    }
+  };
+
+  const submitNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      setResetError('Password must be at least 6 characters long.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setResetError('Passwords do not match.');
+      return;
+    }
+
+    setIsResetLoading(true);
+    setResetError('');
+    try {
+      const response = await authService.resetPassword(forgotEmail, resetToken, newPassword);
+      setEmail(forgotEmail);
+      setPassword('');
+      closeForgotPassword();
+      toast.success(response.message);
+    } catch (error) {
+      const message = isAxiosError<{ message?: string }>(error)
+        ? error.response?.data?.message
+        : undefined;
+      setResetError(message || 'Unable to reset your password. Please try again.');
+    } finally {
+      setIsResetLoading(false);
+    }
   };
 
   return (
@@ -454,6 +555,179 @@ export const Login = () => {
         isOpen={industrialModalOpen}
         onClose={() => setIndustrialModalOpen(false)}
       />
+
+      {forgotOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-4"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) closeForgotPassword();
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="forgot-password-title"
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+          >
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                  <KeyRound size={20} />
+                </div>
+                <h2 id="forgot-password-title" className="text-xl font-bold text-slate-900">
+                  {forgotStep === 'email' && 'Forgot your password?'}
+                  {forgotStep === 'otp' && 'Check your email'}
+                  {forgotStep === 'password' && 'Set a new password'}
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  {forgotStep === 'email' && 'Enter your registered email to receive a 4-digit code.'}
+                  {forgotStep === 'otp' && `Enter the 4-digit code sent to ${forgotEmail}.`}
+                  {forgotStep === 'password' && 'Choose a new password for your account.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeForgotPassword}
+                aria-label="Close password reset"
+                className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {resetNotice && (
+              <p className="mb-4 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-800">{resetNotice}</p>
+            )}
+            {resetError && (
+              <p role="alert" className="mb-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                {resetError}
+              </p>
+            )}
+
+            {forgotStep === 'email' && (
+              <form
+                className="space-y-4"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void sendPasswordResetCode();
+                }}
+              >
+                <label className="block text-sm font-semibold text-slate-700" htmlFor="reset-email">
+                  Email address
+                </label>
+                <input
+                  id="reset-email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="you@example.com"
+                />
+                <button
+                  type="submit"
+                  disabled={isResetLoading}
+                  className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isResetLoading ? 'Sending code...' : 'Send verification code'}
+                </button>
+              </form>
+            )}
+
+            {forgotStep === 'otp' && (
+              <form className="space-y-4" onSubmit={verifyPasswordResetCode}>
+                <label className="block text-sm font-semibold text-slate-700" htmlFor="reset-otp">
+                  4-digit verification code
+                </label>
+                <input
+                  id="reset-otp"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="[0-9]{4}"
+                  maxLength={4}
+                  required
+                  value={resetOtp}
+                  onChange={(e) => setResetOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-center text-lg tracking-[0.5em] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="0000"
+                />
+                <button
+                  type="submit"
+                  disabled={isResetLoading}
+                  className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isResetLoading ? 'Verifying code...' : 'Verify code'}
+                </button>
+                <div className="flex items-center justify-between text-sm">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotStep('email');
+                      setResetError('');
+                      setResetNotice('');
+                    }}
+                    className="font-semibold text-slate-500 hover:text-slate-700"
+                  >
+                    Change email
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isResetLoading}
+                    onClick={() => void sendPasswordResetCode()}
+                    className="font-semibold text-blue-600 hover:text-blue-700 disabled:opacity-60"
+                  >
+                    Resend code
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {forgotStep === 'password' && (
+              <form className="space-y-4" onSubmit={submitNewPassword}>
+                <div>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700" htmlFor="new-password">
+                    New password
+                  </label>
+                  <input
+                    id="new-password"
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={6}
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-semibold text-slate-700" htmlFor="confirm-new-password">
+                    Confirm new password
+                  </label>
+                  <input
+                    id="confirm-new-password"
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={6}
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isResetLoading}
+                  className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isResetLoading ? 'Resetting password...' : 'Reset password'}
+                </button>
+              </form>
+            )}
+          </section>
+        </div>
+      )}
     </div>
   );
 };

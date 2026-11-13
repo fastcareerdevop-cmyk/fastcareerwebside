@@ -45,12 +45,36 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkEmail = exports.deleteEmployee = exports.getEmployees = exports.createEmployee = exports.getEmployers = exports.cleanupDbAndFixResumes = exports.seed50Candidates = exports.getCandidateResume = exports.downloadCandidateResumesZip = exports.matchCandidatesFromExcel = exports.assignCandidatesToCompany = exports.getCandidates = exports.seedLiveCandidates = exports.seed10CandidatesController = exports.updateUserProfile = exports.getUserProfile = exports.registerUser = exports.authUser = void 0;
+exports.resetPassword = exports.verifyPasswordResetOtp = exports.requestPasswordResetOtp = exports.checkPhone = exports.checkEmail = exports.deleteEmployee = exports.getEmployees = exports.createEmployee = exports.getEmployers = exports.cleanupDbAndFixResumes = exports.seed50Candidates = exports.getCandidateResume = exports.downloadCandidateResumesZip = exports.matchCandidatesFromExcel = exports.assignCandidatesToCompany = exports.getCandidates = exports.seedLiveCandidates = exports.seed10CandidatesController = exports.updateUserProfile = exports.getUserProfile = exports.registerUser = exports.authUser = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const Job_1 = __importDefault(require("../models/Job"));
 const Application_1 = __importDefault(require("../models/Application"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const generateToken_1 = __importDefault(require("../utils/generateToken"));
+const crypto_1 = require("crypto");
+const emailService_1 = require("../utils/emailService");
+const normalizePhone = (phone) => phone.replace(/\D/g, '');
+const phoneLookup = (phone) => {
+    const formattedPhonePattern = `^(?:\\+?91\\D*)?${phone.split('').join('\\D*')}$`;
+    return {
+        $or: [
+            { phoneNormalized: phone },
+            { phone: { $regex: formattedPhonePattern } },
+            { 'personalDetails.phone': { $regex: formattedPhonePattern } },
+        ],
+    };
+};
+const findUserByEmail = (email) => User_1.default.findOne({
+    email: { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+});
+const clearPasswordResetState = (user) => {
+    user.passwordResetOtpHash = undefined;
+    user.passwordResetOtpExpires = undefined;
+    user.passwordResetOtpSentAt = undefined;
+    user.passwordResetOtpAttempts = 0;
+    user.passwordResetTokenHash = undefined;
+    user.passwordResetTokenExpires = undefined;
+};
 // @desc    Auth user & get token
 // @route   POST /api/users/login
 // @access  Public
@@ -130,7 +154,7 @@ const whatsappService_1 = require("../utils/whatsappService");
 // @route   POST /api/users
 // @access  Public
 const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c, _d, _e;
     const { firstName, lastName, companyName, email, password, role, phone, currentCity, dateOfBirth, isFresherCA, resumeUrl, linkedinUrl, caFinal, caInter, experienceInfo, articleships, articleshipCompletionDate, natureOfWork, gmcsCompleted, industrialTrainee, listedCompanyWork, } = req.body;
     try {
         const trimmedEmail = (email || '').toLowerCase().trim();
@@ -145,11 +169,25 @@ const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             });
             return;
         }
-        const user = yield User_1.default.create(Object.assign({ firstName: firstName === null || firstName === void 0 ? void 0 : firstName.trim(), lastName: lastName === null || lastName === void 0 ? void 0 : lastName.trim(), companyName: (companyName === null || companyName === void 0 ? void 0 : companyName.trim()) || (role === 'employer' ? (`${firstName || ''} ${lastName || ''}`.trim()) : ''), email: trimmedEmail, password, role: role || 'candidate', phone: phone || '', resumeUrl: resumeUrl || '', linkedinUrl: linkedinUrl || '', profileCompleted: false, personalDetails: {
+        const normalizedPhone = typeof phone === 'string' ? normalizePhone(phone) : '';
+        if ((role === 'candidate' || phone) && normalizedPhone.length !== 10) {
+            res.status(400).json({ message: 'Please enter a valid 10-digit mobile number.' });
+            return;
+        }
+        if (normalizedPhone) {
+            const existingPhone = yield User_1.default.findOne(phoneLookup(normalizedPhone)).select('_id');
+            if (existingPhone) {
+                res.status(400).json({
+                    message: 'This mobile number is already registered. Please sign in or use a different number.',
+                });
+                return;
+            }
+        }
+        const user = yield User_1.default.create(Object.assign(Object.assign(Object.assign({ firstName: firstName === null || firstName === void 0 ? void 0 : firstName.trim(), lastName: lastName === null || lastName === void 0 ? void 0 : lastName.trim(), companyName: (companyName === null || companyName === void 0 ? void 0 : companyName.trim()) || (role === 'employer' ? (`${firstName || ''} ${lastName || ''}`.trim()) : ''), email: trimmedEmail, password, role: role || 'candidate', phone: phone || '' }, (normalizedPhone ? { phoneNormalized: normalizedPhone } : {})), { resumeUrl: resumeUrl || '', linkedinUrl: linkedinUrl || '', profileCompleted: false, personalDetails: {
                 phone: phone || '',
                 currentCity: currentCity || '',
                 dateOfBirth: dateOfBirth || '',
-            }, caPortfolio: Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({ isFresherCA: isFresherCA === true || isFresherCA === 'true' }, (caFinal ? { caFinal } : {})), (caInter ? { caInter } : {})), (articleships && Array.isArray(articleships) && articleships.length > 0 ? { articleships } : {})), (articleshipCompletionDate ? { articleshipCompletionDate } : {})), (natureOfWork ? { natureOfWork } : {})), (gmcsCompleted ? { gmcsCompleted } : {})), (industrialTrainee ? { industrialTrainee } : {})), (listedCompanyWork ? { listedCompanyWork } : {})) }, (experienceInfo ? { experienceInfo } : {})));
+            }, caPortfolio: Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({ isFresherCA: isFresherCA === true || isFresherCA === 'true' }, (caFinal ? { caFinal } : {})), (caInter ? { caInter } : {})), (articleships && Array.isArray(articleships) && articleships.length > 0 ? { articleships } : {})), (articleshipCompletionDate ? { articleshipCompletionDate } : {})), (natureOfWork ? { natureOfWork } : {})), (gmcsCompleted ? { gmcsCompleted } : {})), (industrialTrainee ? { industrialTrainee } : {})), (listedCompanyWork ? { listedCompanyWork } : {})) }), (experienceInfo ? { experienceInfo } : {})));
         if (user) {
             const candidatePhone = user.phone || ((_a = user.personalDetails) === null || _a === void 0 ? void 0 : _a.phone) || phone || '';
             if (candidatePhone) {
@@ -179,6 +217,12 @@ const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     catch (error) {
         console.error('Registration Error:', error);
         if (error.code === 11000 || ((_b = error.message) === null || _b === void 0 ? void 0 : _b.includes('duplicate key'))) {
+            if (((_c = error.keyPattern) === null || _c === void 0 ? void 0 : _c.phoneNormalized) || ((_d = error.keyValue) === null || _d === void 0 ? void 0 : _d.phoneNormalized) || ((_e = error.message) === null || _e === void 0 ? void 0 : _e.includes('phoneNormalized'))) {
+                res.status(400).json({
+                    message: 'This mobile number is already registered. Please sign in or use a different number.',
+                });
+                return;
+            }
             res.status(400).json({
                 message: 'This email address is already registered in the system. Please sign in to your account or enter a different email.'
             });
@@ -217,7 +261,7 @@ exports.getUserProfile = getUserProfile;
 // @route   PUT /api/users/profile
 // @access  Private
 const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g;
     try {
         const userId = ((_a = req.user) === null || _a === void 0 ? void 0 : _a._id) || ((_b = req.user) === null || _b === void 0 ? void 0 : _b.id);
         if (!userId) {
@@ -226,6 +270,25 @@ const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, functi
         }
         const user = yield User_1.default.findById(userId);
         if (user) {
+            const requestedPhone = req.body.phone !== undefined ? req.body.phone : (_c = req.body.personalDetails) === null || _c === void 0 ? void 0 : _c.phone;
+            if (requestedPhone !== undefined) {
+                const normalizedPhone = typeof requestedPhone === 'string' ? normalizePhone(requestedPhone) : '';
+                if (normalizedPhone && normalizedPhone.length !== 10) {
+                    res.status(400).json({ message: 'Please enter a valid 10-digit mobile number.' });
+                    return;
+                }
+                if (normalizedPhone) {
+                    const existingPhone = yield User_1.default.findOne(Object.assign({ _id: { $ne: user._id } }, phoneLookup(normalizedPhone))).select('_id');
+                    if (existingPhone) {
+                        res.status(400).json({
+                            message: 'This mobile number is already registered. Please use a different number.',
+                        });
+                        return;
+                    }
+                }
+                user.phone = requestedPhone;
+                user.phoneNormalized = normalizedPhone || undefined;
+            }
             user.firstName = req.body.firstName || user.firstName;
             user.lastName = req.body.lastName || user.lastName;
             user.email = req.body.email || user.email;
@@ -241,8 +304,8 @@ const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, functi
             if (req.body.password)
                 user.password = req.body.password;
             if (req.body.personalDetails !== undefined) {
-                user.personalDetails = Object.assign(Object.assign(Object.assign({}, (user.personalDetails || {})), req.body.personalDetails), { phone: ((_c = req.body.personalDetails) === null || _c === void 0 ? void 0 : _c.phone) || req.body.phone || user.phone || '' });
-                if (((_d = user.personalDetails) === null || _d === void 0 ? void 0 : _d.phone) && !user.phone) {
+                user.personalDetails = Object.assign(Object.assign(Object.assign({}, (user.personalDetails || {})), req.body.personalDetails), { phone: ((_d = req.body.personalDetails) === null || _d === void 0 ? void 0 : _d.phone) || req.body.phone || user.phone || '' });
+                if (((_e = user.personalDetails) === null || _e === void 0 ? void 0 : _e.phone) && !user.phone) {
                     user.phone = user.personalDetails.phone;
                 }
             }
@@ -255,7 +318,7 @@ const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, functi
             if (req.body.profileCompleted !== undefined) {
                 user.profileCompleted = req.body.profileCompleted;
             }
-            else if (req.body.qualifications && (((_e = req.body.qualifications.graduation) === null || _e === void 0 ? void 0 : _e.completed) || ((_f = req.body.qualifications.graduation) === null || _f === void 0 ? void 0 : _f.courseName))) {
+            else if (req.body.qualifications && (((_f = req.body.qualifications.graduation) === null || _f === void 0 ? void 0 : _f.completed) || ((_g = req.body.qualifications.graduation) === null || _g === void 0 ? void 0 : _g.courseName))) {
                 user.profileCompleted = true;
             }
             const updatedUser = yield user.save();
@@ -387,7 +450,7 @@ const getCandidates = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.getCandidates = getCandidates;
-const emailService_1 = require("../utils/emailService");
+const emailService_2 = require("../utils/emailService");
 // @desc    Assign or unassign candidates to a company
 // @route   PUT /api/users/candidates/assign-company
 // @access  Private/Admin
@@ -426,7 +489,7 @@ const assignCandidatesToCompany = (req, res) => __awaiter(void 0, void 0, void 0
                         };
                     });
                     const companyTitle = employer.companyName || `${employer.firstName || ''} ${employer.lastName || ''}`.trim() || 'Company';
-                    (0, emailService_1.sendCandidateSharedEmail)(employer.email, employer.firstName || companyTitle, companyTitle, formattedCandidates);
+                    (0, emailService_2.sendCandidateSharedEmail)(employer.email, employer.firstName || companyTitle, companyTitle, formattedCandidates);
                 }
             }
             catch (emailErr) {
@@ -937,3 +1000,145 @@ const checkEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.checkEmail = checkEmail;
+// @route   GET /api/users/check-phone
+// @access  Public
+const checkPhone = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const phone = normalizePhone(req.query.phone || '');
+        if (phone.length !== 10) {
+            res.status(400).json({ message: 'Please enter a valid 10-digit mobile number.' });
+            return;
+        }
+        const userExists = yield User_1.default.findOne(phoneLookup(phone)).select('_id');
+        res.json({ exists: !!userExists });
+    }
+    catch (error) {
+        console.error('Error checking phone number:', error);
+        res.status(500).json({ message: 'Unable to check this mobile number right now.' });
+    }
+});
+exports.checkPhone = checkPhone;
+// @route   POST /api/users/forgot-password
+// @access  Public
+const requestPasswordResetOtp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const email = typeof req.body.email === 'string' ? req.body.email.toLowerCase().trim() : '';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        res.status(400).json({ message: 'Please enter a valid email address.' });
+        return;
+    }
+    const genericResponse = {
+        message: 'If an account exists for this email, a verification code has been sent.',
+    };
+    try {
+        const user = yield findUserByEmail(email);
+        if (!user) {
+            res.json(genericResponse);
+            return;
+        }
+        const now = new Date();
+        if (user.passwordResetOtpSentAt && now.getTime() - user.passwordResetOtpSentAt.getTime() < 60000) {
+            res.json(genericResponse);
+            return;
+        }
+        const otp = (0, crypto_1.randomInt)(0, 10000).toString().padStart(4, '0');
+        user.passwordResetOtpHash = yield bcrypt_1.default.hash(otp, 10);
+        user.passwordResetOtpExpires = new Date(now.getTime() + 10 * 60000);
+        user.passwordResetOtpSentAt = now;
+        user.passwordResetOtpAttempts = 0;
+        user.passwordResetTokenHash = undefined;
+        user.passwordResetTokenExpires = undefined;
+        yield user.save();
+        try {
+            yield (0, emailService_1.sendPasswordResetOtp)(user.email, otp);
+        }
+        catch (error) {
+            console.error('Unable to send password reset email:', error);
+            clearPasswordResetState(user);
+            yield user.save();
+            res.status(503).json({ message: 'Unable to send the verification email right now. Please try again later.' });
+            return;
+        }
+        res.json(genericResponse);
+    }
+    catch (error) {
+        console.error('Error requesting password reset:', error);
+        res.status(500).json({ message: 'Unable to start password reset. Please try again.' });
+    }
+});
+exports.requestPasswordResetOtp = requestPasswordResetOtp;
+// @route   POST /api/users/verify-password-reset-otp
+// @access  Public
+const verifyPasswordResetOtp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const email = typeof req.body.email === 'string' ? req.body.email.toLowerCase().trim() : '';
+    const otp = typeof req.body.otp === 'string' ? req.body.otp.trim() : '';
+    if (!email || !/^\d{4}$/.test(otp)) {
+        res.status(400).json({ message: 'Enter the 4-digit verification code sent to your email.' });
+        return;
+    }
+    try {
+        const user = yield findUserByEmail(email);
+        const now = new Date();
+        if (!(user === null || user === void 0 ? void 0 : user.passwordResetOtpHash) || !user.passwordResetOtpExpires || user.passwordResetOtpExpires <= now) {
+            res.status(400).json({ message: 'This verification code is invalid or expired. Please request a new one.' });
+            return;
+        }
+        if ((user.passwordResetOtpAttempts || 0) >= 5) {
+            res.status(429).json({ message: 'Too many incorrect codes. Request a new verification code and try again.' });
+            return;
+        }
+        if (!(yield bcrypt_1.default.compare(otp, user.passwordResetOtpHash))) {
+            user.passwordResetOtpAttempts = (user.passwordResetOtpAttempts || 0) + 1;
+            yield user.save();
+            res.status(user.passwordResetOtpAttempts >= 5 ? 429 : 400).json({
+                message: user.passwordResetOtpAttempts >= 5
+                    ? 'Too many incorrect codes. Request a new verification code and try again.'
+                    : 'The verification code is incorrect. Please check the email and try again.',
+            });
+            return;
+        }
+        const resetToken = (0, crypto_1.randomBytes)(32).toString('hex');
+        user.passwordResetOtpHash = undefined;
+        user.passwordResetOtpExpires = undefined;
+        user.passwordResetOtpAttempts = 0;
+        user.passwordResetTokenHash = (0, crypto_1.createHash)('sha256').update(resetToken).digest('hex');
+        user.passwordResetTokenExpires = new Date(now.getTime() + 10 * 60000);
+        yield user.save();
+        res.json({ resetToken });
+    }
+    catch (error) {
+        console.error('Error verifying password reset code:', error);
+        res.status(500).json({ message: 'Unable to verify the code right now. Please try again.' });
+    }
+});
+exports.verifyPasswordResetOtp = verifyPasswordResetOtp;
+// @route   POST /api/users/reset-password
+// @access  Public
+const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const email = typeof req.body.email === 'string' ? req.body.email.toLowerCase().trim() : '';
+    const resetToken = typeof req.body.resetToken === 'string' ? req.body.resetToken : '';
+    const password = typeof req.body.password === 'string' ? req.body.password : '';
+    if (!email || !resetToken || password.length < 6) {
+        res.status(400).json({ message: 'Password must be at least 6 characters long.' });
+        return;
+    }
+    try {
+        const tokenHash = (0, crypto_1.createHash)('sha256').update(resetToken).digest('hex');
+        const user = yield findUserByEmail(email);
+        if (!user ||
+            user.passwordResetTokenHash !== tokenHash ||
+            !user.passwordResetTokenExpires ||
+            user.passwordResetTokenExpires <= new Date()) {
+            res.status(400).json({ message: 'Password reset session is invalid or expired. Please start again.' });
+            return;
+        }
+        user.password = password;
+        clearPasswordResetState(user);
+        yield user.save();
+        res.json({ message: 'Password reset successfully. You can now sign in with your new password.' });
+    }
+    catch (error) {
+        console.error('Error resetting password:', error);
+        res.status(500).json({ message: 'Unable to reset the password right now. Please try again.' });
+    }
+});
+exports.resetPassword = resetPassword;
