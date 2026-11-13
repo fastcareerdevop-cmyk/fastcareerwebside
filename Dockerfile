@@ -6,7 +6,7 @@ WORKDIR /app
 COPY backend/package*.json ./
 COPY backend/prisma ./prisma
 RUN npm install --omit=dev --legacy-peer-deps
-RUN npx prisma generate
+RUN ./node_modules/.bin/prisma generate
 
 # Copy pre-compiled JavaScript
 COPY backend/dist ./dist
