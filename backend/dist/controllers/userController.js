@@ -66,8 +66,25 @@ const phoneLookup = (phone) => {
         ],
     };
 };
-const findUserByEmail = (email) => User_1.default.findOne({
-    email: { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+const findUserByEmail = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    if (prisma_1.default) {
+        try {
+            const pgUser = yield prisma_1.default.user.findFirst({
+                where: { email: { equals: email.trim(), mode: 'insensitive' } }
+            });
+            if (pgUser)
+                return pgUser;
+        }
+        catch (e) {
+            console.warn('Prisma findUserByEmail error:', e);
+        }
+    }
+    if (mongoose_1.default.connection.readyState === 1) {
+        return User_1.default.findOne({
+            email: { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+        });
+    }
+    return null;
 });
 const clearPasswordResetState = (user) => {
     user.passwordResetOtpHash = undefined;
@@ -212,6 +229,21 @@ const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                         message: `The email "${trimmedEmail}" is already registered. Please sign in or use another email address.`
                     });
                 }
+                if (normalizedPhone) {
+                    const existingPgPhone = yield prisma_1.default.user.findFirst({
+                        where: {
+                            OR: [
+                                { phoneNormalized: normalizedPhone },
+                                { phone: { contains: normalizedPhone } }
+                            ]
+                        }
+                    });
+                    if (existingPgPhone) {
+                        return res.status(400).json({
+                            message: 'This mobile number is already registered. Please sign in or use a different number.'
+                        });
+                    }
+                }
                 const hashedPassword = yield bcrypt_1.default.hash(password, 10);
                 const newPgUser = yield prisma_1.default.user.create({
                     data: Object.assign({ firstName: (firstName === null || firstName === void 0 ? void 0 : firstName.trim()) || '', lastName: (lastName === null || lastName === void 0 ? void 0 : lastName.trim()) || '', companyName: (companyName === null || companyName === void 0 ? void 0 : companyName.trim()) || (role === 'employer' ? (`${firstName || ''} ${lastName || ''}`.trim()) : ''), email: trimmedEmail, password: hashedPassword, role: role || 'candidate', phone: phone || '', phoneNormalized: normalizedPhone || null, resumeUrl: resumeUrl || '', linkedinUrl: linkedinUrl || '', profileCompleted: false, personalDetails: {
@@ -235,8 +267,22 @@ const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                 });
             }
             catch (pgRegErr) {
-                console.warn('Prisma registration error:', pgRegErr.message);
+                console.error('Prisma registration error:', pgRegErr);
+                if ((pgRegErr === null || pgRegErr === void 0 ? void 0 : pgRegErr.code) === 'P2002') {
+                    return res.status(400).json({
+                        message: 'An account with this email or phone number is already registered.'
+                    });
+                }
+                if (mongoose_1.default.connection.readyState !== 1) {
+                    return res.status(500).json({
+                        message: 'Unable to complete registration at this time. Please try again.',
+                        error: pgRegErr === null || pgRegErr === void 0 ? void 0 : pgRegErr.message
+                    });
+                }
             }
+        }
+        if (mongoose_1.default.connection.readyState !== 1) {
+            return res.status(503).json({ message: 'Service temporarily unavailable. Please try again.' });
         }
         const userExists = yield User_1.default.findOne({ email: trimmedEmail });
         if (normalizedPhone) {
@@ -340,16 +386,122 @@ exports.getUserProfile = getUserProfile;
 // @route   PUT /api/users/profile
 // @access  Private
 const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
     try {
         const userId = ((_a = req.user) === null || _a === void 0 ? void 0 : _a._id) || ((_b = req.user) === null || _b === void 0 ? void 0 : _b.id);
         if (!userId) {
             res.status(401).json({ message: 'Authentication required. Please log in again.' });
             return;
         }
+        // 1. Try PostgreSQL (Prisma) first
+        if (prisma_1.default) {
+            try {
+                const pgUser = yield prisma_1.default.user.findUnique({
+                    where: { id: userId.toString() }
+                });
+                if (pgUser) {
+                    const requestedPhone = req.body.phone !== undefined ? req.body.phone : (_c = req.body.personalDetails) === null || _c === void 0 ? void 0 : _c.phone;
+                    let normalizedPhone = null;
+                    if (requestedPhone !== undefined) {
+                        normalizedPhone = typeof requestedPhone === 'string' ? normalizePhone(requestedPhone) : '';
+                        if (normalizedPhone && normalizedPhone.length !== 10) {
+                            return res.status(400).json({ message: 'Please enter a valid 10-digit mobile number.' });
+                        }
+                        if (normalizedPhone) {
+                            const existingPgPhone = yield prisma_1.default.user.findFirst({
+                                where: {
+                                    id: { not: pgUser.id },
+                                    OR: [
+                                        { phoneNormalized: normalizedPhone },
+                                        { phone: { contains: normalizedPhone } }
+                                    ]
+                                }
+                            });
+                            if (existingPgPhone) {
+                                return res.status(400).json({
+                                    message: 'This mobile number is already registered. Please use a different number.'
+                                });
+                            }
+                        }
+                    }
+                    const updateData = {};
+                    if (req.body.firstName)
+                        updateData.firstName = req.body.firstName.trim();
+                    if (req.body.lastName)
+                        updateData.lastName = req.body.lastName.trim();
+                    if (req.body.email)
+                        updateData.email = req.body.email.toLowerCase().trim();
+                    if (req.body.companyName)
+                        updateData.companyName = req.body.companyName.trim();
+                    if (req.body.companyWebsite)
+                        updateData.companyWebsite = req.body.companyWebsite.trim();
+                    if (req.body.headline !== undefined)
+                        updateData.headline = req.body.headline;
+                    if (req.body.resumeUrl !== undefined)
+                        updateData.resumeUrl = req.body.resumeUrl;
+                    if (req.body.linkedinUrl !== undefined)
+                        updateData.linkedinUrl = req.body.linkedinUrl;
+                    if (req.body.skills !== undefined)
+                        updateData.skills = req.body.skills;
+                    if (requestedPhone !== undefined) {
+                        updateData.phone = requestedPhone;
+                        if (normalizedPhone)
+                            updateData.phoneNormalized = normalizedPhone;
+                    }
+                    if (req.body.password) {
+                        updateData.password = yield bcrypt_1.default.hash(req.body.password, 10);
+                    }
+                    if (req.body.personalDetails !== undefined) {
+                        updateData.personalDetails = Object.assign(Object.assign(Object.assign({}, (pgUser.personalDetails || {})), req.body.personalDetails), { phone: ((_d = req.body.personalDetails) === null || _d === void 0 ? void 0 : _d.phone) || req.body.phone || updateData.phone || pgUser.phone || '' });
+                    }
+                    if (req.body.caPortfolio !== undefined)
+                        updateData.caPortfolio = req.body.caPortfolio;
+                    if (req.body.qualifications !== undefined)
+                        updateData.qualifications = req.body.qualifications;
+                    if (req.body.experienceInfo !== undefined)
+                        updateData.experienceInfo = req.body.experienceInfo;
+                    if (req.body.profileCompleted !== undefined) {
+                        updateData.profileCompleted = req.body.profileCompleted;
+                    }
+                    else if (req.body.qualifications && (((_e = req.body.qualifications.graduation) === null || _e === void 0 ? void 0 : _e.completed) || ((_f = req.body.qualifications.graduation) === null || _f === void 0 ? void 0 : _f.courseName))) {
+                        updateData.profileCompleted = true;
+                    }
+                    const updatedPgUser = yield prisma_1.default.user.update({
+                        where: { id: pgUser.id },
+                        data: updateData
+                    });
+                    return res.json({
+                        _id: updatedPgUser.id,
+                        id: updatedPgUser.id,
+                        firstName: updatedPgUser.firstName,
+                        lastName: updatedPgUser.lastName,
+                        email: updatedPgUser.email,
+                        role: updatedPgUser.role,
+                        phone: updatedPgUser.phone || '',
+                        resumeUrl: updatedPgUser.resumeUrl,
+                        linkedinUrl: updatedPgUser.linkedinUrl,
+                        profileCompleted: updatedPgUser.profileCompleted,
+                        personalDetails: updatedPgUser.personalDetails,
+                        caPortfolio: updatedPgUser.caPortfolio,
+                        qualifications: updatedPgUser.qualifications,
+                        experienceInfo: updatedPgUser.experienceInfo,
+                        token: (0, generateToken_1.default)(updatedPgUser.id, updatedPgUser.email),
+                    });
+                }
+            }
+            catch (pgUpdateErr) {
+                console.error('Prisma updateUserProfile error:', pgUpdateErr);
+                if (mongoose_1.default.connection.readyState !== 1) {
+                    return res.status(400).json({ message: pgUpdateErr.message || 'Error updating profile' });
+                }
+            }
+        }
+        if (mongoose_1.default.connection.readyState !== 1) {
+            return res.status(404).json({ message: 'User not found or database unavailable' });
+        }
         const user = yield User_1.default.findById(userId);
         if (user) {
-            const requestedPhone = req.body.phone !== undefined ? req.body.phone : (_c = req.body.personalDetails) === null || _c === void 0 ? void 0 : _c.phone;
+            const requestedPhone = req.body.phone !== undefined ? req.body.phone : (_g = req.body.personalDetails) === null || _g === void 0 ? void 0 : _g.phone;
             if (requestedPhone !== undefined) {
                 const normalizedPhone = typeof requestedPhone === 'string' ? normalizePhone(requestedPhone) : '';
                 if (normalizedPhone && normalizedPhone.length !== 10) {
@@ -383,8 +535,8 @@ const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, functi
             if (req.body.password)
                 user.password = req.body.password;
             if (req.body.personalDetails !== undefined) {
-                user.personalDetails = Object.assign(Object.assign(Object.assign({}, (user.personalDetails || {})), req.body.personalDetails), { phone: ((_d = req.body.personalDetails) === null || _d === void 0 ? void 0 : _d.phone) || req.body.phone || user.phone || '' });
-                if (((_e = user.personalDetails) === null || _e === void 0 ? void 0 : _e.phone) && !user.phone) {
+                user.personalDetails = Object.assign(Object.assign(Object.assign({}, (user.personalDetails || {})), req.body.personalDetails), { phone: ((_h = req.body.personalDetails) === null || _h === void 0 ? void 0 : _h.phone) || req.body.phone || user.phone || '' });
+                if (((_j = user.personalDetails) === null || _j === void 0 ? void 0 : _j.phone) && !user.phone) {
                     user.phone = user.personalDetails.phone;
                 }
             }
@@ -397,7 +549,7 @@ const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, functi
             if (req.body.profileCompleted !== undefined) {
                 user.profileCompleted = req.body.profileCompleted;
             }
-            else if (req.body.qualifications && (((_f = req.body.qualifications.graduation) === null || _f === void 0 ? void 0 : _f.completed) || ((_g = req.body.qualifications.graduation) === null || _g === void 0 ? void 0 : _g.courseName))) {
+            else if (req.body.qualifications && (((_k = req.body.qualifications.graduation) === null || _k === void 0 ? void 0 : _k.completed) || ((_l = req.body.qualifications.graduation) === null || _l === void 0 ? void 0 : _l.courseName))) {
                 user.profileCompleted = true;
             }
             const updatedUser = yield user.save();
@@ -1090,10 +1242,25 @@ const checkEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             res.json({ exists: false });
             return;
         }
-        const userExists = yield User_1.default.findOne({ email });
-        res.json({ exists: !!userExists });
+        if (prisma_1.default) {
+            try {
+                const pgUser = yield prisma_1.default.user.findFirst({
+                    where: { email: { equals: email, mode: 'insensitive' } }
+                });
+                return res.json({ exists: !!pgUser });
+            }
+            catch (e) {
+                console.warn('Prisma checkEmail error:', e);
+            }
+        }
+        if (mongoose_1.default.connection.readyState === 1) {
+            const userExists = yield User_1.default.findOne({ email });
+            return res.json({ exists: !!userExists });
+        }
+        return res.json({ exists: false });
     }
     catch (error) {
+        console.error('Error checking email:', error);
         res.status(500).json({ message: 'Error checking email' });
     }
 });
@@ -1107,8 +1274,27 @@ const checkPhone = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             res.status(400).json({ message: 'Please enter a valid 10-digit mobile number.' });
             return;
         }
-        const userExists = yield User_1.default.findOne(phoneLookup(phone)).select('_id');
-        res.json({ exists: !!userExists });
+        if (prisma_1.default) {
+            try {
+                const pgUser = yield prisma_1.default.user.findFirst({
+                    where: {
+                        OR: [
+                            { phoneNormalized: phone },
+                            { phone: { contains: phone } }
+                        ]
+                    }
+                });
+                return res.json({ exists: !!pgUser });
+            }
+            catch (e) {
+                console.warn('Prisma checkPhone error:', e);
+            }
+        }
+        if (mongoose_1.default.connection.readyState === 1) {
+            const userExists = yield User_1.default.findOne(phoneLookup(phone)).select('_id');
+            return res.json({ exists: !!userExists });
+        }
+        return res.json({ exists: false });
     }
     catch (error) {
         console.error('Error checking phone number:', error);
@@ -1139,20 +1325,52 @@ const requestPasswordResetOtp = (req, res) => __awaiter(void 0, void 0, void 0, 
             return;
         }
         const otp = (0, crypto_1.randomInt)(0, 10000).toString().padStart(4, '0');
-        user.passwordResetOtpHash = yield bcrypt_1.default.hash(otp, 10);
-        user.passwordResetOtpExpires = new Date(now.getTime() + 10 * 60000);
-        user.passwordResetOtpSentAt = now;
-        user.passwordResetOtpAttempts = 0;
-        user.passwordResetTokenHash = undefined;
-        user.passwordResetTokenExpires = undefined;
-        yield user.save();
+        const otpHash = yield bcrypt_1.default.hash(otp, 10);
+        const otpExpires = new Date(now.getTime() + 10 * 60000);
+        if (prisma_1.default && user.id) {
+            yield prisma_1.default.user.update({
+                where: { id: user.id },
+                data: {
+                    passwordResetOtpHash: otpHash,
+                    passwordResetOtpExpires: otpExpires,
+                    passwordResetOtpSentAt: now,
+                    passwordResetOtpAttempts: 0,
+                    passwordResetTokenHash: null,
+                    passwordResetTokenExpires: null,
+                }
+            });
+        }
+        else if (typeof user.save === 'function') {
+            user.passwordResetOtpHash = otpHash;
+            user.passwordResetOtpExpires = otpExpires;
+            user.passwordResetOtpSentAt = now;
+            user.passwordResetOtpAttempts = 0;
+            user.passwordResetTokenHash = undefined;
+            user.passwordResetTokenExpires = undefined;
+            yield user.save();
+        }
         try {
             yield (0, emailService_1.sendPasswordResetOtp)(user.email, otp);
         }
         catch (error) {
             console.error('Unable to send password reset email:', error);
-            clearPasswordResetState(user);
-            yield user.save();
+            if (prisma_1.default && user.id) {
+                yield prisma_1.default.user.update({
+                    where: { id: user.id },
+                    data: {
+                        passwordResetOtpHash: null,
+                        passwordResetOtpExpires: null,
+                        passwordResetOtpSentAt: null,
+                        passwordResetOtpAttempts: 0,
+                        passwordResetTokenHash: null,
+                        passwordResetTokenExpires: null,
+                    }
+                });
+            }
+            else if (typeof user.save === 'function') {
+                clearPasswordResetState(user);
+                yield user.save();
+            }
             res.status(503).json({ message: 'Unable to send the verification email right now. Please try again later.' });
             return;
         }
@@ -1185,22 +1403,47 @@ const verifyPasswordResetOtp = (req, res) => __awaiter(void 0, void 0, void 0, f
             return;
         }
         if (!(yield bcrypt_1.default.compare(otp, user.passwordResetOtpHash))) {
-            user.passwordResetOtpAttempts = (user.passwordResetOtpAttempts || 0) + 1;
-            yield user.save();
-            res.status(user.passwordResetOtpAttempts >= 5 ? 429 : 400).json({
-                message: user.passwordResetOtpAttempts >= 5
+            const newAttempts = (user.passwordResetOtpAttempts || 0) + 1;
+            if (prisma_1.default && user.id) {
+                yield prisma_1.default.user.update({
+                    where: { id: user.id },
+                    data: { passwordResetOtpAttempts: newAttempts }
+                });
+            }
+            else if (typeof user.save === 'function') {
+                user.passwordResetOtpAttempts = newAttempts;
+                yield user.save();
+            }
+            res.status(newAttempts >= 5 ? 429 : 400).json({
+                message: newAttempts >= 5
                     ? 'Too many incorrect codes. Request a new verification code and try again.'
                     : 'The verification code is incorrect. Please check the email and try again.',
             });
             return;
         }
         const resetToken = (0, crypto_1.randomBytes)(32).toString('hex');
-        user.passwordResetOtpHash = undefined;
-        user.passwordResetOtpExpires = undefined;
-        user.passwordResetOtpAttempts = 0;
-        user.passwordResetTokenHash = (0, crypto_1.createHash)('sha256').update(resetToken).digest('hex');
-        user.passwordResetTokenExpires = new Date(now.getTime() + 10 * 60000);
-        yield user.save();
+        const tokenHash = (0, crypto_1.createHash)('sha256').update(resetToken).digest('hex');
+        const tokenExpires = new Date(now.getTime() + 10 * 60000);
+        if (prisma_1.default && user.id) {
+            yield prisma_1.default.user.update({
+                where: { id: user.id },
+                data: {
+                    passwordResetOtpHash: null,
+                    passwordResetOtpExpires: null,
+                    passwordResetOtpAttempts: 0,
+                    passwordResetTokenHash: tokenHash,
+                    passwordResetTokenExpires: tokenExpires,
+                }
+            });
+        }
+        else if (typeof user.save === 'function') {
+            user.passwordResetOtpHash = undefined;
+            user.passwordResetOtpExpires = undefined;
+            user.passwordResetOtpAttempts = 0;
+            user.passwordResetTokenHash = tokenHash;
+            user.passwordResetTokenExpires = tokenExpires;
+            yield user.save();
+        }
         res.json({ resetToken });
     }
     catch (error) {
@@ -1229,9 +1472,26 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             res.status(400).json({ message: 'Password reset session is invalid or expired. Please start again.' });
             return;
         }
-        user.password = password;
-        clearPasswordResetState(user);
-        yield user.save();
+        if (prisma_1.default && user.id) {
+            const hashedPassword = yield bcrypt_1.default.hash(password, 10);
+            yield prisma_1.default.user.update({
+                where: { id: user.id },
+                data: {
+                    password: hashedPassword,
+                    passwordResetOtpHash: null,
+                    passwordResetOtpExpires: null,
+                    passwordResetOtpSentAt: null,
+                    passwordResetOtpAttempts: 0,
+                    passwordResetTokenHash: null,
+                    passwordResetTokenExpires: null,
+                }
+            });
+        }
+        else if (typeof user.save === 'function') {
+            user.password = password;
+            clearPasswordResetState(user);
+            yield user.save();
+        }
         res.json({ message: 'Password reset successfully. You can now sign in with your new password.' });
     }
     catch (error) {

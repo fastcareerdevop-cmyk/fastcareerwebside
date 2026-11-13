@@ -22,12 +22,26 @@ const phoneLookup = (phone: string) => {
   };
 };
 
-const findUserByEmail = (email: string) =>
-  User.findOne({
-    email: { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
-  });
+const findUserByEmail = async (email: string) => {
+  if (prisma) {
+    try {
+      const pgUser = await prisma.user.findFirst({
+        where: { email: { equals: email.trim(), mode: 'insensitive' } }
+      });
+      if (pgUser) return pgUser;
+    } catch (e) {
+      console.warn('Prisma findUserByEmail error:', e);
+    }
+  }
+  if (mongoose.connection.readyState === 1) {
+    return User.findOne({
+      email: { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+    });
+  }
+  return null;
+};
 
-const clearPasswordResetState = (user: InstanceType<typeof User>) => {
+const clearPasswordResetState = (user: any) => {
   user.passwordResetOtpHash = undefined;
   user.passwordResetOtpExpires = undefined;
   user.passwordResetOtpSentAt = undefined;
@@ -204,6 +218,22 @@ export const registerUser = async (req: Request, res: Response) => {
           });
         }
 
+        if (normalizedPhone) {
+          const existingPgPhone = await prisma.user.findFirst({
+            where: {
+              OR: [
+                { phoneNormalized: normalizedPhone },
+                { phone: { contains: normalizedPhone } }
+              ]
+            }
+          });
+          if (existingPgPhone) {
+            return res.status(400).json({
+              message: 'This mobile number is already registered. Please sign in or use a different number.'
+            });
+          }
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
         const newPgUser = await prisma.user.create({
           data: {
@@ -253,8 +283,23 @@ export const registerUser = async (req: Request, res: Response) => {
           token: generateToken(newPgUser.id, newPgUser.email),
         });
       } catch (pgRegErr: any) {
-        console.warn('Prisma registration error:', pgRegErr.message);
+        console.error('Prisma registration error:', pgRegErr);
+        if (pgRegErr?.code === 'P2002') {
+          return res.status(400).json({
+            message: 'An account with this email or phone number is already registered.'
+          });
+        }
+        if (mongoose.connection.readyState !== 1) {
+          return res.status(500).json({
+            message: 'Unable to complete registration at this time. Please try again.',
+            error: pgRegErr?.message
+          });
+        }
       }
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ message: 'Service temporarily unavailable. Please try again.' });
     }
 
     const userExists = await User.findOne({ email: trimmedEmail });
@@ -396,6 +441,108 @@ export const updateUserProfile = async (req: Request, res: Response) => {
     if (!userId) {
       res.status(401).json({ message: 'Authentication required. Please log in again.' });
       return;
+    }
+
+    // 1. Try PostgreSQL (Prisma) first
+    if (prisma) {
+      try {
+        const pgUser = await prisma.user.findUnique({
+          where: { id: userId.toString() }
+        });
+
+        if (pgUser) {
+          const requestedPhone = req.body.phone !== undefined ? req.body.phone : req.body.personalDetails?.phone;
+          let normalizedPhone: string | null = null;
+          if (requestedPhone !== undefined) {
+            normalizedPhone = typeof requestedPhone === 'string' ? normalizePhone(requestedPhone) : '';
+            if (normalizedPhone && normalizedPhone.length !== 10) {
+              return res.status(400).json({ message: 'Please enter a valid 10-digit mobile number.' });
+            }
+
+            if (normalizedPhone) {
+              const existingPgPhone = await prisma.user.findFirst({
+                where: {
+                  id: { not: pgUser.id },
+                  OR: [
+                    { phoneNormalized: normalizedPhone },
+                    { phone: { contains: normalizedPhone } }
+                  ]
+                }
+              });
+              if (existingPgPhone) {
+                return res.status(400).json({
+                  message: 'This mobile number is already registered. Please use a different number.'
+                });
+              }
+            }
+          }
+
+          const updateData: any = {};
+          if (req.body.firstName) updateData.firstName = req.body.firstName.trim();
+          if (req.body.lastName) updateData.lastName = req.body.lastName.trim();
+          if (req.body.email) updateData.email = req.body.email.toLowerCase().trim();
+          if (req.body.companyName) updateData.companyName = req.body.companyName.trim();
+          if (req.body.companyWebsite) updateData.companyWebsite = req.body.companyWebsite.trim();
+          if (req.body.headline !== undefined) updateData.headline = req.body.headline;
+          if (req.body.resumeUrl !== undefined) updateData.resumeUrl = req.body.resumeUrl;
+          if (req.body.linkedinUrl !== undefined) updateData.linkedinUrl = req.body.linkedinUrl;
+          if (req.body.skills !== undefined) updateData.skills = req.body.skills;
+          if (requestedPhone !== undefined) {
+            updateData.phone = requestedPhone;
+            if (normalizedPhone) updateData.phoneNormalized = normalizedPhone;
+          }
+          if (req.body.password) {
+            updateData.password = await bcrypt.hash(req.body.password, 10);
+          }
+          if (req.body.personalDetails !== undefined) {
+            updateData.personalDetails = {
+              ...((pgUser.personalDetails as any) || {}),
+              ...req.body.personalDetails,
+              phone: req.body.personalDetails?.phone || req.body.phone || updateData.phone || pgUser.phone || ''
+            };
+          }
+          if (req.body.caPortfolio !== undefined) updateData.caPortfolio = req.body.caPortfolio;
+          if (req.body.qualifications !== undefined) updateData.qualifications = req.body.qualifications;
+          if (req.body.experienceInfo !== undefined) updateData.experienceInfo = req.body.experienceInfo;
+          if (req.body.profileCompleted !== undefined) {
+            updateData.profileCompleted = req.body.profileCompleted;
+          } else if (req.body.qualifications && (req.body.qualifications.graduation?.completed || req.body.qualifications.graduation?.courseName)) {
+            updateData.profileCompleted = true;
+          }
+
+          const updatedPgUser = await prisma.user.update({
+            where: { id: pgUser.id },
+            data: updateData
+          });
+
+          return res.json({
+            _id: updatedPgUser.id,
+            id: updatedPgUser.id,
+            firstName: updatedPgUser.firstName,
+            lastName: updatedPgUser.lastName,
+            email: updatedPgUser.email,
+            role: updatedPgUser.role,
+            phone: updatedPgUser.phone || '',
+            resumeUrl: updatedPgUser.resumeUrl,
+            linkedinUrl: updatedPgUser.linkedinUrl,
+            profileCompleted: updatedPgUser.profileCompleted,
+            personalDetails: updatedPgUser.personalDetails,
+            caPortfolio: updatedPgUser.caPortfolio,
+            qualifications: updatedPgUser.qualifications,
+            experienceInfo: updatedPgUser.experienceInfo,
+            token: generateToken(updatedPgUser.id, updatedPgUser.email),
+          });
+        }
+      } catch (pgUpdateErr: any) {
+        console.error('Prisma updateUserProfile error:', pgUpdateErr);
+        if (mongoose.connection.readyState !== 1) {
+          return res.status(400).json({ message: pgUpdateErr.message || 'Error updating profile' });
+        }
+      }
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(404).json({ message: 'User not found or database unavailable' });
     }
 
     const user = await User.findById(userId);
@@ -1222,9 +1369,26 @@ export const checkEmail = async (req: Request, res: Response) => {
       res.json({ exists: false });
       return;
     }
-    const userExists = await User.findOne({ email });
-    res.json({ exists: !!userExists });
+
+    if (prisma) {
+      try {
+        const pgUser = await prisma.user.findFirst({
+          where: { email: { equals: email, mode: 'insensitive' } }
+        });
+        return res.json({ exists: !!pgUser });
+      } catch (e) {
+        console.warn('Prisma checkEmail error:', e);
+      }
+    }
+
+    if (mongoose.connection.readyState === 1) {
+      const userExists = await User.findOne({ email });
+      return res.json({ exists: !!userExists });
+    }
+
+    return res.json({ exists: false });
   } catch (error) {
+    console.error('Error checking email:', error);
     res.status(500).json({ message: 'Error checking email' });
   }
 };
@@ -1239,8 +1403,28 @@ export const checkPhone = async (req: Request, res: Response) => {
       return;
     }
 
-    const userExists = await User.findOne(phoneLookup(phone)).select('_id');
-    res.json({ exists: !!userExists });
+    if (prisma) {
+      try {
+        const pgUser = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { phoneNormalized: phone },
+              { phone: { contains: phone } }
+            ]
+          }
+        });
+        return res.json({ exists: !!pgUser });
+      } catch (e) {
+        console.warn('Prisma checkPhone error:', e);
+      }
+    }
+
+    if (mongoose.connection.readyState === 1) {
+      const userExists = await User.findOne(phoneLookup(phone)).select('_id');
+      return res.json({ exists: !!userExists });
+    }
+
+    return res.json({ exists: false });
   } catch (error) {
     console.error('Error checking phone number:', error);
     res.status(500).json({ message: 'Unable to check this mobile number right now.' });
@@ -1261,7 +1445,7 @@ export const requestPasswordResetOtp = async (req: Request, res: Response) => {
   };
 
   try {
-    const user = await findUserByEmail(email);
+    const user: any = await findUserByEmail(email);
     if (!user) {
       res.json(genericResponse);
       return;
@@ -1274,20 +1458,51 @@ export const requestPasswordResetOtp = async (req: Request, res: Response) => {
     }
 
     const otp = randomInt(0, 10_000).toString().padStart(4, '0');
-    user.passwordResetOtpHash = await bcrypt.hash(otp, 10);
-    user.passwordResetOtpExpires = new Date(now.getTime() + 10 * 60_000);
-    user.passwordResetOtpSentAt = now;
-    user.passwordResetOtpAttempts = 0;
-    user.passwordResetTokenHash = undefined;
-    user.passwordResetTokenExpires = undefined;
-    await user.save();
+    const otpHash = await bcrypt.hash(otp, 10);
+    const otpExpires = new Date(now.getTime() + 10 * 60_000);
+
+    if (prisma && (user as any).id) {
+      await prisma.user.update({
+        where: { id: (user as any).id },
+        data: {
+          passwordResetOtpHash: otpHash,
+          passwordResetOtpExpires: otpExpires,
+          passwordResetOtpSentAt: now,
+          passwordResetOtpAttempts: 0,
+          passwordResetTokenHash: null,
+          passwordResetTokenExpires: null,
+        }
+      });
+    } else if (typeof (user as any).save === 'function') {
+      user.passwordResetOtpHash = otpHash;
+      user.passwordResetOtpExpires = otpExpires;
+      user.passwordResetOtpSentAt = now;
+      user.passwordResetOtpAttempts = 0;
+      user.passwordResetTokenHash = undefined;
+      user.passwordResetTokenExpires = undefined;
+      await user.save();
+    }
 
     try {
       await sendPasswordResetOtp(user.email, otp);
     } catch (error) {
       console.error('Unable to send password reset email:', error);
-      clearPasswordResetState(user);
-      await user.save();
+      if (prisma && (user as any).id) {
+        await prisma.user.update({
+          where: { id: (user as any).id },
+          data: {
+            passwordResetOtpHash: null,
+            passwordResetOtpExpires: null,
+            passwordResetOtpSentAt: null,
+            passwordResetOtpAttempts: 0,
+            passwordResetTokenHash: null,
+            passwordResetTokenExpires: null,
+          }
+        });
+      } else if (typeof (user as any).save === 'function') {
+        clearPasswordResetState(user);
+        await user.save();
+      }
       res.status(503).json({ message: 'Unable to send the verification email right now. Please try again later.' });
       return;
     }
@@ -1310,7 +1525,7 @@ export const verifyPasswordResetOtp = async (req: Request, res: Response) => {
   }
 
   try {
-    const user = await findUserByEmail(email);
+    const user: any = await findUserByEmail(email);
     const now = new Date();
     if (!user?.passwordResetOtpHash || !user.passwordResetOtpExpires || user.passwordResetOtpExpires <= now) {
       res.status(400).json({ message: 'This verification code is invalid or expired. Please request a new one.' });
@@ -1323,10 +1538,18 @@ export const verifyPasswordResetOtp = async (req: Request, res: Response) => {
     }
 
     if (!(await bcrypt.compare(otp, user.passwordResetOtpHash))) {
-      user.passwordResetOtpAttempts = (user.passwordResetOtpAttempts || 0) + 1;
-      await user.save();
-      res.status(user.passwordResetOtpAttempts >= 5 ? 429 : 400).json({
-        message: user.passwordResetOtpAttempts >= 5
+      const newAttempts = (user.passwordResetOtpAttempts || 0) + 1;
+      if (prisma && (user as any).id) {
+        await prisma.user.update({
+          where: { id: (user as any).id },
+          data: { passwordResetOtpAttempts: newAttempts }
+        });
+      } else if (typeof (user as any).save === 'function') {
+        user.passwordResetOtpAttempts = newAttempts;
+        await user.save();
+      }
+      res.status(newAttempts >= 5 ? 429 : 400).json({
+        message: newAttempts >= 5
           ? 'Too many incorrect codes. Request a new verification code and try again.'
           : 'The verification code is incorrect. Please check the email and try again.',
       });
@@ -1334,12 +1557,28 @@ export const verifyPasswordResetOtp = async (req: Request, res: Response) => {
     }
 
     const resetToken = randomBytes(32).toString('hex');
-    user.passwordResetOtpHash = undefined;
-    user.passwordResetOtpExpires = undefined;
-    user.passwordResetOtpAttempts = 0;
-    user.passwordResetTokenHash = createHash('sha256').update(resetToken).digest('hex');
-    user.passwordResetTokenExpires = new Date(now.getTime() + 10 * 60_000);
-    await user.save();
+    const tokenHash = createHash('sha256').update(resetToken).digest('hex');
+    const tokenExpires = new Date(now.getTime() + 10 * 60_000);
+
+    if (prisma && (user as any).id) {
+      await prisma.user.update({
+        where: { id: (user as any).id },
+        data: {
+          passwordResetOtpHash: null,
+          passwordResetOtpExpires: null,
+          passwordResetOtpAttempts: 0,
+          passwordResetTokenHash: tokenHash,
+          passwordResetTokenExpires: tokenExpires,
+        }
+      });
+    } else if (typeof (user as any).save === 'function') {
+      user.passwordResetOtpHash = undefined;
+      user.passwordResetOtpExpires = undefined;
+      user.passwordResetOtpAttempts = 0;
+      user.passwordResetTokenHash = tokenHash;
+      user.passwordResetTokenExpires = tokenExpires;
+      await user.save();
+    }
 
     res.json({ resetToken });
   } catch (error) {
@@ -1362,7 +1601,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 
   try {
     const tokenHash = createHash('sha256').update(resetToken).digest('hex');
-    const user = await findUserByEmail(email);
+    const user: any = await findUserByEmail(email);
     if (
       !user ||
       user.passwordResetTokenHash !== tokenHash ||
@@ -1373,9 +1612,25 @@ export const resetPassword = async (req: Request, res: Response) => {
       return;
     }
 
-    user.password = password;
-    clearPasswordResetState(user);
-    await user.save();
+    if (prisma && (user as any).id) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await prisma.user.update({
+        where: { id: (user as any).id },
+        data: {
+          password: hashedPassword,
+          passwordResetOtpHash: null,
+          passwordResetOtpExpires: null,
+          passwordResetOtpSentAt: null,
+          passwordResetOtpAttempts: 0,
+          passwordResetTokenHash: null,
+          passwordResetTokenExpires: null,
+        }
+      });
+    } else if (typeof (user as any).save === 'function') {
+      user.password = password;
+      clearPasswordResetState(user);
+      await user.save();
+    }
     res.json({ message: 'Password reset successfully. You can now sign in with your new password.' });
   } catch (error) {
     console.error('Error resetting password:', error);
