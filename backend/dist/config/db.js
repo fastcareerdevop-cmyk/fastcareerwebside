@@ -65,7 +65,11 @@ const ensureInitialData = () => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 const connectDB = () => __awaiter(void 0, void 0, void 0, function* () {
-    const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/fastcareers';
+    const mongoUri = process.env.MONGO_URI;
+    if (!mongoUri) {
+        console.log('[MongoDB] No MONGO_URI provided in environment. Running with PostgreSQL (Neon) database.');
+        return;
+    }
     try {
         const conn = yield mongoose_1.default.connect(mongoUri, {
             serverSelectionTimeoutMS: 10000,
@@ -81,7 +85,6 @@ const connectDB = () => __awaiter(void 0, void 0, void 0, function* () {
         else {
             console.error(`An unknown error occurred while connecting to MongoDB`);
         }
-        // Do not call process.exit(1); keeping the server alive allows health checks and preflight CORS to function
     }
 });
 mongoose_1.default.connection.on('disconnected', () => {

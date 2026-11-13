@@ -18,7 +18,11 @@ const ensureInitialData = async () => {
 };
 
 const connectDB = async () => {
-  const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/fastcareers';
+  const mongoUri = process.env.MONGO_URI;
+  if (!mongoUri) {
+    console.log('[MongoDB] No MONGO_URI provided in environment. Running with PostgreSQL (Neon) database.');
+    return;
+  }
   try {
     const conn = await mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: 10000,
@@ -32,7 +36,6 @@ const connectDB = async () => {
     } else {
       console.error(`An unknown error occurred while connecting to MongoDB`);
     }
-    // Do not call process.exit(1); keeping the server alive allows health checks and preflight CORS to function
   }
 };
 
