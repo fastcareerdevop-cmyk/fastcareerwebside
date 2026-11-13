@@ -186,20 +186,78 @@ export const registerUser = async (req: Request, res: Response) => {
       return;
     }
 
-    const userExists = await User.findOne({ email: trimmedEmail });
-
-    if (userExists) {
-      res.status(400).json({ 
-        message: `The email "${trimmedEmail}" is already registered. Please sign in or use another email address.` 
-      });
-      return;
-    }
-
     const normalizedPhone = typeof phone === 'string' ? normalizePhone(phone) : '';
     if ((role === 'candidate' || phone) && normalizedPhone.length !== 10) {
       res.status(400).json({ message: 'Please enter a valid 10-digit mobile number.' });
       return;
     }
+
+    // 1. Try PostgreSQL (Prisma) registration first
+    if (prisma) {
+      try {
+        const existingPg = await prisma.user.findFirst({
+          where: { email: { equals: trimmedEmail, mode: 'insensitive' } }
+        });
+        if (existingPg) {
+          return res.status(400).json({
+            message: `The email "${trimmedEmail}" is already registered. Please sign in or use another email address.`
+          });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newPgUser = await prisma.user.create({
+          data: {
+            firstName: firstName?.trim() || '',
+            lastName: lastName?.trim() || '',
+            companyName: companyName?.trim() || (role === 'employer' ? (`${firstName || ''} ${lastName || ''}`.trim()) : ''),
+            email: trimmedEmail,
+            password: hashedPassword,
+            role: role || 'candidate',
+            phone: phone || '',
+            phoneNormalized: normalizedPhone || null,
+            resumeUrl: resumeUrl || '',
+            linkedinUrl: linkedinUrl || '',
+            profileCompleted: false,
+            personalDetails: {
+              phone: phone || '',
+              currentCity: currentCity || '',
+              dateOfBirth: dateOfBirth || '',
+            },
+            caPortfolio: {
+              isFresherCA: isFresherCA === true || isFresherCA === 'true',
+              ...(caFinal ? { caFinal } : {}),
+              ...(caInter ? { caInter } : {}),
+              ...(articleships && Array.isArray(articleships) && articleships.length > 0 ? { articleships } : {}),
+              ...(articleshipCompletionDate ? { articleshipCompletionDate } : {}),
+              ...(natureOfWork ? { natureOfWork } : {}),
+              ...(gmcsCompleted ? { gmcsCompleted } : {}),
+              ...(industrialTrainee ? { industrialTrainee } : {}),
+              ...(listedCompanyWork ? { listedCompanyWork } : {}),
+            },
+            ...(experienceInfo ? { experienceInfo } : {})
+          }
+        });
+
+        if (normalizedPhone) {
+          sendRegistrationWhatsApp(normalizedPhone, `${firstName || ''} ${lastName || ''}`.trim())
+            .catch(err => console.error('[WhatsApp Registration Trigger Error]:', err));
+        }
+
+        return res.status(201).json({
+          _id: newPgUser.id,
+          id: newPgUser.id,
+          firstName: newPgUser.firstName,
+          lastName: newPgUser.lastName,
+          email: newPgUser.email,
+          role: newPgUser.role,
+          token: generateToken(newPgUser.id, newPgUser.email),
+        });
+      } catch (pgRegErr: any) {
+        console.warn('Prisma registration error:', pgRegErr.message);
+      }
+    }
+
+    const userExists = await User.findOne({ email: trimmedEmail });
 
     if (normalizedPhone) {
       const existingPhone = await User.findOne(phoneLookup(normalizedPhone)).select('_id');

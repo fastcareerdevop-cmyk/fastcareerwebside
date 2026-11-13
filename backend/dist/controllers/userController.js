@@ -196,18 +196,49 @@ const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             res.status(400).json({ message: 'Email address is required.' });
             return;
         }
-        const userExists = yield User_1.default.findOne({ email: trimmedEmail });
-        if (userExists) {
-            res.status(400).json({
-                message: `The email "${trimmedEmail}" is already registered. Please sign in or use another email address.`
-            });
-            return;
-        }
         const normalizedPhone = typeof phone === 'string' ? normalizePhone(phone) : '';
         if ((role === 'candidate' || phone) && normalizedPhone.length !== 10) {
             res.status(400).json({ message: 'Please enter a valid 10-digit mobile number.' });
             return;
         }
+        // 1. Try PostgreSQL (Prisma) registration first
+        if (prisma_1.default) {
+            try {
+                const existingPg = yield prisma_1.default.user.findFirst({
+                    where: { email: { equals: trimmedEmail, mode: 'insensitive' } }
+                });
+                if (existingPg) {
+                    return res.status(400).json({
+                        message: `The email "${trimmedEmail}" is already registered. Please sign in or use another email address.`
+                    });
+                }
+                const hashedPassword = yield bcrypt_1.default.hash(password, 10);
+                const newPgUser = yield prisma_1.default.user.create({
+                    data: Object.assign({ firstName: (firstName === null || firstName === void 0 ? void 0 : firstName.trim()) || '', lastName: (lastName === null || lastName === void 0 ? void 0 : lastName.trim()) || '', companyName: (companyName === null || companyName === void 0 ? void 0 : companyName.trim()) || (role === 'employer' ? (`${firstName || ''} ${lastName || ''}`.trim()) : ''), email: trimmedEmail, password: hashedPassword, role: role || 'candidate', phone: phone || '', phoneNormalized: normalizedPhone || null, resumeUrl: resumeUrl || '', linkedinUrl: linkedinUrl || '', profileCompleted: false, personalDetails: {
+                            phone: phone || '',
+                            currentCity: currentCity || '',
+                            dateOfBirth: dateOfBirth || '',
+                        }, caPortfolio: Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({ isFresherCA: isFresherCA === true || isFresherCA === 'true' }, (caFinal ? { caFinal } : {})), (caInter ? { caInter } : {})), (articleships && Array.isArray(articleships) && articleships.length > 0 ? { articleships } : {})), (articleshipCompletionDate ? { articleshipCompletionDate } : {})), (natureOfWork ? { natureOfWork } : {})), (gmcsCompleted ? { gmcsCompleted } : {})), (industrialTrainee ? { industrialTrainee } : {})), (listedCompanyWork ? { listedCompanyWork } : {})) }, (experienceInfo ? { experienceInfo } : {}))
+                });
+                if (normalizedPhone) {
+                    (0, whatsappService_1.sendRegistrationWhatsApp)(normalizedPhone, `${firstName || ''} ${lastName || ''}`.trim())
+                        .catch(err => console.error('[WhatsApp Registration Trigger Error]:', err));
+                }
+                return res.status(201).json({
+                    _id: newPgUser.id,
+                    id: newPgUser.id,
+                    firstName: newPgUser.firstName,
+                    lastName: newPgUser.lastName,
+                    email: newPgUser.email,
+                    role: newPgUser.role,
+                    token: (0, generateToken_1.default)(newPgUser.id, newPgUser.email),
+                });
+            }
+            catch (pgRegErr) {
+                console.warn('Prisma registration error:', pgRegErr.message);
+            }
+        }
+        const userExists = yield User_1.default.findOne({ email: trimmedEmail });
         if (normalizedPhone) {
             const existingPhone = yield User_1.default.findOne(phoneLookup(normalizedPhone)).select('_id');
             if (existingPhone) {
