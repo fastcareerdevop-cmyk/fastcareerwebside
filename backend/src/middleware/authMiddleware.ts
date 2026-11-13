@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
+import prisma from '../config/prisma';
 import User from '../models/User';
 
 interface JwtPayload {
@@ -69,22 +71,55 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
       }
 
       if (decoded && (decoded.id || (decoded as any).email)) {
-        if (decoded.id) {
-          req.user = await User.findById(decoded.id).select('-password');
+        const targetId = decoded.id ? String(decoded.id) : '';
+        const targetEmail = (decoded as any).email ? String((decoded as any).email).toLowerCase().trim() : '';
+
+        // 1. Try Prisma (PostgreSQL) first
+        if (prisma) {
+          try {
+            let pgUser: any = null;
+            if (targetId) {
+              pgUser = await prisma.user.findUnique({ where: { id: targetId } });
+            }
+            if (!pgUser && targetEmail) {
+              pgUser = await prisma.user.findFirst({
+                where: { email: { equals: targetEmail, mode: 'insensitive' } }
+              });
+            }
+            if (pgUser) {
+              req.user = {
+                ...pgUser,
+                _id: pgUser.id
+              };
+            }
+          } catch (e) {}
         }
-        if (!req.user && (decoded as any).email) {
-          const cleanEmail = String((decoded as any).email).toLowerCase().trim();
-          req.user = await User.findOne({ email: cleanEmail }).select('-password');
+
+        // 2. Fallback to MongoDB if connected
+        if (!req.user && mongoose.connection.readyState === 1) {
+          if (targetId) {
+            req.user = await User.findById(targetId).select('-password');
+          }
+          if (!req.user && targetEmail) {
+            req.user = await User.findOne({ email: targetEmail }).select('-password');
+          }
         }
       }
 
-      // Fallback for Admin token recovery if user wasn't found by old ID
+      // Fallback for Admin token recovery
       if (!req.user && token) {
         try {
           const unverifiedPayload: any = jwt.decode(token);
           const payloadEmail = (unverifiedPayload?.email || '').toLowerCase().trim();
           if (ADMIN_IDENTIFIERS.includes(payloadEmail)) {
-            req.user = await User.findOne({ role: 'admin' }).select('-password');
+            req.user = {
+              _id: 'admin-fastcareers-id',
+              id: 'admin-fastcareers-id',
+              firstName: 'System',
+              lastName: 'Admin',
+              email: 'admin@fastcareers.in',
+              role: 'admin'
+            };
           }
         } catch (e) {}
       }
@@ -100,7 +135,6 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
 
     if (isOwner && req.user.role !== 'admin') {
       req.user.role = 'admin';
-      User.findByIdAndUpdate(req.user._id, { role: 'admin' }).catch(() => {});
     }
 
     return next();

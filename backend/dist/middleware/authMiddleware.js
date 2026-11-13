@@ -14,6 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.employerOrAdmin = exports.adminOrEmployee = exports.admin = exports.protect = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const mongoose_1 = __importDefault(require("mongoose"));
+const prisma_1 = __importDefault(require("../config/prisma"));
 const User_1 = __importDefault(require("../models/User"));
 const ADMIN_IDENTIFIERS = [
     'admin@fastcareers.in',
@@ -65,21 +67,50 @@ const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
                 catch (e) { }
             }
             if (decoded && (decoded.id || decoded.email)) {
-                if (decoded.id) {
-                    req.user = yield User_1.default.findById(decoded.id).select('-password');
+                const targetId = decoded.id ? String(decoded.id) : '';
+                const targetEmail = decoded.email ? String(decoded.email).toLowerCase().trim() : '';
+                // 1. Try Prisma (PostgreSQL) first
+                if (prisma_1.default) {
+                    try {
+                        let pgUser = null;
+                        if (targetId) {
+                            pgUser = yield prisma_1.default.user.findUnique({ where: { id: targetId } });
+                        }
+                        if (!pgUser && targetEmail) {
+                            pgUser = yield prisma_1.default.user.findFirst({
+                                where: { email: { equals: targetEmail, mode: 'insensitive' } }
+                            });
+                        }
+                        if (pgUser) {
+                            req.user = Object.assign(Object.assign({}, pgUser), { _id: pgUser.id });
+                        }
+                    }
+                    catch (e) { }
                 }
-                if (!req.user && decoded.email) {
-                    const cleanEmail = String(decoded.email).toLowerCase().trim();
-                    req.user = yield User_1.default.findOne({ email: cleanEmail }).select('-password');
+                // 2. Fallback to MongoDB if connected
+                if (!req.user && mongoose_1.default.connection.readyState === 1) {
+                    if (targetId) {
+                        req.user = yield User_1.default.findById(targetId).select('-password');
+                    }
+                    if (!req.user && targetEmail) {
+                        req.user = yield User_1.default.findOne({ email: targetEmail }).select('-password');
+                    }
                 }
             }
-            // Fallback for Admin token recovery if user wasn't found by old ID
+            // Fallback for Admin token recovery
             if (!req.user && token) {
                 try {
                     const unverifiedPayload = jsonwebtoken_1.default.decode(token);
                     const payloadEmail = ((unverifiedPayload === null || unverifiedPayload === void 0 ? void 0 : unverifiedPayload.email) || '').toLowerCase().trim();
                     if (ADMIN_IDENTIFIERS.includes(payloadEmail)) {
-                        req.user = yield User_1.default.findOne({ role: 'admin' }).select('-password');
+                        req.user = {
+                            _id: 'admin-fastcareers-id',
+                            id: 'admin-fastcareers-id',
+                            firstName: 'System',
+                            lastName: 'Admin',
+                            email: 'admin@fastcareers.in',
+                            role: 'admin'
+                        };
                     }
                 }
                 catch (e) { }
@@ -95,7 +126,6 @@ const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         const isOwner = ADMIN_IDENTIFIERS.includes(userEmail);
         if (isOwner && req.user.role !== 'admin') {
             req.user.role = 'admin';
-            User_1.default.findByIdAndUpdate(req.user._id, { role: 'admin' }).catch(() => { });
         }
         return next();
     }
