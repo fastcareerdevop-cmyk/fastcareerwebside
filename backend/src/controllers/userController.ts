@@ -1092,9 +1092,15 @@ export const getCandidateResume = async (req: Request, res: Response) => {
     const id = Array.isArray(rawId) ? rawId[0] : (rawId || '');
     let candidate = null;
 
-    if (id && id.match(/^[0-9a-fA-F]{24}$/)) {
+    if (prisma && id) {
+      try {
+        candidate = await prisma.user.findUnique({ where: { id } });
+      } catch (e) {}
+    }
+
+    if (!candidate && id && id.match(/^[0-9a-fA-F]{24}$/) && mongoose.connection.readyState === 1) {
       candidate = await User.findById(id);
-    } else if (id) {
+    } else if (!candidate && id) {
       candidate = await findCandidateByFilename(id);
     }
 
@@ -1259,23 +1265,62 @@ export const cleanupDbAndFixResumes = async (req: Request, res: Response) => {
 
 export const getEmployers = async (req: Request, res: Response) => {
   try {
-    const employers = await User.find({
-      $or: [
-        { role: { $regex: /^employer$/i } },
-        { role: { $regex: /^company$/i } },
-        { companyName: { $exists: true, $ne: '' } }
-      ]
-    }).select('-password').sort({ companyName: 1, firstName: 1 });
+    if (prisma) {
+      try {
+        const pgEmployers = await prisma.user.findMany({
+          where: {
+            OR: [
+              { role: { equals: 'employer', mode: 'insensitive' } },
+              { role: { equals: 'company', mode: 'insensitive' } },
+              { companyName: { not: '' } }
+            ]
+          },
+          orderBy: [
+            { companyName: 'asc' },
+            { firstName: 'asc' }
+          ]
+        });
 
-    const formattedEmployers = employers.map((emp: any) => {
-      const plain = emp.toObject();
-      if (!plain.companyName || plain.companyName.trim() === '') {
-        const hrName = `${plain.firstName || ''} ${plain.lastName || ''}`.trim();
-        plain.companyName = hrName ? hrName : (plain.email ? plain.email : 'Registered Company');
+        const formattedEmployers = pgEmployers.map((emp) => {
+          let companyName = emp.companyName || '';
+          if (!companyName.trim()) {
+            const hrName = `${emp.firstName || ''} ${emp.lastName || ''}`.trim();
+            companyName = hrName ? hrName : (emp.email || 'Registered Company');
+          }
+          return {
+            ...emp,
+            _id: emp.id,
+            companyName
+          };
+        });
+
+        return res.json(formattedEmployers);
+      } catch (e) {
+        console.warn('Prisma getEmployers error:', e);
       }
-      return plain;
-    });
-    res.json(formattedEmployers);
+    }
+
+    if (mongoose.connection.readyState === 1) {
+      const employers = await User.find({
+        $or: [
+          { role: { $regex: /^employer$/i } },
+          { role: { $regex: /^company$/i } },
+          { companyName: { $exists: true, $ne: '' } }
+        ]
+      }).select('-password').sort({ companyName: 1, firstName: 1 });
+
+      const formattedEmployers = employers.map((emp: any) => {
+        const plain = emp.toObject();
+        if (!plain.companyName || plain.companyName.trim() === '') {
+          const hrName = `${plain.firstName || ''} ${plain.lastName || ''}`.trim();
+          plain.companyName = hrName ? hrName : (plain.email ? plain.email : 'Registered Company');
+        }
+        return plain;
+      });
+      return res.json(formattedEmployers);
+    }
+
+    return res.json([]);
   } catch (error) {
     console.error('Error in getEmployers:', error);
     res.status(500).json({ message: 'Server Error' });
@@ -1296,33 +1341,76 @@ export const createEmployee = async (req: Request, res: Response) => {
       return;
     }
 
-    const userExists = await User.findOne({ email: trimmedEmail });
-    if (userExists) {
-      res.status(400).json({ message: `The email "${trimmedEmail}" is already registered.` });
-      return;
+    if (prisma) {
+      try {
+        const existing = await prisma.user.findFirst({
+          where: { email: { equals: trimmedEmail, mode: 'insensitive' } }
+        });
+        if (existing) {
+          return res.status(400).json({ message: `The email "${trimmedEmail}" is already registered.` });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newEmployee = await prisma.user.create({
+          data: {
+            firstName: firstName.trim(),
+            lastName: (lastName || '').trim(),
+            email: trimmedEmail,
+            password: hashedPassword,
+            role: 'employee',
+            phone: phone || '',
+            headline: designation || 'Staff Member',
+            profileCompleted: true
+          }
+        });
+
+        return res.status(201).json({
+          _id: newEmployee.id,
+          id: newEmployee.id,
+          firstName: newEmployee.firstName,
+          lastName: newEmployee.lastName,
+          email: newEmployee.email,
+          role: newEmployee.role,
+          phone: newEmployee.phone,
+          headline: newEmployee.headline,
+          createdAt: newEmployee.createdAt
+        });
+      } catch (e) {
+        console.warn('Prisma createEmployee warning:', e);
+      }
     }
 
-    const employee = await User.create({
-      firstName: firstName.trim(),
-      lastName: (lastName || '').trim(),
-      email: trimmedEmail,
-      password,
-      role: 'employee',
-      phone: phone || '',
-      headline: designation || 'Staff Member',
-      profileCompleted: true
-    });
+    if (mongoose.connection.readyState === 1) {
+      const userExists = await User.findOne({ email: trimmedEmail });
+      if (userExists) {
+        res.status(400).json({ message: `The email "${trimmedEmail}" is already registered.` });
+        return;
+      }
 
-    res.status(201).json({
-      _id: employee._id,
-      firstName: employee.firstName,
-      lastName: employee.lastName,
-      email: employee.email,
-      role: employee.role,
-      phone: employee.phone,
-      headline: employee.headline,
-      createdAt: (employee as any).createdAt
-    });
+      const employee = await User.create({
+        firstName: firstName.trim(),
+        lastName: (lastName || '').trim(),
+        email: trimmedEmail,
+        password,
+        role: 'employee',
+        phone: phone || '',
+        headline: designation || 'Staff Member',
+        profileCompleted: true
+      });
+
+      return res.status(201).json({
+        _id: employee._id,
+        firstName: employee.firstName,
+        lastName: employee.lastName,
+        email: employee.email,
+        role: employee.role,
+        phone: employee.phone,
+        headline: employee.headline,
+        createdAt: (employee as any).createdAt
+      });
+    }
+
+    res.status(503).json({ message: 'Database unavailable' });
   } catch (error: any) {
     console.error('Error creating employee:', error);
     res.status(500).json({ message: error.message || 'Server error creating employee' });
@@ -1334,8 +1422,24 @@ export const createEmployee = async (req: Request, res: Response) => {
 // @access  Private/Admin
 export const getEmployees = async (req: Request, res: Response) => {
   try {
-    const employees = await User.find({ role: 'employee' }).select('-password').sort({ createdAt: -1 });
-    res.json(employees);
+    if (prisma) {
+      try {
+        const employees = await prisma.user.findMany({
+          where: { role: 'employee' },
+          orderBy: { createdAt: 'desc' }
+        });
+        return res.json(employees.map(e => ({ ...e, _id: e.id })));
+      } catch (e) {
+        console.warn('Prisma getEmployees warning:', e);
+      }
+    }
+
+    if (mongoose.connection.readyState === 1) {
+      const employees = await User.find({ role: 'employee' }).select('-password').sort({ createdAt: -1 });
+      return res.json(employees);
+    }
+
+    res.json([]);
   } catch (error) {
     console.error('Error fetching employees:', error);
     res.status(500).json({ message: 'Server Error fetching employees' });
@@ -1347,12 +1451,27 @@ export const getEmployees = async (req: Request, res: Response) => {
 // @access  Private/Admin
 export const deleteEmployee = async (req: Request, res: Response) => {
   try {
-    const employee = await User.findOneAndDelete({ _id: req.params.id, role: 'employee' });
-    if (!employee) {
-      res.status(404).json({ message: 'Employee account not found' });
-      return;
+    const employeeId = String(req.params.id || '');
+
+    if (prisma && employeeId) {
+      try {
+        await prisma.user.delete({ where: { id: employeeId } });
+        return res.json({ message: 'Employee account removed successfully' });
+      } catch (e) {
+        console.warn('Prisma deleteEmployee warning:', e);
+      }
     }
-    res.json({ message: 'Employee account removed successfully' });
+
+    if (mongoose.connection.readyState === 1 && mongoose.Types.ObjectId.isValid(employeeId)) {
+      const employee = await User.findOneAndDelete({ _id: employeeId, role: 'employee' });
+      if (!employee) {
+        res.status(404).json({ message: 'Employee account not found' });
+        return;
+      }
+      return res.json({ message: 'Employee account removed successfully' });
+    }
+
+    res.status(404).json({ message: 'Employee account not found' });
   } catch (error) {
     console.error('Error deleting employee:', error);
     res.status(500).json({ message: 'Server error deleting employee' });

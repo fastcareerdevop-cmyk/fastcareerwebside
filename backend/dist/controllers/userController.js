@@ -973,10 +973,16 @@ const getCandidateResume = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const rawId = req.params.id;
         const id = Array.isArray(rawId) ? rawId[0] : (rawId || '');
         let candidate = null;
-        if (id && id.match(/^[0-9a-fA-F]{24}$/)) {
+        if (prisma_1.default && id) {
+            try {
+                candidate = yield prisma_1.default.user.findUnique({ where: { id } });
+            }
+            catch (e) { }
+        }
+        if (!candidate && id && id.match(/^[0-9a-fA-F]{24}$/) && mongoose_1.default.connection.readyState === 1) {
             candidate = yield User_1.default.findById(id);
         }
-        else if (id) {
+        else if (!candidate && id) {
             candidate = yield (0, resumeGenerator_1.findCandidateByFilename)(id);
         }
         if (!candidate) {
@@ -1134,22 +1140,54 @@ const cleanupDbAndFixResumes = (req, res) => __awaiter(void 0, void 0, void 0, f
 exports.cleanupDbAndFixResumes = cleanupDbAndFixResumes;
 const getEmployers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const employers = yield User_1.default.find({
-            $or: [
-                { role: { $regex: /^employer$/i } },
-                { role: { $regex: /^company$/i } },
-                { companyName: { $exists: true, $ne: '' } }
-            ]
-        }).select('-password').sort({ companyName: 1, firstName: 1 });
-        const formattedEmployers = employers.map((emp) => {
-            const plain = emp.toObject();
-            if (!plain.companyName || plain.companyName.trim() === '') {
-                const hrName = `${plain.firstName || ''} ${plain.lastName || ''}`.trim();
-                plain.companyName = hrName ? hrName : (plain.email ? plain.email : 'Registered Company');
+        if (prisma_1.default) {
+            try {
+                const pgEmployers = yield prisma_1.default.user.findMany({
+                    where: {
+                        OR: [
+                            { role: { equals: 'employer', mode: 'insensitive' } },
+                            { role: { equals: 'company', mode: 'insensitive' } },
+                            { companyName: { not: '' } }
+                        ]
+                    },
+                    orderBy: [
+                        { companyName: 'asc' },
+                        { firstName: 'asc' }
+                    ]
+                });
+                const formattedEmployers = pgEmployers.map((emp) => {
+                    let companyName = emp.companyName || '';
+                    if (!companyName.trim()) {
+                        const hrName = `${emp.firstName || ''} ${emp.lastName || ''}`.trim();
+                        companyName = hrName ? hrName : (emp.email || 'Registered Company');
+                    }
+                    return Object.assign(Object.assign({}, emp), { _id: emp.id, companyName });
+                });
+                return res.json(formattedEmployers);
             }
-            return plain;
-        });
-        res.json(formattedEmployers);
+            catch (e) {
+                console.warn('Prisma getEmployers error:', e);
+            }
+        }
+        if (mongoose_1.default.connection.readyState === 1) {
+            const employers = yield User_1.default.find({
+                $or: [
+                    { role: { $regex: /^employer$/i } },
+                    { role: { $regex: /^company$/i } },
+                    { companyName: { $exists: true, $ne: '' } }
+                ]
+            }).select('-password').sort({ companyName: 1, firstName: 1 });
+            const formattedEmployers = employers.map((emp) => {
+                const plain = emp.toObject();
+                if (!plain.companyName || plain.companyName.trim() === '') {
+                    const hrName = `${plain.firstName || ''} ${plain.lastName || ''}`.trim();
+                    plain.companyName = hrName ? hrName : (plain.email ? plain.email : 'Registered Company');
+                }
+                return plain;
+            });
+            return res.json(formattedEmployers);
+        }
+        return res.json([]);
     }
     catch (error) {
         console.error('Error in getEmployers:', error);
@@ -1168,31 +1206,71 @@ const createEmployee = (req, res) => __awaiter(void 0, void 0, void 0, function*
             res.status(400).json({ message: 'First name, email address, and password are required.' });
             return;
         }
-        const userExists = yield User_1.default.findOne({ email: trimmedEmail });
-        if (userExists) {
-            res.status(400).json({ message: `The email "${trimmedEmail}" is already registered.` });
-            return;
+        if (prisma_1.default) {
+            try {
+                const existing = yield prisma_1.default.user.findFirst({
+                    where: { email: { equals: trimmedEmail, mode: 'insensitive' } }
+                });
+                if (existing) {
+                    return res.status(400).json({ message: `The email "${trimmedEmail}" is already registered.` });
+                }
+                const hashedPassword = yield bcrypt_1.default.hash(password, 10);
+                const newEmployee = yield prisma_1.default.user.create({
+                    data: {
+                        firstName: firstName.trim(),
+                        lastName: (lastName || '').trim(),
+                        email: trimmedEmail,
+                        password: hashedPassword,
+                        role: 'employee',
+                        phone: phone || '',
+                        headline: designation || 'Staff Member',
+                        profileCompleted: true
+                    }
+                });
+                return res.status(201).json({
+                    _id: newEmployee.id,
+                    id: newEmployee.id,
+                    firstName: newEmployee.firstName,
+                    lastName: newEmployee.lastName,
+                    email: newEmployee.email,
+                    role: newEmployee.role,
+                    phone: newEmployee.phone,
+                    headline: newEmployee.headline,
+                    createdAt: newEmployee.createdAt
+                });
+            }
+            catch (e) {
+                console.warn('Prisma createEmployee warning:', e);
+            }
         }
-        const employee = yield User_1.default.create({
-            firstName: firstName.trim(),
-            lastName: (lastName || '').trim(),
-            email: trimmedEmail,
-            password,
-            role: 'employee',
-            phone: phone || '',
-            headline: designation || 'Staff Member',
-            profileCompleted: true
-        });
-        res.status(201).json({
-            _id: employee._id,
-            firstName: employee.firstName,
-            lastName: employee.lastName,
-            email: employee.email,
-            role: employee.role,
-            phone: employee.phone,
-            headline: employee.headline,
-            createdAt: employee.createdAt
-        });
+        if (mongoose_1.default.connection.readyState === 1) {
+            const userExists = yield User_1.default.findOne({ email: trimmedEmail });
+            if (userExists) {
+                res.status(400).json({ message: `The email "${trimmedEmail}" is already registered.` });
+                return;
+            }
+            const employee = yield User_1.default.create({
+                firstName: firstName.trim(),
+                lastName: (lastName || '').trim(),
+                email: trimmedEmail,
+                password,
+                role: 'employee',
+                phone: phone || '',
+                headline: designation || 'Staff Member',
+                profileCompleted: true
+            });
+            return res.status(201).json({
+                _id: employee._id,
+                firstName: employee.firstName,
+                lastName: employee.lastName,
+                email: employee.email,
+                role: employee.role,
+                phone: employee.phone,
+                headline: employee.headline,
+                createdAt: employee.createdAt
+            });
+        }
+        res.status(503).json({ message: 'Database unavailable' });
     }
     catch (error) {
         console.error('Error creating employee:', error);
@@ -1205,8 +1283,23 @@ exports.createEmployee = createEmployee;
 // @access  Private/Admin
 const getEmployees = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const employees = yield User_1.default.find({ role: 'employee' }).select('-password').sort({ createdAt: -1 });
-        res.json(employees);
+        if (prisma_1.default) {
+            try {
+                const employees = yield prisma_1.default.user.findMany({
+                    where: { role: 'employee' },
+                    orderBy: { createdAt: 'desc' }
+                });
+                return res.json(employees.map(e => (Object.assign(Object.assign({}, e), { _id: e.id }))));
+            }
+            catch (e) {
+                console.warn('Prisma getEmployees warning:', e);
+            }
+        }
+        if (mongoose_1.default.connection.readyState === 1) {
+            const employees = yield User_1.default.find({ role: 'employee' }).select('-password').sort({ createdAt: -1 });
+            return res.json(employees);
+        }
+        res.json([]);
     }
     catch (error) {
         console.error('Error fetching employees:', error);
@@ -1219,12 +1312,25 @@ exports.getEmployees = getEmployees;
 // @access  Private/Admin
 const deleteEmployee = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const employee = yield User_1.default.findOneAndDelete({ _id: req.params.id, role: 'employee' });
-        if (!employee) {
-            res.status(404).json({ message: 'Employee account not found' });
-            return;
+        const employeeId = String(req.params.id || '');
+        if (prisma_1.default && employeeId) {
+            try {
+                yield prisma_1.default.user.delete({ where: { id: employeeId } });
+                return res.json({ message: 'Employee account removed successfully' });
+            }
+            catch (e) {
+                console.warn('Prisma deleteEmployee warning:', e);
+            }
         }
-        res.json({ message: 'Employee account removed successfully' });
+        if (mongoose_1.default.connection.readyState === 1 && mongoose_1.default.Types.ObjectId.isValid(employeeId)) {
+            const employee = yield User_1.default.findOneAndDelete({ _id: employeeId, role: 'employee' });
+            if (!employee) {
+                res.status(404).json({ message: 'Employee account not found' });
+                return;
+            }
+            return res.json({ message: 'Employee account removed successfully' });
+        }
+        res.status(404).json({ message: 'Employee account not found' });
     }
     catch (error) {
         console.error('Error deleting employee:', error);
