@@ -33,20 +33,30 @@ if (process.env.NODE_ENV !== 'production') {
   };
 }
 
-const connectionString = process.env.DATABASE_URL || '';
+let prisma: PrismaClient | null = null;
 
-const pool = new Pool({
-  connectionString,
-  ssl: { rejectUnauthorized: false }
-});
-
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({
-  adapter,
-  log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error']
-});
+try {
+  const connectionString = process.env.DATABASE_URL || '';
+  if (connectionString) {
+    const pool = new Pool({
+      connectionString,
+      ssl: { rejectUnauthorized: false }
+    });
+    const adapter = new PrismaPg(pool);
+    prisma = new PrismaClient({
+      adapter,
+      log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error']
+    });
+  }
+} catch (initErr: any) {
+  console.warn('[Prisma Init Warning]:', initErr.message || initErr);
+}
 
 export const checkPostgresConnection = async () => {
+  if (!prisma) {
+    console.log('[PostgreSQL] DATABASE_URL not set or Prisma client not initialized yet.');
+    return false;
+  }
   try {
     const userCount = await prisma.user.count();
     console.log(`[PostgreSQL Neon] Connected successfully! Verified ${userCount} users.`);
@@ -57,4 +67,4 @@ export const checkPostgresConnection = async () => {
   }
 };
 
-export default prisma;
+export default prisma as PrismaClient;

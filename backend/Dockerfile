@@ -4,7 +4,9 @@ WORKDIR /app
 
 # Copy package files and install only production dependencies with legacy peer deps
 COPY package*.json ./
+COPY prisma ./prisma
 RUN npm install --omit=dev --legacy-peer-deps
+RUN npx prisma generate
 
 # Copy pre-compiled JavaScript
 COPY dist ./dist

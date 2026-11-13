@@ -46,17 +46,29 @@ if (process.env.NODE_ENV !== 'production') {
         }
     };
 }
-const connectionString = process.env.DATABASE_URL || '';
-const pool = new pg_1.Pool({
-    connectionString,
-    ssl: { rejectUnauthorized: false }
-});
-const adapter = new adapter_pg_1.PrismaPg(pool);
-const prisma = new client_1.PrismaClient({
-    adapter,
-    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error']
-});
+let prisma = null;
+try {
+    const connectionString = process.env.DATABASE_URL || '';
+    if (connectionString) {
+        const pool = new pg_1.Pool({
+            connectionString,
+            ssl: { rejectUnauthorized: false }
+        });
+        const adapter = new adapter_pg_1.PrismaPg(pool);
+        prisma = new client_1.PrismaClient({
+            adapter,
+            log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error']
+        });
+    }
+}
+catch (initErr) {
+    console.warn('[Prisma Init Warning]:', initErr.message || initErr);
+}
 const checkPostgresConnection = () => __awaiter(void 0, void 0, void 0, function* () {
+    if (!prisma) {
+        console.log('[PostgreSQL] DATABASE_URL not set or Prisma client not initialized yet.');
+        return false;
+    }
     try {
         const userCount = yield prisma.user.count();
         console.log(`[PostgreSQL Neon] Connected successfully! Verified ${userCount} users.`);
