@@ -2,7 +2,7 @@ import toast from 'react-hot-toast';
 import React, { useState, useEffect } from 'react';
 import { EmployerLayout } from '../../layouts/EmployerLayout';
 import { AdminLayout } from '../../layouts/AdminLayout';
-import { PlusCircle, Briefcase, X, MapPin, Building, DollarSign, Trash2, Search, Check, Users, User, Mail } from 'lucide-react';
+import { PlusCircle, Briefcase, X, MapPin, Building, DollarSign, Trash2, Search, Check, Users, User, Mail, Pencil } from 'lucide-react';
 import { Button } from '../../components/Button';
 import api from '../../services/api';
 import { useSelector } from 'react-redux';
@@ -19,6 +19,7 @@ export const ManageJobs = () => {
   const [selectedCompanyName, setSelectedCompanyName] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingJob, setEditingJob] = useState<any | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -26,6 +27,7 @@ export const ManageJobs = () => {
     location: '',
     type: 'Full-time',
     category: '',
+    customCategory: '',
     salaryRange: '',
     description: '',
     requirements: '',
@@ -164,6 +166,56 @@ export const ManageJobs = () => {
   }, [user]);
 
   const handleOpenModal = () => {
+    setEditingJob(null);
+    setFormData({
+      title: '',
+      company: user?.companyName || '',
+      location: '',
+      type: 'Full-time',
+      category: '',
+      customCategory: '',
+      salaryRange: '',
+      description: '',
+      requirements: '',
+      responsibilities: '',
+      shareShortlistedCandidates: true
+    });
+    setSelectedEmployerIds([]);
+    setShowModal(true);
+    fetchEmployers();
+  };
+
+  const handleEditJob = (job: any) => {
+    setEditingJob(job);
+    const existingEmployerIds = Array.isArray(job.targetEmployers)
+      ? job.targetEmployers.map((e: any) => (typeof e === 'object' ? e._id : e))
+      : [];
+    setSelectedEmployerIds(existingEmployerIds);
+
+    const reqs = Array.isArray(job.requirements)
+      ? job.requirements.join('\n')
+      : (job.requirements || '');
+
+    const resps = Array.isArray(job.responsibilities)
+      ? job.responsibilities.join('\n')
+      : (job.responsibilities || '');
+
+    const standardCategories = ['Auditing', 'Taxation', 'Finance', 'Accounting', 'Consulting'];
+    const isCustomCat = job.category && !standardCategories.includes(job.category);
+
+    setFormData({
+      title: job.title || '',
+      company: job.company || '',
+      location: job.location || '',
+      type: job.type || 'Full-time',
+      category: isCustomCat ? 'Other' : (job.category || ''),
+      customCategory: isCustomCat ? job.category : '',
+      salaryRange: job.salaryRange || '',
+      description: job.description || '',
+      requirements: reqs,
+      responsibilities: resps,
+      shareShortlistedCandidates: job.shareShortlistedCandidates !== false
+    });
     setShowModal(true);
     fetchEmployers();
   };
@@ -237,10 +289,16 @@ export const ManageJobs = () => {
         targetEmployers: selectedEmployerIds,
       };
       
-      await api.post('/jobs', payload);
-      toast.success('Job posted successfully and shared with selected companies!');
+      if (editingJob) {
+        await api.put(`/jobs/${editingJob._id}`, payload);
+        toast.success(`Job "${formData.title}" updated successfully!`);
+      } else {
+        await api.post('/jobs', payload);
+        toast.success('Job posted successfully and shared with selected companies!');
+      }
       
       setShowModal(false);
+      setEditingJob(null);
       setSelectedEmployerIds([]);
       setFormData({
         title: '',
@@ -248,15 +306,17 @@ export const ManageJobs = () => {
         location: '',
         type: 'Full-time',
         category: '',
+        customCategory: '',
         salaryRange: '',
         description: '',
         requirements: '',
-        responsibilities: ''
+        responsibilities: '',
+        shareShortlistedCandidates: true
       });
       fetchJobs();
     } catch (error: any) {
-      console.error('Error creating job:', error);
-      const msg = error.response?.data?.message || 'Error creating job. Please ensure all fields are filled properly.';
+      console.error('Error saving job:', error);
+      const msg = error.response?.data?.message || 'Error saving job. Please ensure all fields are filled properly.';
       toast.error(msg);
     }
   };
@@ -308,14 +368,23 @@ export const ManageJobs = () => {
                   <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-medium">{job.type}</span>
                   <span className="text-xs text-gray-400">Posted {new Date(job.createdAt).toLocaleDateString()}</span>
                 </div>
-                <button
-                  onClick={() => handleDeleteJob(job._id, job.title)}
-                  disabled={deletingId === job._id}
-                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-red-100 disabled:opacity-50"
-                  title="Delete Job"
-                >
-                  <Trash2 size={18} className={deletingId === job._id ? 'animate-pulse text-red-500' : ''} />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleEditJob(job)}
+                    className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-indigo-100"
+                    title="Edit Job"
+                  >
+                    <Pencil size={18} />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteJob(job._id, job.title)}
+                    disabled={deletingId === job._id}
+                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-red-100 disabled:opacity-50"
+                    title="Delete Job"
+                  >
+                    <Trash2 size={18} className={deletingId === job._id ? 'animate-pulse text-red-500' : ''} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -327,7 +396,7 @@ export const ManageJobs = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-xl w-full max-w-3xl my-8">
             <div className="flex justify-between items-center p-6 border-b border-gray-100 sticky top-0 bg-white rounded-t-xl z-10">
-              <h2 className="text-xl font-bold text-text">Post a New Job</h2>
+              <h2 className="text-xl font-bold text-text">{editingJob ? 'Edit Job' : 'Post a New Job'}</h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
                 <X size={24} />
               </button>
@@ -560,7 +629,7 @@ export const ManageJobs = () => {
             </div>
             <div className="p-6 border-t border-gray-100 flex justify-end gap-3 sticky bottom-0 bg-white rounded-b-xl">
               <Button variant="outline" onClick={() => setShowModal(false)}>Cancel</Button>
-              <Button form="jobForm" type="submit">Post Job</Button>
+              <Button form="jobForm" type="submit">{editingJob ? 'Save Changes' : 'Post Job'}</Button>
             </div>
           </div>
         </div>
