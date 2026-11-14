@@ -5,7 +5,7 @@ import { AdminLayout } from '../../layouts/AdminLayout';
 import { 
   Users, Building2, Download, MapPin, GraduationCap, 
   FileText, Search, PlusCircle, X, Building, Mail, User, UserCheck, FileSpreadsheet,
-  Trash2, Phone, Award, CheckCircle2, RefreshCw, Eye
+  Trash2, Phone, Award, CheckCircle2, RefreshCw, Eye, Briefcase
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store';
@@ -24,6 +24,26 @@ interface Candidate {
   email: string;
   phone?: string;
   resumeUrl?: string;
+  isFresherCA?: boolean;
+  isExperienced?: boolean;
+  caPortfolio?: {
+    isFresherCA?: boolean;
+    natureOfWork?: string;
+    articleshipFirm?: string;
+    articleshipCity?: string;
+    big4Articleship?: string;
+  };
+  experienceInfo?: {
+    isExperienced?: boolean;
+    experienceYears?: string;
+    currentCompanyName?: string;
+    currentDesignation?: string;
+    workProfile?: string;
+    currentCTC?: string;
+    expectedCTC?: string;
+    noticePeriod?: string;
+  };
+  experience?: any;
   personalDetails?: {
     currentCity?: string;
     currentState?: string;
@@ -66,11 +86,14 @@ export const AdminDashboard = () => {
   });
   const [creatingCompany, setCreatingCompany] = useState(false);
 
-  // Industrial Training Applications State
+  // Tab State: 'freshers' | 'experienced' | 'industrial'
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState<'candidates' | 'industrial'>(
-    searchParams.get('tab') === 'industrial' ? 'industrial' : 'candidates'
-  );
+  const [activeTab, setActiveTab] = useState<'freshers' | 'experienced' | 'industrial'>(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'industrial') return 'industrial';
+    if (tab === 'experienced') return 'experienced';
+    return 'freshers';
+  });
   const [isIndustrialModalOpen, setIsIndustrialModalOpen] = useState(false);
   const [industrialList, setIndustrialList] = useState<any[]>([]);
   const [loadingIndustrial, setLoadingIndustrial] = useState(false);
@@ -79,8 +102,13 @@ export const AdminDashboard = () => {
   const [industrialAttemptFilter, setIndustrialAttemptFilter] = useState('');
 
   useEffect(() => {
-    if (searchParams.get('tab') === 'industrial') {
+    const tab = searchParams.get('tab');
+    if (tab === 'industrial') {
       setActiveTab('industrial');
+    } else if (tab === 'experienced') {
+      setActiveTab('experienced');
+    } else if (tab === 'freshers' || tab === 'candidates') {
+      setActiveTab('freshers');
     }
   }, [searchParams]);
 
@@ -194,14 +222,49 @@ export const AdminDashboard = () => {
     }
   };
 
+  // Helper to accurately classify experienced vs fresher candidates
+  const isCandidateExperienced = (c: Candidate): boolean => {
+    return Boolean(
+      c.isExperienced === true ||
+      c.experienceInfo?.isExperienced === true ||
+      (c as any).workExperience?.isExperienced === true ||
+      c.caPortfolio?.isFresherCA === false ||
+      c.isFresherCA === false ||
+      (c.experienceInfo?.experienceYears && 
+        c.experienceInfo.experienceYears !== '0' && 
+        c.experienceInfo.experienceYears !== 'Fresher' &&
+        c.experienceInfo.experienceYears !== '0-1 Years' &&
+        !c.experienceInfo.experienceYears.toLowerCase().includes('fresher')
+      ) ||
+      (c.experienceInfo?.currentCompanyName && c.experienceInfo.currentCompanyName.trim().length > 0) ||
+      (Array.isArray(c.experience) && c.experience.length > 0)
+    );
+  };
+
+  const fresherCandidates = candidates.filter(c => !isCandidateExperienced(c));
+  const experiencedCandidates = candidates.filter(c => isCandidateExperienced(c));
+
+  // Determine active candidate set based on tab
+  const activeCandidatesList = activeTab === 'experienced'
+    ? experiencedCandidates
+    : fresherCandidates;
+
   // Filter candidates by search query
-  const filteredCandidates = candidates.filter(candidate => {
+  const filteredCandidates = activeCandidatesList.filter(candidate => {
     const fullName = `${candidate.firstName || ''} ${candidate.lastName || ''}`.toLowerCase();
     const email = (candidate.email || '').toLowerCase();
     const city = (candidate.personalDetails?.currentCity || '').toLowerCase();
+    const company = (candidate.experienceInfo?.currentCompanyName || '').toLowerCase();
+    const designation = (candidate.experienceInfo?.currentDesignation || '').toLowerCase();
     const q = searchQuery.toLowerCase();
 
-    return fullName.includes(q) || email.includes(q) || city.includes(q);
+    return (
+      fullName.includes(q) || 
+      email.includes(q) || 
+      city.includes(q) ||
+      company.includes(q) ||
+      designation.includes(q)
+    );
   });
 
   const handleBulkDownload = async () => {
@@ -346,25 +409,45 @@ export const AdminDashboard = () => {
       </div>
 
       {/* Quick KPI Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <button
-          onClick={() => { setActiveTab('candidates'); setSearchParams({}); }}
+          onClick={() => { setActiveTab('freshers'); setSearchParams({}); }}
           className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
-            activeTab === 'candidates'
+            activeTab === 'freshers'
               ? 'bg-indigo-50/70 border-indigo-500 shadow-sm ring-2 ring-indigo-200'
               : 'bg-white border-slate-200 shadow-2xs hover:border-slate-300'
           }`}
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-slate-500">Registered Candidates</p>
-              <h3 className="text-2xl font-extrabold text-slate-900 mt-0.5">{candidates.length}</h3>
+              <p className="text-xs font-semibold text-slate-500">CA Freshers</p>
+              <h3 className="text-2xl font-extrabold text-indigo-700 mt-0.5">{fresherCandidates.length}</h3>
             </div>
             <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
               <Users size={20} />
             </div>
           </div>
-          <p className="text-[11px] text-indigo-600 font-semibold mt-2">View Candidates Database →</p>
+          <p className="text-[11px] text-indigo-600 font-semibold mt-2">View Freshers Database →</p>
+        </button>
+
+        <button
+          onClick={() => { setActiveTab('experienced'); setSearchParams({ tab: 'experienced' }); }}
+          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+            activeTab === 'experienced'
+              ? 'bg-emerald-50/70 border-emerald-500 shadow-sm ring-2 ring-emerald-200'
+              : 'bg-white border-slate-200 shadow-2xs hover:border-slate-300'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-slate-500">Experienced Candidates</p>
+              <h3 className="text-2xl font-extrabold text-emerald-700 mt-0.5">{experiencedCandidates.length}</h3>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+              <Briefcase size={20} />
+            </div>
+          </div>
+          <p className="text-[11px] text-emerald-700 font-semibold mt-2">View Experienced CAs →</p>
         </button>
 
         <button
@@ -405,27 +488,44 @@ export const AdminDashboard = () => {
       </div>
 
       {/* Main Tab Switcher */}
-      <div className="flex items-center gap-2 mb-6 bg-white p-1.5 rounded-2xl border border-slate-200/90 shadow-2xs">
+      <div className="flex items-center gap-2 mb-6 bg-white p-1.5 rounded-2xl border border-slate-200/90 shadow-2xs overflow-x-auto">
         <button
-          onClick={() => { setActiveTab('candidates'); setSearchParams({}); }}
-          className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-            activeTab === 'candidates'
+          onClick={() => { setActiveTab('freshers'); setSearchParams({}); }}
+          className={`flex-1 min-w-[180px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            activeTab === 'freshers'
               ? 'bg-indigo-600 text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
           <Users size={16} />
-          <span>Registered Candidates Database</span>
+          <span>CA Freshers</span>
           <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${
-            activeTab === 'candidates' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
+            activeTab === 'freshers' ? 'bg-white/20 text-white' : 'bg-indigo-100 text-indigo-800'
           }`}>
-            {candidates.length}
+            {fresherCandidates.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => { setActiveTab('experienced'); setSearchParams({ tab: 'experienced' }); }}
+          className={`flex-1 min-w-[200px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            activeTab === 'experienced'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <Briefcase size={16} />
+          <span>Experienced Candidates</span>
+          <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${
+            activeTab === 'experienced' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'
+          }`}>
+            {experiencedCandidates.length}
           </span>
         </button>
 
         <button
           onClick={() => { setActiveTab('industrial'); setSearchParams({ tab: 'industrial' }); }}
-          className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+          className={`flex-1 min-w-[240px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
             activeTab === 'industrial'
               ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -441,8 +541,8 @@ export const AdminDashboard = () => {
         </button>
       </div>
 
-      {/* TAB 1: Registered Candidates */}
-      {activeTab === 'candidates' && (
+      {/* TAB 1 & 2: Freshers & Experienced Candidates Table */}
+      {(activeTab === 'freshers' || activeTab === 'experienced') && (
         <>
           {/* Search Filter Bar */}
           <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
@@ -450,7 +550,7 @@ export const AdminDashboard = () => {
               <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
               <input
                 type="text"
-                placeholder="Search candidates by name, email, or city..."
+                placeholder={activeTab === 'experienced' ? "Search experienced by name, company, designation, city..." : "Search freshers by name, email, or city..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 pr-4 py-2 w-full border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -458,7 +558,7 @@ export const AdminDashboard = () => {
             </div>
 
             <div className="text-xs text-slate-500 font-medium">
-              Showing {filteredCandidates.length} of {candidates.length} Registered Candidates
+              Showing {filteredCandidates.length} of {activeCandidatesList.length} {activeTab === 'experienced' ? 'Experienced Candidates' : 'CA Freshers'}
             </div>
           </div>
 
@@ -470,7 +570,7 @@ export const AdminDashboard = () => {
                   <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                     <th className="px-6 py-4 font-semibold">Candidate</th>
                     <th className="px-6 py-4 font-semibold">Location</th>
-                    <th className="px-6 py-4 font-semibold">Education</th>
+                    <th className="px-6 py-4 font-semibold">{activeTab === 'experienced' ? 'Experience & Role' : 'Education'}</th>
                     <th className="px-6 py-4 font-semibold">Registered On</th>
                     <th className="px-6 py-4 font-semibold text-right">Actions</th>
                   </tr>
@@ -485,7 +585,7 @@ export const AdminDashboard = () => {
                   ) : filteredCandidates.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-16 text-center text-slate-500">
-                        No candidates found.
+                        No {activeTab === 'experienced' ? 'experienced candidates' : 'CA freshers'} found.
                       </td>
                     </tr>
                   ) : (
@@ -493,11 +593,20 @@ export const AdminDashboard = () => {
                       <tr key={candidate._id} className="hover:bg-slate-50/70 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold uppercase shrink-0">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold uppercase shrink-0 ${
+                              activeTab === 'experienced' ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-100 text-indigo-700'
+                            }`}>
                               {(candidate.firstName?.[0] || 'C')}{(candidate.lastName?.[0] || '')}
                             </div>
                             <div>
-                              <div className="font-semibold text-slate-900">{candidate.firstName} {candidate.lastName}</div>
+                              <div className="font-semibold text-slate-900 flex items-center gap-1.5">
+                                <span>{candidate.firstName} {candidate.lastName}</span>
+                                {activeTab === 'experienced' && candidate.experienceInfo?.experienceYears && (
+                                  <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">
+                                    {candidate.experienceInfo.experienceYears}
+                                  </span>
+                                )}
+                              </div>
                               <div className="text-xs text-slate-500">{candidate.email}</div>
                               {candidate.phone && <div className="text-xs text-slate-400">{candidate.phone}</div>}
                             </div>
@@ -514,18 +623,35 @@ export const AdminDashboard = () => {
                           )}
                         </td>
                         <td className="px-6 py-4 text-slate-600 text-xs">
-                          {candidate.qualifications?.graduation?.collegeName ? (
-                            <div>
-                              <div className="font-semibold text-slate-800 flex items-center gap-1">
-                                <GraduationCap size={14} className="text-indigo-500" /> 
-                                {candidate.qualifications.graduation.courseName || 'Graduation'}
+                          {activeTab === 'experienced' ? (
+                            candidate.experienceInfo?.currentCompanyName ? (
+                              <div className="space-y-0.5">
+                                <div className="font-semibold text-slate-800 flex items-center gap-1">
+                                  <Briefcase size={14} className="text-emerald-600 shrink-0" />
+                                  <span>{candidate.experienceInfo.currentDesignation || 'Designation N/A'}</span>
+                                </div>
+                                <div className="text-slate-600 font-medium">{candidate.experienceInfo.currentCompanyName}</div>
+                                {candidate.experienceInfo.currentCTC && (
+                                  <div className="text-[11px] text-slate-400">CTC: {candidate.experienceInfo.currentCTC}</div>
+                                )}
                               </div>
-                              <div className="text-slate-500">
-                                {candidate.qualifications.graduation.collegeName} ({candidate.qualifications.graduation.yearOfCompletion})
-                              </div>
-                            </div>
+                            ) : (
+                              <span className="text-slate-400 italic">Experience details not filled</span>
+                            )
                           ) : (
-                            <span className="text-slate-400 italic">Not provided</span>
+                            candidate.qualifications?.graduation?.collegeName ? (
+                              <div>
+                                <div className="font-semibold text-slate-800 flex items-center gap-1">
+                                  <GraduationCap size={14} className="text-indigo-500" /> 
+                                  {candidate.qualifications.graduation.courseName || 'Graduation'}
+                                </div>
+                                <div className="text-slate-500">
+                                  {candidate.qualifications.graduation.collegeName} ({candidate.qualifications.graduation.yearOfCompletion})
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 italic">Not provided</span>
+                            )
                           )}
                         </td>
                         <td className="px-6 py-4 text-xs text-slate-500">
