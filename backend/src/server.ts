@@ -116,7 +116,7 @@ app.use('/api/industrial-training', industrialTrainingRoutes);
 app.use('/api/locations', locationRoutes);
 
 // Serve frontend React SPA (or fallback API status)
-app.get('*', (req: Request, res: Response) => {
+app.use((req: Request, res: Response) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
     return res.status(404).json({ error: 'Endpoint not found' });
   }
