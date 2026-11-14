@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
+    "postinstall": "prisma generate && tsc",
     "start": "node --max-old-space-size=450 dist/server.js",
     "dev": "nodemon src/server.ts",
     "seed:20": "node dist/seed20Candidates.js",
