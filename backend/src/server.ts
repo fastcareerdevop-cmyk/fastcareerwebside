@@ -1,5 +1,6 @@
 import express, { Application, Request, Response } from 'express';
 import path from 'path';
+import fs from 'fs';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -60,6 +61,12 @@ import { fetchOrGenerateResumeBuffer } from './utils/resumeGenerator';
 // Static folder for uploads
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Static folder for React frontend client (Production / Hostinger)
+const clientPath = path.join(__dirname, '../public');
+if (fs.existsSync(clientPath)) {
+  app.use(express.static(clientPath));
+}
+
 // Fallback dynamic resume/file handler for /uploads when physical file is missing (e.g. ephemeral Render disk)
 app.get('/uploads/:filename', async (req: Request, res: Response, next) => {
   try {
@@ -108,8 +115,15 @@ app.use('/api/assessments', assessmentRoutes);
 app.use('/api/industrial-training', industrialTrainingRoutes);
 app.use('/api/locations', locationRoutes);
 
-// Basic Route
-app.get('/', (req: Request, res: Response) => {
+// Serve frontend React SPA (or fallback API status)
+app.get('*', (req: Request, res: Response) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+    return res.status(404).json({ error: 'Endpoint not found' });
+  }
+  const indexPath = path.join(__dirname, '../public/index.html');
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
   res.send('FAST CAREERS API is running');
 });
 

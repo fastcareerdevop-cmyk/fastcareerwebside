@@ -412,15 +412,20 @@ export const getLaterExamSession = (
 
 export const getBackendUrl = (): string => {
   let url = (import.meta as any).env?.VITE_API_URL;
-  if (!url || typeof url !== 'string' || !url.trim() || url === 'undefined') {
-    return 'https://fastcareerwebside.onrender.com';
+  if (url && typeof url === 'string' && url.trim() && url !== 'undefined') {
+    url = url.trim().replace(/\/+$/, '');
+    if (url.includes('fastcareer.onrender.com')) {
+      url = url.replace('fastcareer.onrender.com', 'fastcareerwebside.onrender.com');
+    }
+    return url;
   }
-  url = url.trim().replace(/\/+$/, '');
-  // Automatically fix legacy dead Render URL if present in Vercel environment variables
-  if (url.includes('fastcareer.onrender.com')) {
-    url = url.replace('fastcareer.onrender.com', 'fastcareerwebside.onrender.com');
+
+  // When running in production on fast-india.com or any non-localhost custom domain (like Hostinger)
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && !window.location.hostname.includes('vercel.app')) {
+    return window.location.origin;
   }
-  return url;
+
+  return 'https://fastcareerwebside.onrender.com';
 };
 
 export const BACKEND_URL = getBackendUrl();

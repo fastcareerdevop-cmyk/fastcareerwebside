@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
@@ -65,6 +66,11 @@ app.use((0, morgan_1.default)('dev'));
 const resumeGenerator_1 = require("./utils/resumeGenerator");
 // Static folder for uploads
 app.use('/uploads', express_1.default.static(path_1.default.join(__dirname, '../uploads')));
+// Static folder for React frontend client (Production / Hostinger)
+const clientPath = path_1.default.join(__dirname, '../public');
+if (fs_1.default.existsSync(clientPath)) {
+    app.use(express_1.default.static(clientPath));
+}
 // Fallback dynamic resume/file handler for /uploads when physical file is missing (e.g. ephemeral Render disk)
 app.get('/uploads/:filename', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -109,8 +115,15 @@ app.use('/api/contact', contactRoutes_1.default);
 app.use('/api/assessments', assessmentRoutes_1.default);
 app.use('/api/industrial-training', industrialTrainingRoutes_1.default);
 app.use('/api/locations', locationRoutes_1.default);
-// Basic Route
-app.get('/', (req, res) => {
+// Serve frontend React SPA (or fallback API status)
+app.get('*', (req, res) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+        return res.status(404).json({ error: 'Endpoint not found' });
+    }
+    const indexPath = path_1.default.join(__dirname, '../public/index.html');
+    if (fs_1.default.existsSync(indexPath)) {
+        return res.sendFile(indexPath);
+    }
     res.send('FAST CAREERS API is running');
 });
 // Start server
