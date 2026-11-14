@@ -10,6 +10,7 @@ import {
   createEmployee,
   getEmployees,
   deleteEmployee,
+  deleteCandidate,
   matchCandidatesFromExcel,
   downloadCandidateResumesZip,
   seedLiveCandidates, seed50Candidates, cleanupDbAndFixResumes, seed10CandidatesController,
@@ -58,6 +59,7 @@ router.post('/upload-resume', upload.single('resume'), (req, res) => {
 });
 router.route('/profile').get(protect, getUserProfile).put(protect, updateUserProfile);
 router.route('/candidates').get(protect, employerOrAdmin, getCandidates);
+router.delete('/candidates/:id', protect, admin, deleteCandidate);
 router.put('/candidates/assign-company', protect, admin, assignCandidatesToCompany);
 router.route('/employers').get(protect, employerOrAdmin, getEmployers);
 router.route('/employees')

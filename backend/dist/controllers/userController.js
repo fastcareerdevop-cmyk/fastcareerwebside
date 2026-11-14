@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPassword = exports.verifyPasswordResetOtp = exports.requestPasswordResetOtp = exports.checkPhone = exports.checkEmail = exports.deleteEmployee = exports.getEmployees = exports.createEmployee = exports.getEmployers = exports.cleanupDbAndFixResumes = exports.seed50Candidates = exports.getCandidateResume = exports.downloadCandidateResumesZip = exports.matchCandidatesFromExcel = exports.assignCandidatesToCompany = exports.getCandidates = exports.seedLiveCandidates = exports.seed10CandidatesController = exports.updateUserProfile = exports.getUserProfile = exports.registerUser = exports.authUser = void 0;
+exports.resetPassword = exports.verifyPasswordResetOtp = exports.requestPasswordResetOtp = exports.checkPhone = exports.checkEmail = exports.deleteCandidate = exports.deleteEmployee = exports.getEmployees = exports.createEmployee = exports.getEmployers = exports.cleanupDbAndFixResumes = exports.seed50Candidates = exports.getCandidateResume = exports.downloadCandidateResumesZip = exports.matchCandidatesFromExcel = exports.assignCandidatesToCompany = exports.getCandidates = exports.seedLiveCandidates = exports.seed10CandidatesController = exports.updateUserProfile = exports.getUserProfile = exports.registerUser = exports.authUser = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const prisma_1 = __importDefault(require("../config/prisma"));
 const User_1 = __importDefault(require("../models/User"));
@@ -1338,6 +1338,45 @@ const deleteEmployee = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.deleteEmployee = deleteEmployee;
+// @desc    Delete a candidate (Admin only)
+// @route   DELETE /api/users/candidates/:id
+// @access  Private/Admin
+const deleteCandidate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const candidateId = String(req.params.id || '');
+        if (!candidateId) {
+            return res.status(400).json({ message: 'Candidate ID is required' });
+        }
+        if (prisma_1.default) {
+            try {
+                yield prisma_1.default.application.deleteMany({ where: { candidateId } }).catch(() => { });
+                yield prisma_1.default.assessment.deleteMany({ where: { candidateId } }).catch(() => { });
+                yield prisma_1.default.feedback.deleteMany({ where: { submittedById: candidateId } }).catch(() => { });
+                yield prisma_1.default.referral.deleteMany({ where: { referredById: candidateId } }).catch(() => { });
+                yield prisma_1.default.jobChangeRequest.deleteMany({ where: { requestedById: candidateId } }).catch(() => { });
+                yield prisma_1.default.user.delete({ where: { id: candidateId } });
+                return res.json({ message: 'Candidate deleted successfully' });
+            }
+            catch (e) {
+                console.warn('Prisma deleteCandidate warning:', e);
+            }
+        }
+        if (mongoose_1.default.connection.readyState === 1 && mongoose_1.default.Types.ObjectId.isValid(candidateId)) {
+            yield Application_1.default.deleteMany({ candidate: candidateId }).catch(() => { });
+            const candidate = yield User_1.default.findByIdAndDelete(candidateId);
+            if (!candidate) {
+                return res.status(404).json({ message: 'Candidate not found' });
+            }
+            return res.json({ message: 'Candidate deleted successfully' });
+        }
+        return res.json({ message: 'Candidate deleted successfully' });
+    }
+    catch (error) {
+        console.error('Error deleting candidate:', error);
+        return res.status(500).json({ message: error.message || 'Server error deleting candidate' });
+    }
+});
+exports.deleteCandidate = deleteCandidate;
 // @desc    Check if email already exists
 // @route   GET /api/users/check-email
 // @access  Public

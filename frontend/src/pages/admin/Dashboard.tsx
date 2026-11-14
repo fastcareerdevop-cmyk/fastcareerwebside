@@ -117,6 +117,17 @@ export const AdminDashboard = () => {
     }
   };
 
+  const handleDeleteCandidate = async (id: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to delete candidate "${name}"? This action will remove their profile and applications permanently.`)) return;
+    try {
+      await api.delete(`/users/candidates/${id}`);
+      toast.success(`Candidate "${name}" deleted successfully.`);
+      setCandidates(prev => prev.filter(item => item._id !== id));
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to delete candidate.');
+    }
+  };
+
   const fetchCandidates = async () => {
     try {
       setLoading(true);
@@ -461,7 +472,7 @@ export const AdminDashboard = () => {
                     <th className="px-6 py-4 font-semibold">Location</th>
                     <th className="px-6 py-4 font-semibold">Education</th>
                     <th className="px-6 py-4 font-semibold">Registered On</th>
-                    <th className="px-6 py-4 font-semibold text-right">Resume</th>
+                    <th className="px-6 py-4 font-semibold text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm">
@@ -521,16 +532,25 @@ export const AdminDashboard = () => {
                           {new Date(candidate.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 text-right">
-                          {candidate.resumeUrl ? (
-                            <button 
-                              onClick={() => viewCandidateResume(candidate)} 
-                              className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                          <div className="flex items-center justify-end gap-2">
+                            {candidate.resumeUrl ? (
+                              <button 
+                                onClick={() => viewCandidateResume(candidate)} 
+                                className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                              >
+                                <FileText size={14} /> View CV
+                              </button>
+                            ) : (
+                              <span className="text-xs text-slate-400 italic">Not uploaded</span>
+                            )}
+                            <button
+                              onClick={() => handleDeleteCandidate(candidate._id, `${candidate.firstName || ''} ${candidate.lastName || ''}`.trim() || candidate.email)}
+                              className="inline-flex items-center gap-1 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                              title="Delete Candidate"
                             >
-                              <FileText size={14} /> View CV
+                              <Trash2 size={13} /> Delete
                             </button>
-                          ) : (
-                            <span className="text-xs text-slate-400 italic">Not uploaded</span>
-                          )}
+                          </div>
                         </td>
                       </tr>
                     ))

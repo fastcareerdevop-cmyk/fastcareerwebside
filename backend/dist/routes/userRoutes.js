@@ -50,6 +50,7 @@ router.post('/upload-resume', uploadMiddleware_1.default.single('resume'), (req,
 });
 router.route('/profile').get(authMiddleware_1.protect, userController_1.getUserProfile).put(authMiddleware_1.protect, userController_1.updateUserProfile);
 router.route('/candidates').get(authMiddleware_1.protect, authMiddleware_1.employerOrAdmin, userController_1.getCandidates);
+router.delete('/candidates/:id', authMiddleware_1.protect, authMiddleware_1.admin, userController_1.deleteCandidate);
 router.put('/candidates/assign-company', authMiddleware_1.protect, authMiddleware_1.admin, userController_1.assignCandidatesToCompany);
 router.route('/employers').get(authMiddleware_1.protect, authMiddleware_1.employerOrAdmin, userController_1.getEmployers);
 router.route('/employees')

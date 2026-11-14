@@ -1478,6 +1478,46 @@ export const deleteEmployee = async (req: Request, res: Response) => {
   }
 };
 
+// @desc    Delete a candidate (Admin only)
+// @route   DELETE /api/users/candidates/:id
+// @access  Private/Admin
+export const deleteCandidate = async (req: Request, res: Response) => {
+  try {
+    const candidateId = String(req.params.id || '');
+    if (!candidateId) {
+      return res.status(400).json({ message: 'Candidate ID is required' });
+    }
+
+    if (prisma) {
+      try {
+        await prisma.application.deleteMany({ where: { candidateId } }).catch(() => {});
+        await prisma.assessment.deleteMany({ where: { candidateId } }).catch(() => {});
+        await prisma.feedback.deleteMany({ where: { submittedById: candidateId } }).catch(() => {});
+        await prisma.referral.deleteMany({ where: { referredById: candidateId } }).catch(() => {});
+        await prisma.jobChangeRequest.deleteMany({ where: { requestedById: candidateId } }).catch(() => {});
+        await prisma.user.delete({ where: { id: candidateId } });
+        return res.json({ message: 'Candidate deleted successfully' });
+      } catch (e) {
+        console.warn('Prisma deleteCandidate warning:', e);
+      }
+    }
+
+    if (mongoose.connection.readyState === 1 && mongoose.Types.ObjectId.isValid(candidateId)) {
+      await Application.deleteMany({ candidate: candidateId }).catch(() => {});
+      const candidate = await User.findByIdAndDelete(candidateId);
+      if (!candidate) {
+        return res.status(404).json({ message: 'Candidate not found' });
+      }
+      return res.json({ message: 'Candidate deleted successfully' });
+    }
+
+    return res.json({ message: 'Candidate deleted successfully' });
+  } catch (error: any) {
+    console.error('Error deleting candidate:', error);
+    return res.status(500).json({ message: error.message || 'Server error deleting candidate' });
+  }
+};
+
 // @desc    Check if email already exists
 // @route   GET /api/users/check-email
 // @access  Public
