@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { Navbar } from './layouts/Navbar';
 import { Footer } from './layouts/Footer';
@@ -91,6 +91,7 @@ function App() {
           }>
               <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/index.html" element={<Navigate to="/" replace />} />
             <Route path="/about" element={<About />} />
             <Route path="/ca-campus" element={<OurTeam />} />
             <Route path="/team" element={<OurTeam />} />
@@ -147,7 +148,10 @@ function App() {
             <Route path="/admin/jobs" element={<ManageJobs />} />
             <Route path="/admin/platform-data" element={<PlatformData />} />
             <Route path="/admin/billing" element={<EmployerBilling />} />
-                        </Routes>
+
+            {/* Fallback Catch-all: Redirect unknown URLs to Home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
             </Suspense>
         </main>
         <Footer />
