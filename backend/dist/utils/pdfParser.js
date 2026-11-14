@@ -47,7 +47,13 @@ const PDF_KEYWORDS_IGNORE = new Set([
     'software', 'frontend', 'backend', 'fullstack', 'react', 'node', 'java', 'python',
     'designer', 'intern', 'analyst', 'consultant', 'manager', 'associate', 'lead', 'head',
     'sw', 'dev', 'fe', 'be', 'se', 'sde', 'sde1', 'sde2', 'sde3', 'qa', 'tech', 'eng', 'engg',
-    'ui', 'ux', 'web', 'app', 'android', 'ios', 'tester', 'trainee', 'officer', 'executive', 'sr', 'jr'
+    'ui', 'ux', 'web', 'app', 'android', 'ios', 'tester', 'trainee', 'officer', 'executive', 'sr', 'jr',
+    'academic', 'academics', 'qualification', 'qualifications', 'educational', 'professional',
+    'employment', 'certifications', 'certification', 'training', 'projects', 'competencies',
+    'competency', 'achievements', 'activities', 'interests', 'hobbies', 'languages', 'references',
+    'details', 'articleship', 'examination', 'examinations', 'intermediate', 'finalist', 'foundation',
+    'institute', 'accountants', 'india', 'university', 'college', 'school', 'board', 'percentage',
+    'marks', 'grade', 'rank', 'overview', 'synopsis', 'history', 'technical', 'expertise'
 ]);
 function isValidEmailAddress(email) {
     if (!email || typeof email !== 'string')
@@ -287,10 +293,14 @@ function parseResumeBuffer(buffer_1) {
             'reddy', 'nair', 'iyer', 'menon', 'rao', 'das', 'ghosh', 'banerjee', 'mukherjee', 'chatterjee',
             'bose', 'roy', 'dutta', 'sen', 'mitra', 'joshi', 'bhat', 'bhatt', 'saxena', 'mehta', 'soni',
             'khatri', 'malhotra', 'kapoor', 'khanna', 'chopra', 'bhatia', 'sethi', 'arora', 'grover', 'garg',
-            'bansal', 'mittal', 'goel', 'goyal', 'sinha', 'jha', 'thakur', 'kaur'
+            'bansal', 'mittal', 'goel', 'goyal', 'sinha', 'jha', 'thakur', 'kaur', 'lodha', 'porwal', 'daga',
+            'bajaj', 'singhania', 'deshmukh', 'chawla', 'modi', 'kothari', 'somani', 'rathi', 'maheshwari'
         ];
         const cleanFileName = originalFilename
             .replace(/\.[^/.]+$/, '')
+            .replace(/[-_]pdf[-\d]*/gi, ' ')
+            .replace(/[-_]\d{6,}/g, ' ')
+            .replace(/\(\d+\)/g, ' ')
             .replace(/([a-z])([A-Z])/g, '$1 $2')
             .replace(/[_-]/g, ' ')
             .replace(/[0-9+()@.]/g, ' ')
@@ -298,7 +308,7 @@ function parseResumeBuffer(buffer_1) {
         const fileWords = cleanFileName
             .split(/\s+/)
             .filter(w => w.length > 1 && !PDF_KEYWORDS_IGNORE.has(w.toLowerCase()));
-        // Split compound names like Divyayadav -> Divya Yadav
+        // Split compound names like Divyayadav -> Divya Yadav or Khushiagarwal -> Khushi Agarwal
         const expandedFileWords = [];
         for (const rawWord of fileWords) {
             const wordLower = rawWord.toLowerCase();
@@ -318,10 +328,21 @@ function parseResumeBuffer(buffer_1) {
         }
         if (expandedFileWords.length >= 2) {
             result.firstName = expandedFileWords[0].charAt(0).toUpperCase() + expandedFileWords[0].slice(1).toLowerCase();
-            result.lastName = expandedFileWords[1].charAt(0).toUpperCase() + expandedFileWords[1].slice(1).toLowerCase();
+            result.lastName = expandedFileWords.slice(1).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
         }
         else if (expandedFileWords.length === 1) {
             result.firstName = expandedFileWords[0].charAt(0).toUpperCase() + expandedFileWords[0].slice(1).toLowerCase();
+        }
+        // Helper to validate whether extracted name is valid
+        const isInvalid = (name) => {
+            if (!name || name.trim().length < 2)
+                return true;
+            const parts = name.toLowerCase().split(/\s+/);
+            return parts.some(p => PDF_KEYWORDS_IGNORE.has(p));
+        };
+        if (isInvalid(result.firstName)) {
+            result.firstName = undefined;
+            result.lastName = undefined;
         }
         if (!result.firstName) {
             const textLines = extractedPdfText
@@ -330,15 +351,19 @@ function parseResumeBuffer(buffer_1) {
                 .filter(l => l.length > 2 && l.length < 40);
             for (const line of textLines.slice(0, 20)) {
                 const words = line.split(/\s+/).filter(w => w.length > 1 && !PDF_KEYWORDS_IGNORE.has(w.toLowerCase()));
-                if (words.length >= 2 && words.length <= 3) {
-                    result.firstName = words[0].charAt(0).toUpperCase() + words[0].slice(1).toLowerCase();
-                    result.lastName = words.slice(1).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-                    break;
+                if (words.length >= 2 && words.length <= 4) {
+                    const testFirst = words[0].charAt(0).toUpperCase() + words[0].slice(1).toLowerCase();
+                    const testLast = words.slice(1).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+                    if (!isInvalid(testFirst) && !isInvalid(testLast)) {
+                        result.firstName = testFirst;
+                        result.lastName = testLast;
+                        break;
+                    }
                 }
             }
         }
-        // Fallback name from email
-        if (!result.firstName && result.email) {
+        // Fallback name from email (e.g. khushiagarwal24025@gmail.com -> Khushi Agarwal)
+        if ((!result.firstName || isInvalid(result.firstName)) && result.email) {
             const prefix = result.email.split('@')[0].replace(/[0-9_.]/g, ' ').trim();
             const parts = prefix.split(/\s+/).filter(p => p.length > 1 && !PDF_KEYWORDS_IGNORE.has(p.toLowerCase()));
             if (parts.length >= 2) {
@@ -346,7 +371,20 @@ function parseResumeBuffer(buffer_1) {
                 result.lastName = parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
             }
             else if (parts.length === 1) {
-                result.firstName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase();
+                const single = parts[0].toLowerCase();
+                let found = false;
+                for (const surname of INDIAN_SURNAMES) {
+                    if (single.endsWith(surname) && single.length > surname.length + 2) {
+                        const first = single.slice(0, single.length - surname.length);
+                        result.firstName = first.charAt(0).toUpperCase() + first.slice(1);
+                        result.lastName = surname.charAt(0).toUpperCase() + surname.slice(1);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    result.firstName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase();
+                }
             }
         }
         // 7. Extract Date of Birth (DOB)

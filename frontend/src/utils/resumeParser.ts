@@ -82,8 +82,48 @@ export interface ParsedResumeData {
 const COMMON_NON_NAMES = new Set([
   'resume', 'curriculum', 'vitae', 'cv', 'biodata', 'profile', 'contact',
   'email', 'phone', 'mobile', 'address', 'page', 'career', 'objective',
-  'summary', 'experience', 'education', 'skills', 'declaration', 'personal'
+  'summary', 'experience', 'education', 'skills', 'declaration', 'personal',
+  'academic', 'academics', 'qualification', 'qualifications', 'educational',
+  'professional', 'employment', 'certifications', 'certification', 'training',
+  'projects', 'competencies', 'competency', 'achievements', 'activities',
+  'interests', 'hobbies', 'languages', 'references', 'details', 'articleship',
+  'examination', 'examinations', 'intermediate', 'finalist', 'foundation',
+  'institute', 'chartered', 'accountants', 'india', 'university', 'college',
+  'school', 'board', 'percentage', 'marks', 'grade', 'rank', 'executive',
+  'overview', 'synopsis', 'work', 'history', 'technical', 'expertise'
 ]);
+
+export const INDIAN_SURNAMES = [
+  'yadav', 'sharma', 'gupta', 'verma', 'jain', 'singh', 'kumar', 'mishra', 'patel', 'shah',
+  'agrawal', 'agarwal', 'chouhan', 'chauhan', 'pandey', 'tiwari', 'dubey', 'tripathi', 'shukla',
+  'reddy', 'nair', 'iyer', 'menon', 'rao', 'das', 'ghosh', 'banerjee', 'mukherjee', 'chatterjee',
+  'bose', 'roy', 'dutta', 'sen', 'mitra', 'joshi', 'bhat', 'bhatt', 'saxena', 'mehta', 'soni',
+  'khatri', 'malhotra', 'kapoor', 'khanna', 'chopra', 'bhatia', 'sethi', 'arora', 'grover', 'garg',
+  'bansal', 'mittal', 'goel', 'goyal', 'sinha', 'jha', 'thakur', 'kaur', 'lodha', 'porwal', 'daga',
+  'bajaj', 'singhania', 'deshmukh', 'chawla', 'modi', 'kothari', 'somani', 'rathi', 'maheshwari'
+];
+
+export function extractNameFromEmail(email?: string): string {
+  if (!email || !email.includes('@')) return '';
+  const prefix = email.split('@')[0].toLowerCase();
+  const lettersOnly = prefix.replace(/[0-9]/g, '');
+  const parts = lettersOnly.split(/[._-]/).filter(p => p.length >= 2);
+  if (parts.length >= 2) {
+    return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
+  }
+  for (const surname of INDIAN_SURNAMES) {
+    if (lettersOnly.endsWith(surname) && lettersOnly.length > surname.length + 2) {
+      const first = lettersOnly.slice(0, lettersOnly.length - surname.length);
+      const capFirst = first.charAt(0).toUpperCase() + first.slice(1);
+      const capLast = surname.charAt(0).toUpperCase() + surname.slice(1);
+      return `${capFirst} ${capLast}`;
+    }
+  }
+  if (parts.length === 1 && parts[0].length >= 3) {
+    return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+  }
+  return '';
+}
 
 const POPULAR_CITIES = [
   'Mumbai', 'Delhi', 'Bengaluru', 'Bangalore', 'Hyderabad', 'Pune', 'Kolkata',
@@ -161,15 +201,17 @@ export function extractNameFromFileName(fileName?: string): string {
   if (!fileName) return '';
   // Remove extension
   let clean = fileName.replace(/\.[a-zA-Z0-9]+$/i, '');
-  // Remove copy markers like (1), (2), _copy, -copy
+  // Remove copy markers, trailing timestamps, upload hashes (e.g. _pdf-1794572684146)
+  clean = clean.replace(/[-_]pdf[-\d]*/gi, ' ');
+  clean = clean.replace(/[-_]\d{6,}/g, ' ');
   clean = clean.replace(/\(\d+\)/g, ' ').replace(/[-_]copy\d*/gi, ' ');
+  clean = clean.replace(/\d+/g, ' ');
   // Remove common non-name resume keywords
   const fileKeywords = [
     'resume', 'curriculum', 'vitae', 'cv', 'biodata', 'profile',
     'updated', 'latest', 'new', 'final', 'draft', 'doc', 'document',
     'fast', 'careers', 'career', 'ca', 'cma', 'cs', 'finalist', 'fresher',
-    'experienced', 'accountant', 'audit', 'tax', '2020', '2021', '2022',
-    '2023', '2024', '2025', '2026', '2027', 'v1', 'v2', 'v3'
+    'experienced', 'accountant', 'audit', 'tax', 'v1', 'v2', 'v3', 'pdf'
   ];
   for (const kw of fileKeywords) {
     clean = clean.replace(new RegExp(`\\b${kw}\\b`, 'gi'), ' ');
@@ -178,8 +220,18 @@ export function extractNameFromFileName(fileName?: string): string {
   clean = clean.replace(/[._-]+/g, ' ').replace(/\s+/g, ' ').trim();
 
   const words = clean.split(' ').filter(w => /^[a-zA-Z]{2,20}$/.test(w));
-  if (words.length >= 1 && words.length <= 4) {
+  if (words.length >= 2 && words.length <= 4) {
     return words.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+  }
+  if (words.length === 1) {
+    const wLower = words[0].toLowerCase();
+    for (const surname of INDIAN_SURNAMES) {
+      if (wLower.endsWith(surname) && wLower.length > surname.length + 2) {
+        const first = wLower.slice(0, wLower.length - surname.length);
+        return `${first.charAt(0).toUpperCase() + first.slice(1)} ${surname.charAt(0).toUpperCase() + surname.slice(1)}`;
+      }
+    }
+    return words[0].charAt(0).toUpperCase() + words[0].slice(1).toLowerCase();
   }
   return '';
 }
@@ -192,6 +244,15 @@ export function parseResumeText(rawText: string, originalFileName?: string): Par
   if (!rawText && !originalFileName) return result;
 
   const cleanText = (rawText || '').replace(/\r\n/g, '\n');
+
+  // Helper to validate whether an extracted string is a real human name
+  const isInvalidName = (name?: string): boolean => {
+    if (!name || name.trim().length < 3) return true;
+    const words = name.toLowerCase().split(/\s+/);
+    if (words.some(w => COMMON_NON_NAMES.has(w))) return true;
+    if (/[0-9@_#$/\\=]/.test(name)) return true;
+    return false;
+  };
 
   // 1. Email Extraction
   const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i;
@@ -263,63 +324,58 @@ export function parseResumeText(rawText: string, originalFileName?: string): Par
 
   // 5A. Explicit Name pattern (e.g. "Name: Rahul Verma", "Full Name - Divya Yadav")
   const explicitNameMatch = cleanText.match(/\b(?:Name|Candidate Name|Full Name|Applicant Name)[\s:-]+([A-Z][A-Za-z.'-]+(?:\s+[A-Z][A-Za-z.'-]+){1,3})\b/i);
-  if (explicitNameMatch) {
+  if (explicitNameMatch && !isInvalidName(explicitNameMatch[1].trim())) {
     candidateName = explicitNameMatch[1].trim();
   }
 
-  // 5B. Inspect top lines of resume text
-  if (!candidateName) {
-    for (const line of lines.slice(0, 10)) {
+  // 5B. Extract from original file name first if valid two-word name (e.g. Khushi_Agarwal_CV.pdf)
+  if ((!candidateName || isInvalidName(candidateName)) && originalFileName) {
+    const fromFile = extractNameFromFileName(originalFileName);
+    if (fromFile && fromFile.includes(' ') && !isInvalidName(fromFile)) {
+      candidateName = fromFile;
+    }
+  }
+
+  // 5C. Inspect top lines of resume text
+  if (!candidateName || isInvalidName(candidateName)) {
+    for (const line of lines.slice(0, 15)) {
       if (line.includes('@') || /(?:\+?91|\d{5})/i.test(line) || /linkedin\.com/i.test(line)) continue;
-      if (COMMON_NON_NAMES.has(line.toLowerCase())) continue;
       
       // Remove prefixes like CA, CMA, CS, Mr., Ms., Mrs., Dr.
       const sanitizedLine = line.replace(/^(?:CA\s+|CMA\s+|CS\s+|Mr\.\s+|Ms\.\s+|Mrs\.\s+|Dr\.\s+)/i, '').trim();
       const words = sanitizedLine.split(/\s+/).filter(w => /^[a-zA-Z.'-]+$/.test(w));
       if (words.length >= 2 && words.length <= 4) {
-        const isHeaderWord = words.some(w => COMMON_NON_NAMES.has(w.toLowerCase()));
-        if (!isHeaderWord) {
-          candidateName = words.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+        const potentialName = words.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+        if (!isInvalidName(potentialName)) {
+          candidateName = potentialName;
           break;
         }
-      } else if (words.length === 1 && words[0].length >= 3 && !COMMON_NON_NAMES.has(words[0].toLowerCase())) {
-        // Single word on the very first line if looks like a name
-        if (!candidateName && lines.indexOf(line) <= 1) {
-          candidateName = words[0].charAt(0).toUpperCase() + words[0].slice(1).toLowerCase();
+      } else if (words.length === 1 && words[0].length >= 3) {
+        const potentialName = words[0].charAt(0).toUpperCase() + words[0].slice(1).toLowerCase();
+        if (!isInvalidName(potentialName) && lines.indexOf(line) <= 1) {
+          candidateName = potentialName;
         }
       }
     }
   }
 
-  // 5C. Extract from original file name (e.g. Divya_Yadav_Resume (1) (1).pdf -> Divya Yadav)
-  if (!candidateName && originalFileName) {
+  // 5D. Fallback to Email prefix (e.g. khushiagarwal24025@gmail.com -> Khushi Agarwal)
+  if ((!candidateName || isInvalidName(candidateName)) && result.email) {
+    const fromEmail = extractNameFromEmail(result.email);
+    if (fromEmail && !isInvalidName(fromEmail)) {
+      candidateName = fromEmail;
+    }
+  }
+
+  // 5E. Final check on filename fallback
+  if (originalFileName && (!candidateName || !candidateName.includes(' ') || isInvalidName(candidateName))) {
     const fromFile = extractNameFromFileName(originalFileName);
-    if (fromFile) {
+    if (fromFile && !isInvalidName(fromFile)) {
       candidateName = fromFile;
     }
   }
 
-  // 5D. Fallback to Email prefix (e.g. divyayadav141203@gmail.com or rahul.verma@...)
-  if (!candidateName && result.email) {
-    const prefix = result.email.split('@')[0];
-    // First try splitting on dots, hyphens, underscores
-    const parts = prefix.split(/[._-]/).map(p => p.replace(/\d+/g, '')).filter(p => p.length >= 2 && /^[a-zA-Z]+$/.test(p));
-    if (parts.length >= 2) {
-      candidateName = parts.map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
-    } else if (parts.length === 1 && parts[0].length >= 3) {
-      candidateName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase();
-    }
-  }
-
-  // If candidateName was single word from text or email, but filename has 2 words (e.g. Divya Yadav)
-  if (originalFileName && (!candidateName || !candidateName.includes(' '))) {
-    const fromFile = extractNameFromFileName(originalFileName);
-    if (fromFile && fromFile.includes(' ')) {
-      candidateName = fromFile;
-    }
-  }
-
-  if (candidateName) {
+  if (candidateName && !isInvalidName(candidateName)) {
     const nameParts = candidateName.split(' ');
     result.firstName = nameParts[0];
     result.lastName = nameParts.slice(1).join(' ') || '';
