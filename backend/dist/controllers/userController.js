@@ -573,7 +573,7 @@ const seed20Candidates_1 = require("../seed20Candidates");
 const resumeGenerator_1 = require("../utils/resumeGenerator");
 const archiver = require('archiver');
 const sanitizeFilename = (name) => {
-    return name.replace(/[/\\?%*:|"<>]/g, '').trim().replace(/\s+/g, '_');
+    return (name || '').replace(/[/\\?%*:|"<>_]/g, ' ').replace(/\s+/g, ' ').trim();
 };
 const seed10AppliedCandidates_1 = require("../seed10AppliedCandidates");
 // @desc    Seed 10 new candidate records with PDF resumes and job applications
@@ -927,12 +927,9 @@ const downloadCandidateResumesZip = (req, res) => __awaiter(void 0, void 0, void
         // Track duplicate filenames to ensure unique names in the ZIP
         const nameTracker = new Map();
         for (const candidate of candidates) {
-            const fName = sanitizeFilename(candidate.firstName || 'Candidate');
+            const fName = sanitizeFilename(candidate.firstName || '');
             const lName = sanitizeFilename(candidate.lastName || '');
-            let baseName = `${fName}${lName ? '_' + lName : ''}`;
-            if (!baseName || baseName === '_') {
-                baseName = `Candidate_${candidate._id.toString().slice(-6)}`;
-            }
+            let baseName = [fName, lName].filter(Boolean).join(' ') || 'Candidate';
             let filename = '';
             if (!nameTracker.has(baseName)) {
                 nameTracker.set(baseName, 1);
@@ -941,7 +938,7 @@ const downloadCandidateResumesZip = (req, res) => __awaiter(void 0, void 0, void
             else {
                 const count = (nameTracker.get(baseName) || 1) + 1;
                 nameTracker.set(baseName, count);
-                filename = `${baseName}_${count}.pdf`;
+                filename = `${baseName} (${count}).pdf`;
             }
             let buffer = null;
             try {
@@ -994,9 +991,9 @@ const getCandidateResume = (req, res) => __awaiter(void 0, void 0, void 0, funct
             res.status(404).json({ message: 'Could not generate or retrieve resume for this candidate.' });
             return;
         }
-        const fName = sanitizeFilename(candidate.firstName || 'Candidate');
+        const fName = sanitizeFilename(candidate.firstName || '');
         const lName = sanitizeFilename(candidate.lastName || '');
-        const filename = `${fName}${lName ? '_' + lName : ''}.pdf`;
+        const filename = `${[fName, lName].filter(Boolean).join(' ') || 'Candidate'}.pdf`;
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
         res.end(buffer);

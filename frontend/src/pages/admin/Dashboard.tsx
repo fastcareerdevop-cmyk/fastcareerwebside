@@ -287,12 +287,19 @@ export const AdminDashboard = () => {
 
       const resumesFolder = zip.folder("Resumes");
       if (resumesFolder) {
+        const nameCountTracker = new Map<string, number>();
         const fetchPromises = filteredCandidates.map(async (candidate) => {
           try {
             const blob = await fetchCandidateResumeBlob(candidate);
-            const sanitize = (s: string) => s.replace(/[/\\?%*:|"<>]/g, '').trim().replace(/\s+/g, '_');
-            const base = `${sanitize(candidate.firstName || 'Candidate')}_${sanitize(candidate.lastName || '')}`.replace(/_+$/, '');
-            const fileName = `${base || 'Candidate'}.pdf`;
+            const sanitize = (s: string) => (s || '').replace(/[/\\?%*:|"<>_]/g, ' ').replace(/\s+/g, ' ').trim();
+            const fName = sanitize(candidate.firstName || '');
+            const lName = sanitize(candidate.lastName || '');
+            const base = [fName, lName].filter(Boolean).join(' ') || 'Candidate';
+            
+            const currentCount = nameCountTracker.get(base) || 0;
+            nameCountTracker.set(base, currentCount + 1);
+            const fileName = currentCount === 0 ? `${base}.pdf` : `${base} (${currentCount + 1}).pdf`;
+
             resumesFolder.file(fileName, blob);
           } catch (error) {
             console.error(`Failed to fetch resume for ${candidate.firstName}:`, error);

@@ -635,7 +635,7 @@ import {
 const archiver = require('archiver');
 
 const sanitizeFilename = (name: string): string => {
-  return name.replace(/[/\\?%*:|"<>]/g, '').trim().replace(/\s+/g, '_');
+  return (name || '').replace(/[/\\?%*:|"<>_]/g, ' ').replace(/\s+/g, ' ').trim();
 };
 
 import { seed10AppliedCandidates } from '../seed10AppliedCandidates';
@@ -1044,12 +1044,9 @@ export const downloadCandidateResumesZip = async (req: Request, res: Response) =
     const nameTracker = new Map<string, number>();
 
     for (const candidate of candidates) {
-      const fName = sanitizeFilename(candidate.firstName || 'Candidate');
+      const fName = sanitizeFilename(candidate.firstName || '');
       const lName = sanitizeFilename(candidate.lastName || '');
-      let baseName = `${fName}${lName ? '_' + lName : ''}`;
-      if (!baseName || baseName === '_') {
-        baseName = `Candidate_${candidate._id.toString().slice(-6)}`;
-      }
+      let baseName = [fName, lName].filter(Boolean).join(' ') || 'Candidate';
 
       let filename = '';
       if (!nameTracker.has(baseName)) {
@@ -1058,7 +1055,7 @@ export const downloadCandidateResumesZip = async (req: Request, res: Response) =
       } else {
         const count = (nameTracker.get(baseName) || 1) + 1;
         nameTracker.set(baseName, count);
-        filename = `${baseName}_${count}.pdf`;
+        filename = `${baseName} (${count}).pdf`;
       }
 
       let buffer: Buffer | null = null;
@@ -1115,9 +1112,9 @@ export const getCandidateResume = async (req: Request, res: Response) => {
       return;
     }
 
-    const fName = sanitizeFilename(candidate.firstName || 'Candidate');
+    const fName = sanitizeFilename(candidate.firstName || '');
     const lName = sanitizeFilename(candidate.lastName || '');
-    const filename = `${fName}${lName ? '_' + lName : ''}.pdf`;
+    const filename = `${[fName, lName].filter(Boolean).join(' ') || 'Candidate'}.pdf`;
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
