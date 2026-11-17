@@ -487,13 +487,13 @@ export const AdminDashboard = () => {
     try {
       const zip = new JSZip();
       
-      const excelData = filteredCandidates.map(formatCandidateForExcel);
+      const excelData = filteredCandidates.map((c, idx) => formatCandidateForExcel(c, idx));
 
       const worksheet = XLSX.utils.json_to_sheet(excelData);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Candidates Database");
       const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-      zip.file("Candidates_Full_Data.xlsx", excelBuffer);
+      zip.file("Candidates_50_Format_Data.xlsx", excelBuffer);
 
       // Also include the standard 16-field format in the ZIP
       const formatted16Data = filteredCandidates.map(formatCandidateTo16Columns);
@@ -545,8 +545,8 @@ export const AdminDashboard = () => {
         return;
       }
       try {
-        downloadFormatted16FieldExcel(list, 'Industrial_Training_Candidates');
-        toast.success('Excel spreadsheet downloaded successfully!');
+        downloadFormatted16FieldExcel(list, 'Industrial_Training_16_Format');
+        toast.success('Downloaded 16-field Industrial Training Excel successfully!');
       } catch (error) {
         console.error('Error exporting Excel:', error);
         toast.error('Failed to export Excel.');
@@ -559,8 +559,8 @@ export const AdminDashboard = () => {
       return;
     }
     try {
-      downloadCandidatesExcel(filteredCandidates, 'Candidates_Complete_Data');
-      toast.success('Excel spreadsheet downloaded with all candidate fields!');
+      downloadCandidatesExcel(filteredCandidates, activeTab === 'experienced' ? 'Experienced_Candidates_50_Format' : 'Fresher_Candidates_50_Format');
+      toast.success('Downloaded 50-field Candidates Excel sheet successfully!');
     } catch (error) {
       console.error('Error exporting Excel:', error);
       toast.error('Failed to export Excel.');
@@ -568,22 +568,32 @@ export const AdminDashboard = () => {
   };
 
   const handleExportCustomFormatExcel = () => {
-    const exportList = activeTab === 'industrial'
-      ? (filteredIndustrial.length > 0 ? filteredIndustrial : industrialList)
-      : (filteredCandidates.length > 0 ? filteredCandidates : activeCandidatesList);
-
-    if (!exportList || exportList.length === 0) {
-      toast.error('No candidates available to export.');
-      return;
-    }
-
-    try {
-      const prefix = activeTab === 'industrial' ? 'Industrial_Training_16_Format' : 'Candidates_16_Format';
-      downloadFormatted16FieldExcel(exportList, prefix);
-      toast.success('Downloaded 16-field formatted Excel sheet successfully!');
-    } catch (error) {
-      console.error('Error exporting formatted Excel:', error);
-      toast.error('Failed to export formatted Excel.');
+    if (activeTab === 'industrial') {
+      const list = filteredIndustrial.length > 0 ? filteredIndustrial : industrialList;
+      if (!list || list.length === 0) {
+        toast.error('No industrial candidates available to export.');
+        return;
+      }
+      try {
+        downloadFormatted16FieldExcel(list, 'Industrial_Training_16_Format');
+        toast.success('Downloaded 16-field Industrial Training Excel sheet successfully!');
+      } catch (error) {
+        console.error('Error exporting formatted Excel:', error);
+        toast.error('Failed to export formatted Excel.');
+      }
+    } else {
+      const list = filteredCandidates.length > 0 ? filteredCandidates : activeCandidatesList;
+      if (!list || list.length === 0) {
+        toast.error('No candidates available to export.');
+        return;
+      }
+      try {
+        downloadCandidatesExcel(list, activeTab === 'experienced' ? 'Experienced_Candidates_50_Format' : 'Fresher_Candidates_50_Format');
+        toast.success('Downloaded 50-field formatted Candidates Excel sheet successfully!');
+      } catch (error) {
+        console.error('Error exporting formatted Excel:', error);
+        toast.error('Failed to export formatted Excel.');
+      }
     }
   };
 
