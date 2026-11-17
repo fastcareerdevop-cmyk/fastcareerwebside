@@ -411,6 +411,11 @@ export const getLaterExamSession = (
 };
 
 export const getBackendUrl = (): string => {
+  // When running in production on fast-india.com or any non-localhost custom domain (like Hostinger)
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && !window.location.hostname.includes('vercel.app')) {
+    return window.location.origin;
+  }
+
   let url = (import.meta as any).env?.VITE_API_URL;
   if (url && typeof url === 'string' && url.trim() && url !== 'undefined') {
     url = url.trim().replace(/\/+$/, '');
@@ -418,11 +423,6 @@ export const getBackendUrl = (): string => {
       url = url.replace('fastcareer.onrender.com', 'fastcareerwebside.onrender.com');
     }
     return url;
-  }
-
-  // When running in production on fast-india.com or any non-localhost custom domain (like Hostinger)
-  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && !window.location.hostname.includes('vercel.app')) {
-    return window.location.origin;
   }
 
   return 'https://fastcareerwebside.onrender.com';

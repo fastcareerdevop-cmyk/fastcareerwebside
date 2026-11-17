@@ -397,10 +397,13 @@ export const Register = () => {
       });
       return undefined;
     } catch (error) {
-      console.error('Error checking phone number:', error);
-      const message = 'Unable to verify this mobile number right now. Please try again.';
-      setFieldErrors(prev => ({ ...prev, phone: message }));
-      return message;
+      console.warn('Error checking phone number (allowing submission to backend verification):', error);
+      setFieldErrors(prev => {
+        const copy = { ...prev };
+        delete copy.phone;
+        return copy;
+      });
+      return undefined;
     } finally {
       setIsCheckingPhone(false);
     }
