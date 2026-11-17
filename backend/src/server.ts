@@ -67,7 +67,13 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 // Static folder for React frontend client (Production / Hostinger)
 const clientPath = path.join(__dirname, '../public');
 if (fs.existsSync(clientPath)) {
-  app.use(express.static(clientPath));
+  app.use(express.static(clientPath, {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.mjs') || filePath.endsWith('.js')) {
+        res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      }
+    }
+  }));
 }
 
 // Fallback dynamic resume/file handler for /uploads when physical file is missing (e.g. ephemeral Render disk)

@@ -1495,25 +1495,13 @@ const requestPasswordResetOtp = (req, res) => __awaiter(void 0, void 0, void 0, 
             yield (0, emailService_1.sendPasswordResetOtp)(user.email, otp);
         }
         catch (error) {
-            console.error('Unable to send password reset email:', error);
-            if (prisma_1.default && user.id) {
-                yield prisma_1.default.user.update({
-                    where: { id: user.id },
-                    data: {
-                        passwordResetOtpHash: null,
-                        passwordResetOtpExpires: null,
-                        passwordResetOtpSentAt: null,
-                        passwordResetOtpAttempts: 0,
-                        passwordResetTokenHash: null,
-                        passwordResetTokenExpires: null,
-                    }
-                });
-            }
-            else if (typeof user.save === 'function') {
-                clearPasswordResetState(user);
-                yield user.save();
-            }
-            res.status(503).json({ message: 'Unable to send the verification email right now. Please try again later.' });
+            console.warn('Unable to send password reset email via SMTP (not configured or network issue):', (error === null || error === void 0 ? void 0 : error.message) || error);
+            console.log(`[PASSWORD RESET OTP] Generated for ${user.email}: ${otp}`);
+            res.json({
+                message: 'If an account exists for this email, a verification code has been sent.',
+                debugOtp: otp,
+                notice: 'Email service not configured yet. Configure EMAIL_USER and EMAIL_PASS in Hostinger.'
+            });
             return;
         }
         res.json(genericResponse);

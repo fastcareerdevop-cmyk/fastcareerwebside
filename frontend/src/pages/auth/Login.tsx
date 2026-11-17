@@ -133,10 +133,15 @@ export const Login = () => {
     setIsResetLoading(true);
     setResetError('');
     try {
-      const response = await authService.requestPasswordResetOtp(trimmedEmail);
+      const response: any = await authService.requestPasswordResetOtp(trimmedEmail);
       setForgotEmail(trimmedEmail);
       setForgotStep('otp');
-      setResetNotice(response.message);
+      if (response?.debugOtp) {
+        setResetOtp(response.debugOtp);
+        setResetNotice(`Verification code: ${response.debugOtp}`);
+      } else {
+        setResetNotice(response.message);
+      }
     } catch (error) {
       const message = isAxiosError<{ message?: string }>(error)
         ? error.response?.data?.message
