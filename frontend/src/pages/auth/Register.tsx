@@ -129,8 +129,8 @@ export const Register = () => {
   const [currentCity, setCurrentCity] = useState('');
   const [customCityInput, setCustomCityInput] = useState('');
   const [workStatus, setWorkStatus] = useState<'fresher' | 'experienced'>('fresher');
-  const [experienceYears, setExperienceYears] = useState('2-3 Years');
-  const [caFinalCompletionYear, setCaFinalCompletionYear] = useState('2023');
+  const [experienceYears, setExperienceYears] = useState('');
+  const [caFinalCompletionYear, setCaFinalCompletionYear] = useState('');
   const [currentCompanyName, setCurrentCompanyName] = useState('');
   const [currentDesignation, setCurrentDesignation] = useState('');
   const [currentCTC, setCurrentCTC] = useState('');
@@ -652,12 +652,16 @@ export const Register = () => {
         newErrors.currentCity = 'Please fill this field: Current Location';
       }
 
+      if (!linkedinUrl.trim()) {
+        newErrors.linkedinUrl = 'Please fill this field: LinkedIn Profile URL';
+      }
+
       if (workStatus === 'experienced') {
-        if (!experienceYears) {
-          newErrors.experienceYears = 'Please fill this field: Total Work Experience';
-        }
         if (!caFinalCompletionYear) {
           newErrors.caFinalCompletionYear = 'Please fill this field: Which CA Final Year Completed?';
+        }
+        if (!experienceYears) {
+          newErrors.experienceYears = 'Please fill this field: Total Work Experience';
         }
         if (!currentCompanyName.trim()) {
           newErrors.currentCompanyName = 'Please fill this field: Current / Most Recent Company Name';
@@ -665,14 +669,92 @@ export const Register = () => {
         if (!currentDesignation.trim()) {
           newErrors.currentDesignation = 'Please fill this field: Current Designation';
         }
+        if (!workProfile.trim()) {
+          newErrors.workProfile = 'Please fill this field: Work Profile / Domain';
+        }
+        if (!noticePeriod.trim()) {
+          newErrors.noticePeriod = 'Please fill this field: Notice Period';
+        }
+        if (!currentCTC.trim()) {
+          newErrors.currentCTC = 'Please fill this field: Current CTC (LPA)';
+        }
+        if (!expectedCTC.trim()) {
+          newErrors.expectedCTC = 'Please fill this field: Expected CTC (LPA)';
+        }
+        if (!big6Articleship) {
+          newErrors.big6Articleship = 'Please select Yes or No: Have you completed your articleship from any of the Big 6 Audit Firms?';
+        }
       }
 
       if (workStatus === 'fresher') {
+        articleships.forEach((art, idx) => {
+          const firmVal = art.firmName === 'Other' ? (art.customFirmName || '').trim() : art.firmName.trim();
+          if (!firmVal) {
+            newErrors[`articleshipFirm_${idx}`] = `Please fill Firm Name for Articleship Firm #${idx + 1}`;
+          }
+          if (!art.city.trim()) {
+            newErrors[`articleshipCity_${idx}`] = `Please select City for Articleship Firm #${idx + 1}`;
+          }
+          if (!art.noOfMonths || parseInt(art.noOfMonths, 10) <= 0) {
+            newErrors[`articleshipMonths_${idx}`] = `Please enter Duration (Months) for Articleship Firm #${idx + 1}`;
+          }
+        });
+
         const totalMonths = articleships.reduce((acc, curr) => acc + (parseInt(curr.noOfMonths, 10) || 0), 0);
         if (totalMonths !== 24 && totalMonths !== 36) {
           newErrors.articleshipMonths = `Total Articleship duration across all firms must be exactly 24 Months (New Scheme) or 36 Months (Old Scheme). Current total: ${totalMonths} Months.`;
         }
+
+        if (!articleshipCompletionMonth || !articleshipCompletionYear) {
+          newErrors.articleshipCompletionDate = 'Please select Articleship Completion Date (Month and Year)';
+        }
+        if (!gmcsCompleted) {
+          newErrors.gmcsCompleted = 'Please select: GMCS Completed? (Yes or No)';
+        }
+        if (!industrialTrainee) {
+          newErrors.industrialTrainee = 'Please select: Industrial Trainee? (Yes or No)';
+        }
+        if (!listedCompanyWork) {
+          newErrors.listedCompanyWork = 'Please select: Listed Company Work? (Yes or No)';
+        }
+        if (!big6Articleship) {
+          newErrors.big6Articleship = 'Please select Yes or No: Have you completed your articleship from any of the Big 6 Audit Firms?';
+        }
+        if (selectedNatureOfWork.length === 0) {
+          newErrors.natureOfWork = 'Please select at least one Nature of Work.';
+        } else if (selectedNatureOfWork.includes('Other') && !otherNatureOfWork.trim()) {
+          newErrors.otherNatureOfWork = 'Please specify your other Nature of Work.';
+        }
+        if (!caFinal.percentage || !caFinal.percentage.trim()) {
+          newErrors.caFinalPercentage = 'Please fill this field: CA Final Percentage (%)';
+        }
       }
+
+      // Validate CA Intermediate
+      if (!caInter.group1Attempts) newErrors.caInterGroup1Attempts = 'Please select CA Inter Group 1 Attempts';
+      if (!caInter.group1Month) newErrors.caInterGroup1Month = 'Please select CA Inter Group 1 Month';
+      if (!caInter.group1Year) newErrors.caInterGroup1Year = 'Please select CA Inter Group 1 Year';
+      if (!caInter.bothGroups1stAttempt) {
+        if (!caInter.group2Attempts) newErrors.caInterGroup2Attempts = 'Please select CA Inter Group 2 Attempts';
+        if (!caInter.group2Month) newErrors.caInterGroup2Month = 'Please select CA Inter Group 2 Month';
+        if (!caInter.group2Year) newErrors.caInterGroup2Year = 'Please select CA Inter Group 2 Year';
+        if (!caInter.completionSessionMonth) newErrors.caInterCompletionSessionMonth = 'Please select CA Inter Completion Session Month';
+        if (!caInter.completionSessionYear) newErrors.caInterCompletionSessionYear = 'Please select CA Inter Completion Session Year';
+      }
+      if (!caInter.ranker) newErrors.caInterRanker = 'Please select CA Inter Ranker option';
+
+      // Validate CA Final
+      if (!caFinal.group1Attempts) newErrors.caFinalGroup1Attempts = 'Please select CA Final Group 1 Attempts';
+      if (!caFinal.group1Month) newErrors.caFinalGroup1Month = 'Please select CA Final Group 1 Month';
+      if (!caFinal.group1Year) newErrors.caFinalGroup1Year = 'Please select CA Final Group 1 Year';
+      if (!caFinal.bothGroups1stAttempt) {
+        if (!caFinal.group2Attempts) newErrors.caFinalGroup2Attempts = 'Please select CA Final Group 2 Attempts';
+        if (!caFinal.group2Month) newErrors.caFinalGroup2Month = 'Please select CA Final Group 2 Month';
+        if (!caFinal.group2Year) newErrors.caFinalGroup2Year = 'Please select CA Final Group 2 Year';
+        if (!caFinal.completionSessionMonth) newErrors.caFinalCompletionSessionMonth = 'Please select CA Final Completion Session Month';
+        if (!caFinal.completionSessionYear) newErrors.caFinalCompletionSessionYear = 'Please select CA Final Completion Session Year';
+      }
+      if (!caFinal.ranker) newErrors.caFinalRanker = 'Please select CA Final Ranker option';
 
       if (!resumeFile) {
         newErrors.resumeFile = 'Please fill this field: Upload Resume / CV (PDF or DOCX)';
@@ -1155,7 +1237,7 @@ export const Register = () => {
                   </div>
 
                   {role === 'candidate' ? (
-                    <div>
+                    <div id="dateOfBirth">
                       <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                         Date of Birth <span className="text-red-500">*</span>
                       </label>
@@ -1516,11 +1598,11 @@ export const Register = () => {
                       )}
                     </div>
 
-                    {/* LinkedIn Profile ID / URL (Optional) */}
+                    {/* LinkedIn Profile ID / URL */}
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
-                        <label className="block text-xs font-semibold text-slate-700">
-                          LinkedIn Profile URL <span className="text-slate-400 font-normal text-[11px]">(Optional)</span>
+                        <label htmlFor="linkedinUrl" className="block text-xs font-semibold text-slate-700">
+                          LinkedIn Profile URL <span className="text-red-500">*</span>
                         </label>
                         <span className="text-[10.5px] text-slate-400 font-medium">e.g. linkedin.com/in/username</span>
                       </div>
@@ -1531,13 +1613,28 @@ export const Register = () => {
                           </svg>
                         </div>
                         <input
-                          type="url"
+                          type="text"
+                          id="linkedinUrl"
+                          name="linkedinUrl"
                           value={linkedinUrl}
-                          onChange={(e) => setLinkedinUrl(e.target.value)}
+                          onChange={(e) => {
+                            setLinkedinUrl(e.target.value);
+                            if (fieldErrors.linkedinUrl) setFieldErrors(prev => ({ ...prev, linkedinUrl: '' }));
+                          }}
                           placeholder="https://www.linkedin.com/in/your-profile"
-                          className="w-full pl-10 pr-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                          className={`w-full pl-10 pr-3.5 py-2.5 border rounded-xl text-sm focus:outline-none transition-all ${
+                            fieldErrors.linkedinUrl
+                              ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                              : 'border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary'
+                          }`}
                         />
                       </div>
+                      {fieldErrors.linkedinUrl && (
+                        <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                          <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                          <span>{fieldErrors.linkedinUrl}</span>
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1561,6 +1658,11 @@ export const Register = () => {
                               delete copy.experienceYears;
                               delete copy.currentCompanyName;
                               delete copy.currentDesignation;
+                              delete copy.workProfile;
+                              delete copy.noticePeriod;
+                              delete copy.currentCTC;
+                              delete copy.expectedCTC;
+                              delete copy.big6Articleship;
                               return copy;
                             });
                           }}
@@ -1592,7 +1694,27 @@ export const Register = () => {
 
                         {/* Experienced Card */}
                         <div
-                          onClick={() => setWorkStatus('experienced')}
+                          onClick={() => {
+                            setWorkStatus('experienced');
+                            setFieldErrors(prev => {
+                              const copy = { ...prev };
+                              Object.keys(copy).forEach(k => {
+                                if (
+                                  k.startsWith('articleship') || 
+                                  k === 'natureOfWork' || 
+                                  k === 'otherNatureOfWork' || 
+                                  k === 'gmcsCompleted' || 
+                                  k === 'industrialTrainee' || 
+                                  k === 'listedCompanyWork' ||
+                                  k === 'caFinalPercentage' ||
+                                  k === 'big6Articleship'
+                                ) {
+                                  delete copy[k];
+                                }
+                              });
+                              return copy;
+                            });
+                          }}
                           className={`border rounded-2xl p-3.5 cursor-pointer flex items-center justify-between transition-all ${
                             workStatus === 'experienced'
                               ? 'border-blue-600 bg-blue-50/40 ring-1 ring-blue-600/30 shadow-xs'
@@ -1691,11 +1813,22 @@ export const Register = () => {
                                     </label>
                                     <input
                                       type="text"
+                                      id={`articleshipFirm_${idx}`}
+                                      name={`articleshipFirm_${idx}`}
                                       list={`caFirmsList-${idx}`}
                                       value={firm.firmName}
-                                      onChange={(e) => updateArticleship(idx, 'firmName', e.target.value)}
+                                      onChange={(e) => {
+                                        updateArticleship(idx, 'firmName', e.target.value);
+                                        if (fieldErrors[`articleshipFirm_${idx}`]) {
+                                          setFieldErrors(prev => ({ ...prev, [`articleshipFirm_${idx}`]: '' }));
+                                        }
+                                      }}
                                       placeholder="e.g. Deloitte, PwC, or Enter Firm Name"
-                                      className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white"
+                                      className={`w-full px-3 py-2 border rounded-xl text-xs sm:text-sm focus:outline-none bg-white transition-all ${
+                                        fieldErrors[`articleshipFirm_${idx}`]
+                                          ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                                          : 'border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+                                      }`}
                                     />
                                     <datalist id={`caFirmsList-${idx}`}>
                                       {CA_FIRMS.map(f => <option key={f} value={f} />)}
@@ -1705,23 +1838,45 @@ export const Register = () => {
                                         type="text"
                                         placeholder="Enter Firm Name"
                                         value={firm.customFirmName || ''}
-                                        onChange={(e) => updateArticleship(idx, 'customFirmName', e.target.value)}
+                                        onChange={(e) => {
+                                          updateArticleship(idx, 'customFirmName', e.target.value);
+                                          if (fieldErrors[`articleshipFirm_${idx}`]) {
+                                            setFieldErrors(prev => ({ ...prev, [`articleshipFirm_${idx}`]: '' }));
+                                          }
+                                        }}
                                         className="mt-1.5 w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500"
                                       />
+                                    )}
+                                    {fieldErrors[`articleshipFirm_${idx}`] && (
+                                      <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                        <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                                        <span>{fieldErrors[`articleshipFirm_${idx}`]}</span>
+                                      </p>
                                     )}
                                   </div>
 
                                   {/* Articleship City */}
-                                  <div>
+                                  <div id={`articleshipCity_${idx}`}>
                                     <label className="block text-xs font-semibold text-slate-700 mb-1">
                                       Articleship City <span className="text-red-500">*</span>
                                     </label>
                                     <CityDropdownInput
                                       value={firm.city}
-                                      onChange={(val) => updateArticleship(idx, 'city', val)}
+                                      onChange={(val) => {
+                                        updateArticleship(idx, 'city', val);
+                                        if (fieldErrors[`articleshipCity_${idx}`]) {
+                                          setFieldErrors(prev => ({ ...prev, [`articleshipCity_${idx}`]: '' }));
+                                        }
+                                      }}
                                       placeholder="City where articleship done"
                                       required
                                     />
+                                    {fieldErrors[`articleshipCity_${idx}`] && (
+                                      <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                        <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                                        <span>{fieldErrors[`articleshipCity_${idx}`]}</span>
+                                      </p>
+                                    )}
                                   </div>
 
                                   {/* Number of Partners */}
@@ -1748,17 +1903,37 @@ export const Register = () => {
                                   {/* Duration (Months) */}
                                   <div>
                                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                                      Duration (Months)
+                                      Duration (Months) <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                       type="number"
+                                      id={`articleshipMonths_${idx}`}
+                                      name={`articleshipMonths_${idx}`}
                                       min="0"
                                       max="36"
                                       value={firm.noOfMonths}
-                                      onChange={(e) => updateArticleship(idx, 'noOfMonths', e.target.value)}
+                                      onChange={(e) => {
+                                        updateArticleship(idx, 'noOfMonths', e.target.value);
+                                        if (fieldErrors[`articleshipMonths_${idx}`]) {
+                                          setFieldErrors(prev => ({ ...prev, [`articleshipMonths_${idx}`]: '' }));
+                                        }
+                                        if (fieldErrors.articleshipMonths) {
+                                          setFieldErrors(prev => ({ ...prev, articleshipMonths: '' }));
+                                        }
+                                      }}
                                       placeholder="e.g. 36"
-                                      className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white"
+                                      className={`w-full px-3 py-2 border rounded-xl text-xs sm:text-sm focus:outline-none bg-white transition-all ${
+                                        fieldErrors[`articleshipMonths_${idx}`]
+                                          ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                                          : 'border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+                                      }`}
                                     />
+                                    {fieldErrors[`articleshipMonths_${idx}`] && (
+                                      <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                        <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                                        <span>{fieldErrors[`articleshipMonths_${idx}`]}</span>
+                                      </p>
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -1818,39 +1993,54 @@ export const Register = () => {
                           <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-blue-100 shadow-2xs space-y-3">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                               {/* Completion Month & Year */}
-                              <div>
+                              <div id="articleshipCompletionDate">
                                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                                   Completion / Due Date <span className="text-red-500">*</span>
                                 </label>
                                 <div className="grid grid-cols-2 gap-1.5">
                                   <select
                                     value={articleshipCompletionMonth}
-                                    onChange={(e) => setArticleshipCompletionMonth(e.target.value)}
+                                    onChange={(e) => {
+                                      setArticleshipCompletionMonth(e.target.value);
+                                      if (fieldErrors.articleshipCompletionDate) setFieldErrors(prev => ({ ...prev, articleshipCompletionDate: '' }));
+                                    }}
                                     className="w-full px-2.5 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white cursor-pointer"
                                   >
                                     {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
                                   </select>
                                   <select
                                     value={articleshipCompletionYear}
-                                    onChange={(e) => setArticleshipCompletionYear(e.target.value)}
+                                    onChange={(e) => {
+                                      setArticleshipCompletionYear(e.target.value);
+                                      if (fieldErrors.articleshipCompletionDate) setFieldErrors(prev => ({ ...prev, articleshipCompletionDate: '' }));
+                                    }}
                                     className="w-full px-2.5 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white cursor-pointer"
                                   >
                                     {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
                                   </select>
                                 </div>
+                                {fieldErrors.articleshipCompletionDate && (
+                                  <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                    <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                                    <span>{fieldErrors.articleshipCompletionDate}</span>
+                                  </p>
+                                )}
                               </div>
 
                               {/* GMCS Completed */}
-                              <div>
+                              <div id="gmcsCompleted">
                                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                                  GMCS Completed?
+                                  GMCS Completed? <span className="text-red-500">*</span>
                                 </label>
                                 <div className="grid grid-cols-2 gap-1.5">
                                   {(['Yes', 'No'] as const).map(opt => (
                                     <button
                                       key={opt}
                                       type="button"
-                                      onClick={() => setGmcsCompleted(opt)}
+                                      onClick={() => {
+                                        setGmcsCompleted(opt);
+                                        if (fieldErrors.gmcsCompleted) setFieldErrors(prev => ({ ...prev, gmcsCompleted: '' }));
+                                      }}
                                       className={`py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
                                         gmcsCompleted === opt
                                           ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
@@ -1861,19 +2051,28 @@ export const Register = () => {
                                     </button>
                                   ))}
                                 </div>
+                                {fieldErrors.gmcsCompleted && (
+                                  <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                    <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                                    <span>{fieldErrors.gmcsCompleted}</span>
+                                  </p>
+                                )}
                               </div>
 
                               {/* Industrial Trainee */}
-                              <div>
+                              <div id="industrialTrainee">
                                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                                  Industrial Trainee?
+                                  Industrial Trainee? <span className="text-red-500">*</span>
                                 </label>
                                 <div className="grid grid-cols-2 gap-1.5">
                                   {(['Yes', 'No'] as const).map(opt => (
                                     <button
                                       key={opt}
                                       type="button"
-                                      onClick={() => setIndustrialTrainee(opt)}
+                                      onClick={() => {
+                                        setIndustrialTrainee(opt);
+                                        if (fieldErrors.industrialTrainee) setFieldErrors(prev => ({ ...prev, industrialTrainee: '' }));
+                                      }}
                                       className={`py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
                                         industrialTrainee === opt
                                           ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
@@ -1884,19 +2083,28 @@ export const Register = () => {
                                     </button>
                                   ))}
                                 </div>
+                                {fieldErrors.industrialTrainee && (
+                                  <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                    <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                                    <span>{fieldErrors.industrialTrainee}</span>
+                                  </p>
+                                )}
                               </div>
 
                               {/* Listed Company Work */}
-                              <div>
+                              <div id="listedCompanyWork">
                                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                                  Listed Company Work?
+                                  Listed Company Work? <span className="text-red-500">*</span>
                                 </label>
                                 <div className="grid grid-cols-2 gap-1.5">
                                   {(['Yes', 'No'] as const).map(opt => (
                                     <button
                                       key={opt}
                                       type="button"
-                                      onClick={() => setListedCompanyWork(opt)}
+                                      onClick={() => {
+                                        setListedCompanyWork(opt);
+                                        if (fieldErrors.listedCompanyWork) setFieldErrors(prev => ({ ...prev, listedCompanyWork: '' }));
+                                      }}
                                       className={`py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
                                         listedCompanyWork === opt
                                           ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
@@ -1907,12 +2115,18 @@ export const Register = () => {
                                     </button>
                                   ))}
                                 </div>
+                                {fieldErrors.listedCompanyWork && (
+                                  <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                    <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                                    <span>{fieldErrors.listedCompanyWork}</span>
+                                  </p>
+                                )}
                               </div>
 
                               {/* Big 6 Audit Firms Question - Fresher */}
-                              <div className="col-span-full">
+                              <div id="big6Articleship" className="col-span-full">
                                 <label className="block text-xs font-semibold text-slate-700 mb-2">
-                                  Have you completed your articleship from any of the Big 6 Audit Firms?
+                                  Have you completed your articleship from any of the Big 6 Audit Firms? <span className="text-red-500">*</span>
                                   <span className="block text-[10.5px] font-normal text-slate-500 mt-0.5">(Deloitte, PwC, EY, KPMG, Grant Thornton, BDO)</span>
                                 </label>
                                 <div className="grid grid-cols-2 gap-1.5">
@@ -1920,22 +2134,31 @@ export const Register = () => {
                                     <button
                                       key={opt}
                                       type="button"
-                                      onClick={() => setBig6Articleship(opt)}
+                                      onClick={() => {
+                                        setBig6Articleship(opt);
+                                        if (fieldErrors.big6Articleship) setFieldErrors(prev => ({ ...prev, big6Articleship: '' }));
+                                      }}
                                       className={`py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${big6Articleship === opt ? 'bg-blue-600 text-white border-blue-600 shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}`}
                                     >
                                       {opt}
                                     </button>
                                   ))}
                                 </div>
+                                {fieldErrors.big6Articleship && (
+                                  <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                    <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                                    <span>{fieldErrors.big6Articleship}</span>
+                                  </p>
+                                )}
                               </div>
                             </div>
                           </div>
 
                           {/* Nature of Work */}
-                          <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-blue-100 shadow-2xs space-y-2.5">
+                          <div id="natureOfWork" className="bg-white p-3.5 sm:p-4 rounded-xl border border-blue-100 shadow-2xs space-y-2.5">
                             <div className="flex items-center justify-between">
                               <label className="block text-xs font-bold text-slate-900">
-                                Nature of Work <span className="text-[11px] font-normal text-slate-500">(You may select multiple)</span>
+                                Nature of Work <span className="text-red-500">*</span> <span className="text-[11px] font-normal text-slate-500">(Select at least one)</span>
                               </label>
                               <span className="text-[10.5px] font-medium text-blue-600">
                                 {selectedNatureOfWork.length} selected
@@ -1949,7 +2172,10 @@ export const Register = () => {
                                   <button
                                     key={work}
                                     type="button"
-                                    onClick={() => toggleNatureWork(work)}
+                                    onClick={() => {
+                                      toggleNatureWork(work);
+                                      if (fieldErrors.natureOfWork) setFieldErrors(prev => ({ ...prev, natureOfWork: '' }));
+                                    }}
                                     className={`px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-all cursor-pointer ${
                                       isSel
                                         ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
@@ -1961,19 +2187,38 @@ export const Register = () => {
                                 );
                               })}
                             </div>
+                            {fieldErrors.natureOfWork && (
+                              <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                                <span>{fieldErrors.natureOfWork}</span>
+                              </p>
+                            )}
 
                             {selectedNatureOfWork.includes('Other') && (
-                              <div className="pt-2">
+                              <div id="otherNatureOfWork" className="pt-2">
                                 <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                                  Specify Other Nature of Work
+                                  Specify Other Nature of Work <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                   type="text"
                                   value={otherNatureOfWork}
-                                  onChange={(e) => setOtherNatureOfWork(e.target.value)}
+                                  onChange={(e) => {
+                                    setOtherNatureOfWork(e.target.value);
+                                    if (fieldErrors.otherNatureOfWork) setFieldErrors(prev => ({ ...prev, otherNatureOfWork: '' }));
+                                  }}
                                   placeholder="e.g. ERP Implementation, SAP FICO, Transaction Advisory"
-                                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white"
+                                  className={`w-full px-3 py-2 border rounded-xl text-xs sm:text-sm focus:outline-none bg-white transition-all ${
+                                    fieldErrors.otherNatureOfWork
+                                      ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                                      : 'border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+                                  }`}
                                 />
+                                {fieldErrors.otherNatureOfWork && (
+                                  <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                    <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                                    <span>{fieldErrors.otherNatureOfWork}</span>
+                                  </p>
+                                )}
                               </div>
                             )}
                           </div>
@@ -2166,24 +2411,38 @@ export const Register = () => {
                             {/* Work Profile & Notice Period */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div>
-                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                                  Work Profile / Domain
+                                <label htmlFor="workProfile" className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                  Work Profile / Domain <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                   type="text"
                                   id="workProfile"
                                   name="workProfile"
+                                  required
                                   value={workProfile}
-                                  onChange={(e) => setWorkProfile(e.target.value)}
+                                  onChange={(e) => {
+                                    setWorkProfile(e.target.value);
+                                    if (fieldErrors.workProfile) setFieldErrors(prev => ({ ...prev, workProfile: '' }));
+                                  }}
                                   placeholder="e.g. Statutory Audit, Indirect Tax, FP&A"
-                                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white font-medium transition-all"
+                                  className={`w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none bg-white font-medium transition-all ${
+                                    fieldErrors.workProfile
+                                      ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                                      : 'border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+                                  }`}
                                 />
+                                {fieldErrors.workProfile && (
+                                  <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                    <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                                    <span>{fieldErrors.workProfile}</span>
+                                  </p>
+                                )}
                               </div>
 
                               <div>
                                 <div className="flex items-center justify-between mb-1.5">
                                   <label htmlFor="noticePeriod" className="block text-xs font-semibold text-slate-700">
-                                    Notice Period
+                                    Notice Period <span className="text-red-500">*</span>
                                   </label>
                                   {isCustomNoticePeriod && (
                                     <button
@@ -2204,10 +2463,17 @@ export const Register = () => {
                                     id="noticePeriod"
                                     name="noticePeriod"
                                     value={noticePeriod}
-                                    onChange={(e) => setNoticePeriod(e.target.value)}
+                                    onChange={(e) => {
+                                      setNoticePeriod(e.target.value);
+                                      if (fieldErrors.noticePeriod) setFieldErrors(prev => ({ ...prev, noticePeriod: '' }));
+                                    }}
                                     placeholder="e.g. 2 Months / Serving notice"
                                     autoFocus
-                                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white font-medium transition-all"
+                                    className={`w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none bg-white font-medium transition-all ${
+                                      fieldErrors.noticePeriod
+                                        ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                                        : 'border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+                                    }`}
                                   />
                                 ) : (
                                   <select
@@ -2220,9 +2486,14 @@ export const Register = () => {
                                         setNoticePeriod('');
                                       } else {
                                         setNoticePeriod(e.target.value);
+                                        if (fieldErrors.noticePeriod) setFieldErrors(prev => ({ ...prev, noticePeriod: '' }));
                                       }
                                     }}
-                                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white font-medium transition-all cursor-pointer"
+                                    className={`w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none bg-white font-medium transition-all cursor-pointer ${
+                                      fieldErrors.noticePeriod
+                                        ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                                        : 'border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+                                    }`}
                                   >
                                     <option value="">-- Select Notice Period --</option>
                                     {noticePeriod && !NOTICE_PERIOD_OPTIONS.includes(noticePeriod) && (
@@ -2236,6 +2507,12 @@ export const Register = () => {
                                     <option value="__custom__">✏️ Other / Custom Notice Period</option>
                                   </select>
                                 )}
+                                {fieldErrors.noticePeriod && (
+                                  <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                    <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                                    <span>{fieldErrors.noticePeriod}</span>
+                                  </p>
+                                )}
                               </div>
                             </div>
 
@@ -2244,7 +2521,7 @@ export const Register = () => {
                               <div>
                                 <div className="flex items-center justify-between mb-1.5">
                                   <label htmlFor="currentCTC" className="block text-xs font-semibold text-slate-700">
-                                    Current CTC (LPA)
+                                    Current CTC (LPA) <span className="text-red-500">*</span>
                                   </label>
                                   {isCustomCurrentCTC && (
                                     <button
@@ -2265,10 +2542,17 @@ export const Register = () => {
                                     id="currentCTC"
                                     name="currentCTC"
                                     value={currentCTC}
-                                    onChange={(e) => setCurrentCTC(e.target.value)}
+                                    onChange={(e) => {
+                                      setCurrentCTC(e.target.value);
+                                      if (fieldErrors.currentCTC) setFieldErrors(prev => ({ ...prev, currentCTC: '' }));
+                                    }}
                                     placeholder="e.g. 12 LPA"
                                     autoFocus
-                                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white font-medium transition-all"
+                                    className={`w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none bg-white font-medium transition-all ${
+                                      fieldErrors.currentCTC
+                                        ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                                        : 'border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+                                    }`}
                                   />
                                 ) : (
                                   <select
@@ -2281,9 +2565,14 @@ export const Register = () => {
                                         setCurrentCTC('');
                                       } else {
                                         setCurrentCTC(e.target.value);
+                                        if (fieldErrors.currentCTC) setFieldErrors(prev => ({ ...prev, currentCTC: '' }));
                                       }
                                     }}
-                                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white font-medium transition-all cursor-pointer"
+                                    className={`w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none bg-white font-medium transition-all cursor-pointer ${
+                                      fieldErrors.currentCTC
+                                        ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                                        : 'border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+                                    }`}
                                   >
                                     <option value="">-- Select Current CTC --</option>
                                     {currentCTC && !CTC_OPTIONS.includes(currentCTC) && (
@@ -2297,11 +2586,17 @@ export const Register = () => {
                                     <option value="__custom__">✏️ Other / Custom CTC</option>
                                   </select>
                                 )}
+                                {fieldErrors.currentCTC && (
+                                  <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                    <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                                    <span>{fieldErrors.currentCTC}</span>
+                                  </p>
+                                )}
                               </div>
                               <div>
                                 <div className="flex items-center justify-between mb-1.5">
                                   <label htmlFor="expectedCTC" className="block text-xs font-semibold text-slate-700">
-                                    Expected CTC (LPA)
+                                    Expected CTC (LPA) <span className="text-red-500">*</span>
                                   </label>
                                   {isCustomExpectedCTC && (
                                     <button
@@ -2322,10 +2617,17 @@ export const Register = () => {
                                     id="expectedCTC"
                                     name="expectedCTC"
                                     value={expectedCTC}
-                                    onChange={(e) => setExpectedCTC(e.target.value)}
+                                    onChange={(e) => {
+                                      setExpectedCTC(e.target.value);
+                                      if (fieldErrors.expectedCTC) setFieldErrors(prev => ({ ...prev, expectedCTC: '' }));
+                                    }}
                                     placeholder="e.g. 16 LPA"
                                     autoFocus
-                                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white font-medium transition-all"
+                                    className={`w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none bg-white font-medium transition-all ${
+                                      fieldErrors.expectedCTC
+                                        ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                                        : 'border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+                                    }`}
                                   />
                                 ) : (
                                   <select
@@ -2338,9 +2640,14 @@ export const Register = () => {
                                         setExpectedCTC('');
                                       } else {
                                         setExpectedCTC(e.target.value);
+                                        if (fieldErrors.expectedCTC) setFieldErrors(prev => ({ ...prev, expectedCTC: '' }));
                                       }
                                     }}
-                                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white font-medium transition-all cursor-pointer"
+                                    className={`w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none bg-white font-medium transition-all cursor-pointer ${
+                                      fieldErrors.expectedCTC
+                                        ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                                        : 'border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+                                    }`}
                                   >
                                     <option value="">-- Select Expected CTC --</option>
                                     <option value="Negotiable">Negotiable</option>
@@ -2355,14 +2662,20 @@ export const Register = () => {
                                     <option value="__custom__">✏️ Other / Custom CTC</option>
                                   </select>
                                 )}
+                                {fieldErrors.expectedCTC && (
+                                  <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                    <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                                    <span>{fieldErrors.expectedCTC}</span>
+                                  </p>
+                                )}
                               </div>
                             </div>
                           </div>
 
                           {/* Big 6 Audit Firms Question - Experienced */}
-                          <div className="mt-1 bg-white p-3.5 rounded-xl border border-blue-100 shadow-2xs">
+                          <div id="big6Articleship" className="mt-1 bg-white p-3.5 rounded-xl border border-blue-100 shadow-2xs">
                             <label className="block text-xs font-semibold text-slate-700 mb-2">
-                              Have you completed your articleship from any of the Big 6 Audit Firms?
+                              Have you completed your articleship from any of the Big 6 Audit Firms? <span className="text-red-500">*</span>
                               <span className="block text-[10.5px] font-normal text-slate-500 mt-0.5">(Deloitte, PwC, EY, KPMG, Grant Thornton, BDO)</span>
                             </label>
                             <div className="grid grid-cols-2 gap-1.5">
@@ -2370,13 +2683,22 @@ export const Register = () => {
                                 <button
                                   key={opt}
                                   type="button"
-                                  onClick={() => setBig6Articleship(opt)}
+                                  onClick={() => {
+                                    setBig6Articleship(opt);
+                                    if (fieldErrors.big6Articleship) setFieldErrors(prev => ({ ...prev, big6Articleship: '' }));
+                                  }}
                                   className={`py-2.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${big6Articleship === opt ? 'bg-blue-600 text-white border-blue-600 shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}`}
                                 >
                                   {opt}
                                 </button>
                               ))}
                             </div>
+                            {fieldErrors.big6Articleship && (
+                              <p className="mt-1.5 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                                <span>{fieldErrors.big6Articleship}</span>
+                              </p>
+                            )}
                           </div>
                         </div>
                       )}
@@ -2700,21 +3022,36 @@ export const Register = () => {
                         {workStatus === 'fresher' && (
                           <div>
                             <div className="flex items-center justify-between mb-1">
-                              <label className="block text-xs font-semibold text-slate-700">
-                                CA Final Percentage (%)
+                              <label htmlFor="caFinalPercentage" className="block text-xs font-semibold text-slate-700">
+                                CA Final Percentage (%) <span className="text-red-500">*</span>
                               </label>
-                              <span className="text-[10px] font-medium text-slate-400">Optional</span>
                             </div>
                             <input
                               type="number"
+                              id="caFinalPercentage"
+                              name="caFinalPercentage"
                               step="0.01"
                               min="0"
                               max="100"
+                              required
                               value={caFinal.percentage || ''}
-                              onChange={(e) => handleCaFinalChange('percentage', e.target.value)}
+                              onChange={(e) => {
+                                handleCaFinalChange('percentage', e.target.value);
+                                if (fieldErrors.caFinalPercentage) setFieldErrors(prev => ({ ...prev, caFinalPercentage: '' }));
+                              }}
                               placeholder="e.g. 62.5"
-                              className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 font-medium bg-white outline-none"
+                              className={`w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500/20 font-medium bg-white outline-none transition-all ${
+                                fieldErrors.caFinalPercentage
+                                  ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                                  : 'border-slate-200'
+                              }`}
                             />
+                            {fieldErrors.caFinalPercentage && (
+                              <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                                <span>{fieldErrors.caFinalPercentage}</span>
+                              </p>
+                            )}
                           </div>
                         )}
                       </div>
