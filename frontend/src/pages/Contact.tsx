@@ -131,7 +131,7 @@ export const Contact = () => {
                   <div>
                     <h4 className="text-sm font-bold text-slate-900 mb-0.5">Official Inquiries & Support</h4>
                     <p className="text-gray-800 font-medium text-xs sm:text-sm">
-                      <a href="mailto:sarthak@fast-india.com" className="hover:text-blue-600 text-slate-700 font-semibold">sarthak@fast-india.com</a>
+                      <a href="mailto:esarthak@gmail.com" className="hover:text-blue-600 text-slate-700 font-semibold">esarthak@gmail.com</a>
                       <span className="mx-2 text-slate-300">|</span>
                       <a href="mailto:ritesh@fast-india.com" className="hover:text-blue-600 text-slate-700 font-semibold">ritesh@fast-india.com</a>
                     </p>

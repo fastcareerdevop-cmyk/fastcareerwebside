@@ -916,7 +916,7 @@ export const PlacementResults = () => {
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <a 
-                    href="mailto:sarthak@fast-india.com" 
+                    href="mailto:esarthak@gmail.com" 
                     className="px-6 py-3 bg-white text-amber-900 hover:bg-amber-50 font-black rounded-xl text-sm transition-all shadow-md inline-flex items-center gap-2"
                   >
                     <Mail size={16} />

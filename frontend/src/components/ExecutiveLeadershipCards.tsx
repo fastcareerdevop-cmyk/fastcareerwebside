@@ -64,8 +64,8 @@ export const ExecutiveLeadershipCards: React.FC<ExecutiveLeadershipCardsProps> =
 
             <div className="flex items-center gap-2.5">
               <Mail size={14} className="text-[#2563EB] shrink-0" />
-              <a href="mailto:sarthak@fast-india.com" className="font-medium text-slate-700 hover:text-[#2563EB] transition-colors">
-                sarthak@fast-india.com
+              <a href="mailto:esarthak@gmail.com" className="font-medium text-slate-700 hover:text-[#2563EB] transition-colors">
+                esarthak@gmail.com
               </a>
             </div>
 
