@@ -60,8 +60,11 @@ app.use((req, res, next) => {
     }
     next();
 });
-// Disable helmet's crossOriginResourcePolicy for now to allow local images/pdfs to load
-app.use((0, helmet_1.default)({ crossOriginResourcePolicy: false }));
+// Allow images, Cloudinary, PDFs, and external assets to load without CSP blocks
+app.use((0, helmet_1.default)({
+    crossOriginResourcePolicy: false,
+    contentSecurityPolicy: false
+}));
 app.use((0, morgan_1.default)('dev'));
 const resumeGenerator_1 = require("./utils/resumeGenerator");
 // Static folder for uploads

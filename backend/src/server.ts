@@ -52,8 +52,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// Disable helmet's crossOriginResourcePolicy for now to allow local images/pdfs to load
-app.use(helmet({ crossOriginResourcePolicy: false }));
+// Allow images, Cloudinary, PDFs, and external assets to load without CSP blocks
+app.use(helmet({ 
+  crossOriginResourcePolicy: false,
+  contentSecurityPolicy: false 
+}));
 app.use(morgan('dev'));
 
 import { fetchOrGenerateResumeBuffer } from './utils/resumeGenerator';
