@@ -133,7 +133,7 @@ export const Contact = () => {
                     <p className="text-gray-800 font-medium text-xs sm:text-sm">
                       <a href="mailto:esarthak@gmail.com" className="hover:text-blue-600 text-slate-700 font-semibold">esarthak@gmail.com</a>
                       <span className="mx-2 text-slate-300">|</span>
-                      <a href="mailto:ritesh@fast-india.com" className="hover:text-blue-600 text-slate-700 font-semibold">ritesh@fast-india.com</a>
+                      <a href="mailto:linkritesh@gmail.com" className="hover:text-blue-600 text-slate-700 font-semibold">linkritesh@gmail.com</a>
                     </p>
                     <p className="text-slate-400 text-xs mt-0.5">General & Recruitment Desk: contact@fast-india.com</p>
                   </div>
