@@ -7,6 +7,8 @@ import {
   getCandidates,
   assignCandidatesToCompany,
   getEmployers,
+  updateEmployer,
+  deleteEmployer,
   createEmployee,
   getEmployees,
   deleteEmployee,
@@ -62,6 +64,9 @@ router.route('/candidates').get(protect, employerOrAdmin, getCandidates);
 router.delete('/candidates/:id', protect, admin, deleteCandidate);
 router.put('/candidates/assign-company', protect, admin, assignCandidatesToCompany);
 router.route('/employers').get(protect, employerOrAdmin, getEmployers);
+router.route('/employers/:id')
+  .put(protect, admin, updateEmployer)
+  .delete(protect, admin, deleteEmployer);
 router.route('/employees')
   .post(protect, admin, createEmployee)
   .get(protect, admin, getEmployees);

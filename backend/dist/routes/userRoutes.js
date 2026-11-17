@@ -53,6 +53,9 @@ router.route('/candidates').get(authMiddleware_1.protect, authMiddleware_1.emplo
 router.delete('/candidates/:id', authMiddleware_1.protect, authMiddleware_1.admin, userController_1.deleteCandidate);
 router.put('/candidates/assign-company', authMiddleware_1.protect, authMiddleware_1.admin, userController_1.assignCandidatesToCompany);
 router.route('/employers').get(authMiddleware_1.protect, authMiddleware_1.employerOrAdmin, userController_1.getEmployers);
+router.route('/employers/:id')
+    .put(authMiddleware_1.protect, authMiddleware_1.admin, userController_1.updateEmployer)
+    .delete(authMiddleware_1.protect, authMiddleware_1.admin, userController_1.deleteEmployer);
 router.route('/employees')
     .post(authMiddleware_1.protect, authMiddleware_1.admin, userController_1.createEmployee)
     .get(authMiddleware_1.protect, authMiddleware_1.admin, userController_1.getEmployees);

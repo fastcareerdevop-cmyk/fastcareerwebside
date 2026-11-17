@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPassword = exports.verifyPasswordResetOtp = exports.requestPasswordResetOtp = exports.checkPhone = exports.checkEmail = exports.deleteCandidate = exports.deleteEmployee = exports.getEmployees = exports.createEmployee = exports.getEmployers = exports.cleanupDbAndFixResumes = exports.seed50Candidates = exports.getCandidateResume = exports.downloadCandidateResumesZip = exports.matchCandidatesFromExcel = exports.assignCandidatesToCompany = exports.getCandidates = exports.seedLiveCandidates = exports.seed10CandidatesController = exports.updateUserProfile = exports.getUserProfile = exports.registerUser = exports.authUser = void 0;
+exports.resetPassword = exports.verifyPasswordResetOtp = exports.requestPasswordResetOtp = exports.checkPhone = exports.checkEmail = exports.deleteCandidate = exports.deleteEmployer = exports.updateEmployer = exports.deleteEmployee = exports.getEmployees = exports.createEmployee = exports.getEmployers = exports.cleanupDbAndFixResumes = exports.seed50Candidates = exports.getCandidateResume = exports.downloadCandidateResumesZip = exports.matchCandidatesFromExcel = exports.assignCandidatesToCompany = exports.getCandidates = exports.seedLiveCandidates = exports.seed10CandidatesController = exports.updateUserProfile = exports.getUserProfile = exports.registerUser = exports.authUser = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const prisma_1 = __importDefault(require("../config/prisma"));
 const User_1 = __importDefault(require("../models/User"));
@@ -1335,6 +1335,112 @@ const deleteEmployee = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.deleteEmployee = deleteEmployee;
+// @desc    Update an employer / company account (Admin only)
+// @route   PUT /api/users/employers/:id
+// @access  Private/Admin
+const updateEmployer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const employerId = String(req.params.id || '');
+        const { firstName, lastName, companyName, email, password, isActive } = req.body;
+        if (!employerId) {
+            return res.status(400).json({ message: 'Employer ID is required' });
+        }
+        const updateFields = {};
+        if (firstName !== undefined)
+            updateFields.firstName = String(firstName).trim();
+        if (lastName !== undefined)
+            updateFields.lastName = String(lastName).trim();
+        if (companyName !== undefined)
+            updateFields.companyName = String(companyName).trim();
+        if (isActive !== undefined)
+            updateFields.isActive = Boolean(isActive);
+        if (email && String(email).trim()) {
+            const trimmedEmail = String(email).toLowerCase().trim();
+            if (prisma_1.default && employerId) {
+                try {
+                    const existing = yield prisma_1.default.user.findFirst({
+                        where: { email: trimmedEmail, NOT: { id: employerId } }
+                    });
+                    if (existing) {
+                        return res.status(400).json({ message: 'Email is already in use by another account' });
+                    }
+                }
+                catch (e) { }
+            }
+            if (mongoose_1.default.connection.readyState === 1 && mongoose_1.default.Types.ObjectId.isValid(employerId)) {
+                const existing = yield User_1.default.findOne({ email: trimmedEmail, _id: { $ne: employerId } });
+                if (existing) {
+                    return res.status(400).json({ message: 'Email is already in use by another account' });
+                }
+            }
+            updateFields.email = trimmedEmail;
+        }
+        if (password && String(password).trim()) {
+            updateFields.password = yield bcrypt_1.default.hash(String(password).trim(), 10);
+        }
+        if (prisma_1.default && employerId) {
+            try {
+                const updated = yield prisma_1.default.user.update({
+                    where: { id: employerId },
+                    data: updateFields
+                });
+                return res.json({
+                    message: 'Company details updated successfully',
+                    employer: Object.assign(Object.assign({}, updated), { _id: updated.id })
+                });
+            }
+            catch (e) {
+                console.warn('Prisma updateEmployer warning:', e);
+            }
+        }
+        if (mongoose_1.default.connection.readyState === 1 && mongoose_1.default.Types.ObjectId.isValid(employerId)) {
+            const updatedUser = yield User_1.default.findByIdAndUpdate(employerId, { $set: updateFields }, { new: true }).select('-password');
+            if (!updatedUser) {
+                return res.status(404).json({ message: 'Company account not found' });
+            }
+            return res.json({ message: 'Company details updated successfully', employer: updatedUser });
+        }
+        return res.status(404).json({ message: 'Company account not found' });
+    }
+    catch (error) {
+        console.error('Error updating company/employer:', error);
+        res.status(500).json({ message: error.message || 'Server error updating company' });
+    }
+});
+exports.updateEmployer = updateEmployer;
+// @desc    Delete an employer / company account (Admin only)
+// @route   DELETE /api/users/employers/:id
+// @access  Private/Admin
+const deleteEmployer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const employerId = String(req.params.id || '');
+        if (!employerId) {
+            return res.status(400).json({ message: 'Employer ID is required' });
+        }
+        if (prisma_1.default && employerId) {
+            try {
+                yield prisma_1.default.user.delete({ where: { id: employerId } });
+                return res.json({ message: 'Company account removed successfully' });
+            }
+            catch (e) {
+                console.warn('Prisma deleteEmployer warning:', e);
+            }
+        }
+        if (mongoose_1.default.connection.readyState === 1 && mongoose_1.default.Types.ObjectId.isValid(employerId)) {
+            const employer = yield User_1.default.findByIdAndDelete(employerId);
+            if (!employer) {
+                return res.status(404).json({ message: 'Company account not found' });
+            }
+            return res.json({ message: 'Company account removed successfully' });
+        }
+        return res.status(404).json({ message: 'Company account not found' });
+    }
+    catch (error) {
+        console.error('Error deleting company/employer:', error);
+        res.status(500).json({ message: error.message || 'Server error deleting company' });
+    }
+});
+exports.deleteEmployer = deleteEmployer;
 // @desc    Delete a candidate (Admin only)
 // @route   DELETE /api/users/candidates/:id
 // @access  Private/Admin

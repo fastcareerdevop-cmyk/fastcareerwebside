@@ -1475,6 +1475,119 @@ export const deleteEmployee = async (req: Request, res: Response) => {
   }
 };
 
+// @desc    Update an employer / company account (Admin only)
+// @route   PUT /api/users/employers/:id
+// @access  Private/Admin
+export const updateEmployer = async (req: Request, res: Response) => {
+  try {
+    const employerId = String(req.params.id || '');
+    const { firstName, lastName, companyName, email, password, isActive } = req.body;
+
+    if (!employerId) {
+      return res.status(400).json({ message: 'Employer ID is required' });
+    }
+
+    const updateFields: any = {};
+    if (firstName !== undefined) updateFields.firstName = String(firstName).trim();
+    if (lastName !== undefined) updateFields.lastName = String(lastName).trim();
+    if (companyName !== undefined) updateFields.companyName = String(companyName).trim();
+    if (isActive !== undefined) updateFields.isActive = Boolean(isActive);
+
+    if (email && String(email).trim()) {
+      const trimmedEmail = String(email).toLowerCase().trim();
+      if (prisma && employerId) {
+        try {
+          const existing = await prisma.user.findFirst({
+            where: { email: trimmedEmail, NOT: { id: employerId } }
+          });
+          if (existing) {
+            return res.status(400).json({ message: 'Email is already in use by another account' });
+          }
+        } catch (e) {}
+      }
+      if (mongoose.connection.readyState === 1 && mongoose.Types.ObjectId.isValid(employerId)) {
+        const existing = await User.findOne({ email: trimmedEmail, _id: { $ne: employerId } });
+        if (existing) {
+          return res.status(400).json({ message: 'Email is already in use by another account' });
+        }
+      }
+      updateFields.email = trimmedEmail;
+    }
+
+    if (password && String(password).trim()) {
+      updateFields.password = await bcrypt.hash(String(password).trim(), 10);
+    }
+
+    if (prisma && employerId) {
+      try {
+        const updated = await prisma.user.update({
+          where: { id: employerId },
+          data: updateFields
+        });
+        return res.json({ 
+          message: 'Company details updated successfully', 
+          employer: { ...updated, _id: updated.id } 
+        });
+      } catch (e) {
+        console.warn('Prisma updateEmployer warning:', e);
+      }
+    }
+
+    if (mongoose.connection.readyState === 1 && mongoose.Types.ObjectId.isValid(employerId)) {
+      const updatedUser = await User.findByIdAndUpdate(
+        employerId,
+        { $set: updateFields },
+        { new: true }
+      ).select('-password');
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'Company account not found' });
+      }
+      return res.json({ message: 'Company details updated successfully', employer: updatedUser });
+    }
+
+    return res.status(404).json({ message: 'Company account not found' });
+  } catch (error: any) {
+    console.error('Error updating company/employer:', error);
+    res.status(500).json({ message: error.message || 'Server error updating company' });
+  }
+};
+
+// @desc    Delete an employer / company account (Admin only)
+// @route   DELETE /api/users/employers/:id
+// @access  Private/Admin
+export const deleteEmployer = async (req: Request, res: Response) => {
+  try {
+    const employerId = String(req.params.id || '');
+
+    if (!employerId) {
+      return res.status(400).json({ message: 'Employer ID is required' });
+    }
+
+    if (prisma && employerId) {
+      try {
+        await prisma.user.delete({ where: { id: employerId } });
+        return res.json({ message: 'Company account removed successfully' });
+      } catch (e) {
+        console.warn('Prisma deleteEmployer warning:', e);
+      }
+    }
+
+    if (mongoose.connection.readyState === 1 && mongoose.Types.ObjectId.isValid(employerId)) {
+      const employer = await User.findByIdAndDelete(employerId);
+      if (!employer) {
+        return res.status(404).json({ message: 'Company account not found' });
+      }
+      return res.json({ message: 'Company account removed successfully' });
+    }
+
+    return res.status(404).json({ message: 'Company account not found' });
+  } catch (error: any) {
+    console.error('Error deleting company/employer:', error);
+    res.status(500).json({ message: error.message || 'Server error deleting company' });
+  }
+};
+
 // @desc    Delete a candidate (Admin only)
 // @route   DELETE /api/users/candidates/:id
 // @access  Private/Admin
