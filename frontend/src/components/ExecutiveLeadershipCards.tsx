@@ -112,7 +112,7 @@ export const ExecutiveLeadershipCards: React.FC<ExecutiveLeadershipCardsProps> =
             <div className="flex items-center gap-3.5">
               <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 border-blue-100 shadow-xs shrink-0 bg-blue-50">
                 <img 
-                  src="/ritesh_gupta.jpg" 
+                  src="/ritesh_gupta_new.jpg?v=2" 
                   alt="Ritesh Gupta" 
                   className="w-full h-full object-cover object-top"
                 />
