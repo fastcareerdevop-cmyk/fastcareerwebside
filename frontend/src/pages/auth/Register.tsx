@@ -750,6 +750,7 @@ export const Register = () => {
         currentCity: (currentCity === 'Other' ? customCityInput.trim() : currentCity.trim()),
         dateOfBirth,
         isFresherCA: workStatus === 'fresher',
+        isExperienced: workStatus === 'experienced',
         resumeUrl: uploadedResumeUrl,
         articleships: workStatus === 'fresher' ? articleships.map(a => ({
           type: a.type === 'Other' && a.customType ? a.customType.trim() : a.type,
@@ -766,15 +767,25 @@ export const Register = () => {
         industrialTrainee: workStatus === 'fresher' ? industrialTrainee : '',
         listedCompanyWork: workStatus === 'fresher' ? listedCompanyWork : '',
         big6Articleship,
-        experienceInfo: {
-          isExperienced: workStatus === 'experienced',
-          experienceYears: experienceYears || '2-3 Years',
+        experienceInfo: workStatus === 'experienced' ? {
+          isExperienced: true,
+          experienceYears: experienceYears || '1-2 Years',
           currentCompanyName: currentCompanyName.trim(),
           currentDesignation: currentDesignation.trim(),
           currentCTC: currentCTC.trim(),
           expectedCTC: expectedCTC.trim(),
           noticePeriod: noticePeriod.trim(),
           workProfile: workProfile.trim(),
+          caFinalCompletionYear: caFinalCompletionYear || '',
+        } : {
+          isExperienced: false,
+          experienceYears: 'Fresher',
+          currentCompanyName: '',
+          currentDesignation: '',
+          currentCTC: '',
+          expectedCTC: '',
+          noticePeriod: '',
+          workProfile: '',
           caFinalCompletionYear: caFinalCompletionYear || '',
         },
         caInter: {

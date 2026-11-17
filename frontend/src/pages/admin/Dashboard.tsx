@@ -230,21 +230,72 @@ export const AdminDashboard = () => {
 
   // Helper to accurately classify experienced vs fresher candidates
   const isCandidateExperienced = (c: Candidate): boolean => {
-    return Boolean(
-      c.isExperienced === true ||
-      c.experienceInfo?.isExperienced === true ||
-      (c as any).workExperience?.isExperienced === true ||
-      c.caPortfolio?.isFresherCA === false ||
-      c.isFresherCA === false ||
-      (c.experienceInfo?.experienceYears && 
-        c.experienceInfo.experienceYears !== '0' && 
-        c.experienceInfo.experienceYears !== 'Fresher' &&
-        c.experienceInfo.experienceYears !== '0-1 Years' &&
-        !c.experienceInfo.experienceYears.toLowerCase().includes('fresher')
-      ) ||
-      (c.experienceInfo?.currentCompanyName && c.experienceInfo.currentCompanyName.trim().length > 0) ||
-      (Array.isArray(c.experience) && c.experience.length > 0)
-    );
+    // 1. Explicit fresher flags take absolute highest precedence
+    if (
+      c.caPortfolio?.isFresherCA === true || 
+      c.isFresherCA === true || 
+      c.experienceInfo?.isExperienced === false ||
+      c.isExperienced === false
+    ) {
+      return false;
+    }
+
+    // 2. Explicit experienced flag
+    if (
+      c.experienceInfo?.isExperienced === true || 
+      c.isExperienced === true || 
+      (c as any).workExperience?.isExperienced === true
+    ) {
+      return true;
+    }
+
+    // 3. Real current company name check (ignoring N/A, None, empty)
+    const company = (c.experienceInfo?.currentCompanyName || '').trim().toUpperCase();
+    const isRealCompany = company.length > 0 && 
+      company !== 'N/A' && 
+      company !== 'NA' && 
+      company !== 'NONE' && 
+      company !== 'NOT APPLICABLE' &&
+      company !== 'N.A.' &&
+      company !== 'NULL';
+
+    if (isRealCompany) {
+      return true;
+    }
+
+    // 4. Valid work experience years check
+    const expYears = (c.experienceInfo?.experienceYears || '').toString().trim();
+    if (
+      expYears &&
+      expYears !== '0' &&
+      expYears !== '0-1 Years' &&
+      expYears !== '0-1 Year' &&
+      expYears !== 'Fresher' &&
+      !expYears.toLowerCase().includes('fresher')
+    ) {
+      if (
+        (c.experienceInfo?.currentDesignation && !c.experienceInfo.currentDesignation.toLowerCase().includes('fresher')) ||
+        (typeof c.experience === 'number' && c.experience > 0)
+      ) {
+        return true;
+      }
+    }
+
+    // 5. Array of experience items with valid length
+    if (Array.isArray(c.experience) && c.experience.length > 0) {
+      return true;
+    }
+
+    // 6. Explicit false on isFresherCA with positive experience years/number
+    if (
+      (c.caPortfolio?.isFresherCA === false || c.isFresherCA === false) &&
+      ((typeof c.experience === 'number' && c.experience > 0) || isRealCompany)
+    ) {
+      return true;
+    }
+
+    // Default fallback: if no company and not experienced, treat as fresher
+    return false;
   };
 
   const fresherCandidates = candidates.filter(c => !isCandidateExperienced(c));
@@ -906,18 +957,29 @@ export const AdminDashboard = () => {
                               <span className="text-slate-400 italic">Experience details not filled</span>
                             )
                           ) : (
-                            candidate.qualifications?.graduation?.collegeName ? (
+                            (candidate.qualifications?.graduation?.collegeName || candidate.qualifications?.graduation?.college) ? (
                               <div>
                                 <div className="font-semibold text-slate-800 flex items-center gap-1">
-                                  <GraduationCap size={14} className="text-indigo-500" /> 
-                                  {candidate.qualifications.graduation.courseName || 'Graduation'}
+                                  <GraduationCap size={14} className="text-indigo-500 shrink-0" /> 
+                                  <span>{candidate.qualifications?.graduation?.courseName || 'Graduation'}</span>
                                 </div>
                                 <div className="text-slate-500">
-                                  {candidate.qualifications.graduation.collegeName} ({candidate.qualifications.graduation.yearOfCompletion})
+                                  {candidate.qualifications?.graduation?.collegeName || candidate.qualifications?.graduation?.college} 
+                                  {candidate.qualifications?.graduation?.yearOfCompletion ? ` (${candidate.qualifications.graduation.yearOfCompletion})` : ''}
+                                </div>
+                              </div>
+                            ) : candidate.caPortfolio?.articleships?.[0]?.firmName ? (
+                              <div>
+                                <div className="font-semibold text-slate-800 flex items-center gap-1">
+                                  <GraduationCap size={14} className="text-indigo-500 shrink-0" />
+                                  <span>Articleship: {candidate.caPortfolio.articleships[0].firmName}</span>
+                                </div>
+                                <div className="text-slate-500">
+                                  {candidate.caPortfolio.articleships[0].city || 'Completed'}
                                 </div>
                               </div>
                             ) : (
-                              <span className="text-slate-400 italic">Not provided</span>
+                              <span className="text-slate-500 font-medium bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-[11px]">Fresher CA</span>
                             )
                           )}
                         </td>

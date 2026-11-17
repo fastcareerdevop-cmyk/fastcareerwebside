@@ -178,7 +178,7 @@ export const EmployerCandidates = () => {
     const matchesGender = filterGender ? c.personalDetails?.gender === filterGender : true;
     const matchesMaritalStatus = filterMaritalStatus ? c.personalDetails?.maritalStatus === filterMaritalStatus : true;
     
-    const isFresher = c.caPortfolio?.isFresherCA ? 'Yes' : 'No';
+    const isFresher = (c.caPortfolio?.isFresherCA === true || c.isFresherCA === true || c.experienceInfo?.isExperienced === false) ? 'Yes' : 'No';
     const matchesFresher = filterFresherCA ? isFresher === filterFresherCA : true;
     
     const inter1st = c.caPortfolio?.caInter?.bothGroups1stAttempt ? 'Yes' : 'No';

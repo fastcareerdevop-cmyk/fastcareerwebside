@@ -139,11 +139,20 @@ export const formatCandidateForExcel = (c: any, index?: number) => {
   const rawDob = pd.dateOfBirth || c.dateOfBirth || c.dob || '';
   const regInfo = formatRegistrationTimestamp(c.createdAt);
 
-  const isExp = Boolean(
-    exp.isExperienced || 
-    c.experienceInfo?.isExperienced || 
-    ca.isFresherCA === false || 
-    Boolean(exp.currentCompanyName)
+  const company = (exp.currentCompanyName || c.experienceInfo?.currentCompanyName || '').trim().toUpperCase();
+  const isRealCompany = company.length > 0 && company !== 'N/A' && company !== 'NA' && company !== 'NONE';
+
+  const isFresher = (
+    ca.isFresherCA === true || 
+    c.isFresherCA === true || 
+    exp.isExperienced === false || 
+    c.experienceInfo?.isExperienced === false
+  );
+
+  const isExp = !isFresher && Boolean(
+    exp.isExperienced === true || 
+    c.experienceInfo?.isExperienced === true || 
+    isRealCompany
   );
 
   return {
