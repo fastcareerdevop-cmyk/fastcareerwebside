@@ -312,3 +312,170 @@ export const downloadCandidatesExcel = (candidates: any[], fileNamePrefix = 'Can
   const dateStr = new Date().toISOString().split('T')[0];
   saveAs(blob, `${fileNamePrefix}_${dateStr}.xlsx`);
 };
+
+/**
+ * Standard 16-Column Formatter matching the user-specified format:
+ * 1. Name
+ * 2. Email Address
+ * 3. Phone Number
+ * 4. Current Location
+ * 5. Current State
+ * 6. Permanent Location
+ * 7. Permanent State
+ * 8. DOB
+ * 9. Gender
+ * 10. CA Inter Batch
+ * 11. CA both Group in 1st Attempt
+ * 12. Group 1
+ * 13. Group 2
+ * 14. CA Inter Rank
+ * 15. Articleship Firm's Name 1
+ * 16. Articleship Start Month and Year
+ */
+export const formatCandidateTo16Columns = (item: any) => {
+  const pd = item.personalDetails || {};
+  const ca = item.caPortfolio || {};
+  const inter = ca.caInter || {};
+  const articleships = Array.isArray(ca.articleships) ? ca.articleships : [];
+  const primaryArt = articleships[0] || {};
+
+  const name = (
+    item.name ||
+    `${item.firstName || ''} ${item.lastName || ''}`.trim() ||
+    'N/A'
+  );
+
+  const rawDob = pd.dateOfBirth || item.dateOfBirth || item.dob || '';
+  const dobFormatted = formatDateToDDMMYYYY(rawDob);
+
+  // CA Inter Batch
+  let interBatch = item.caInterBatch || '';
+  if (!interBatch && inter.completionSessionMonth && inter.completionSessionYear) {
+    interBatch = `${inter.completionSessionMonth} ${inter.completionSessionYear}`;
+  } else if (!interBatch && inter.completionSessionYear) {
+    interBatch = String(inter.completionSessionYear);
+  } else if (!interBatch) {
+    interBatch = 'N/A';
+  }
+
+  // CA both Group in 1st Attempt
+  let both1st = 'No';
+  if (item.bothGroups1stAttempt !== undefined && item.bothGroups1stAttempt !== null) {
+    both1st = (item.bothGroups1stAttempt === 'Yes' || item.bothGroups1stAttempt === true) ? 'Yes' : 'No';
+  } else if (inter.bothGroups1stAttempt !== undefined) {
+    both1st = inter.bothGroups1stAttempt ? 'Yes' : 'No';
+  }
+
+  // Group 1
+  let g1 = item.group1 || '';
+  if (!g1) {
+    if (inter.group1Attempts) {
+      g1 = String(inter.group1Attempts) === '1' ? '1st Attempt' : `${inter.group1Attempts} Attempt(s)`;
+    } else if (both1st === 'Yes') {
+      g1 = '1st Attempt';
+    } else {
+      g1 = 'N/A';
+    }
+  }
+
+  // Group 2
+  let g2 = item.group2 || '';
+  if (!g2) {
+    if (inter.group2Attempts) {
+      g2 = String(inter.group2Attempts) === '1' ? '1st Attempt' : `${inter.group2Attempts} Attempt(s)`;
+    } else if (both1st === 'Yes') {
+      g2 = '1st Attempt';
+    } else {
+      g2 = 'N/A';
+    }
+  }
+
+  // CA Inter Rank
+  let rank = item.caInterRank || '';
+  if (!rank || rank === 'No') {
+    if (inter.ranker && inter.ranker !== 'No' && inter.ranker !== 'No Rank') {
+      rank = String(inter.ranker);
+    } else {
+      rank = 'No Rank';
+    }
+  }
+
+  // Articleship Firm's Name 1
+  const firmName1 = (
+    item.articleshipFirmName ||
+    primaryArt.firmName ||
+    ca.articleshipFirm ||
+    'N/A'
+  );
+
+  // Articleship Start Month and Year
+  let artStart = item.articleshipStartMonthYear || primaryArt.startDate || primaryArt.startMonthYear || '';
+  if (!artStart) {
+    if (ca.articleshipCompletionDateMonth || ca.articleshipCompletionDateYear || ca.articleshipCompletionDate) {
+      artStart = formatArticleshipCompletionDate(ca.articleshipCompletionDateMonth, ca.articleshipCompletionDateYear, ca.articleshipCompletionDate);
+    } else {
+      artStart = 'N/A';
+    }
+  }
+
+  return {
+    'Name': name,
+    'Email Address': item.email || 'N/A',
+    'Phone Number': item.phone || pd.phone || 'N/A',
+    'Current Location': pd.currentCity || item.currentCity || item.currentLocation || 'N/A',
+    'Current State': pd.currentState || item.currentState || 'N/A',
+    'Permanent Location': pd.permanentCity || item.permanentLocation || pd.currentCity || item.currentLocation || 'N/A',
+    'Permanent State': pd.permanentState || item.permanentState || pd.currentState || item.currentState || 'N/A',
+    'DOB': dobFormatted,
+    'Gender': pd.gender || item.gender || 'N/A',
+    'CA Inter Batch': interBatch,
+    'CA both Group in 1st Attempt': both1st,
+    'Group 1': g1,
+    'Group 2': g2,
+    'CA Inter Rank': rank,
+    "Articleship Firm's Name 1": firmName1,
+    'Articleship Start Month and Year': artStart
+  };
+};
+
+/**
+ * Downloads standardized 16-column Excel spreadsheet
+ */
+export const downloadFormatted16FieldExcel = (items: any[], fileNamePrefix = 'Candidates_Format_Data') => {
+  if (!items || items.length === 0) return;
+
+  const excelData = items.map(formatCandidateTo16Columns);
+  const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+  // Column widths customized for standard 16 columns
+  worksheet['!cols'] = [
+    { wch: 24 }, // Name
+    { wch: 28 }, // Email Address
+    { wch: 16 }, // Phone Number
+    { wch: 18 }, // Current Location
+    { wch: 18 }, // Current State
+    { wch: 20 }, // Permanent Location
+    { wch: 18 }, // Permanent State
+    { wch: 14 }, // DOB
+    { wch: 12 }, // Gender
+    { wch: 18 }, // CA Inter Batch
+    { wch: 28 }, // CA both Group in 1st Attempt
+    { wch: 16 }, // Group 1
+    { wch: 16 }, // Group 2
+    { wch: 16 }, // CA Inter Rank
+    { wch: 30 }, // Articleship Firm's Name 1
+    { wch: 32 }  // Articleship Start Month and Year
+  ];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Candidates 16 Format');
+
+  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([excelBuffer], { 
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' 
+  });
+
+  const dateStr = new Date().toISOString().split('T')[0];
+  saveAs(blob, `${fileNamePrefix}_${dateStr}.xlsx`);
+};
+

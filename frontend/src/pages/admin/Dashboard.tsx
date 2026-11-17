@@ -15,7 +15,12 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { getResumeUrl } from '../../utils/urlHelper';
 import { fetchCandidateResumeBlob, viewCandidateResume } from '../../utils/clientPdfGenerator';
-import { formatCandidateForExcel, downloadCandidatesExcel } from '../../utils/excelExportHelper';
+import { 
+  formatCandidateForExcel, 
+  downloadCandidatesExcel,
+  formatCandidateTo16Columns,
+  downloadFormatted16FieldExcel 
+} from '../../utils/excelExportHelper';
 
 interface Candidate {
   _id: string;
@@ -285,6 +290,14 @@ export const AdminDashboard = () => {
       const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
       zip.file("Candidates_Full_Data.xlsx", excelBuffer);
 
+      // Also include the standard 16-field format in the ZIP
+      const formatted16Data = filteredCandidates.map(formatCandidateTo16Columns);
+      const ws16 = XLSX.utils.json_to_sheet(formatted16Data);
+      const wb16 = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb16, ws16, "16-Field Format");
+      const excelBuffer16 = XLSX.write(wb16, { bookType: 'xlsx', type: 'array' });
+      zip.file("Candidates_16_Columns_Format.xlsx", excelBuffer16);
+
       const resumesFolder = zip.folder("Resumes");
       if (resumesFolder) {
         const nameCountTracker = new Map<string, number>();
@@ -330,6 +343,26 @@ export const AdminDashboard = () => {
     } catch (error) {
       console.error('Error exporting Excel:', error);
       toast.error('Failed to export Excel.');
+    }
+  };
+
+  const handleExportCustomFormatExcel = () => {
+    const exportList = activeTab === 'industrial'
+      ? (filteredIndustrial.length > 0 ? filteredIndustrial : industrialList)
+      : (filteredCandidates.length > 0 ? filteredCandidates : activeCandidatesList);
+
+    if (!exportList || exportList.length === 0) {
+      toast.error('No candidates available to export.');
+      return;
+    }
+
+    try {
+      const prefix = activeTab === 'industrial' ? 'Industrial_Training_16_Format' : 'Candidates_16_Format';
+      downloadFormatted16FieldExcel(exportList, prefix);
+      toast.success('Downloaded 16-field formatted Excel sheet successfully!');
+    } catch (error) {
+      console.error('Error exporting formatted Excel:', error);
+      toast.error('Failed to export formatted Excel.');
     }
   };
 
@@ -412,14 +445,22 @@ export const AdminDashboard = () => {
           >
             <Download size={16} /> {downloading ? 'Generating ZIP...' : 'Export ZIP'}
           </button>
+
+          <button 
+            onClick={handleExportCustomFormatExcel}
+            className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-xs transition-colors cursor-pointer"
+            title="Download Excel spreadsheet in the exact 16 standardized columns"
+          >
+            <FileSpreadsheet size={16} /> Format Excel
+          </button>
         </div>
       </div>
 
-      {/* Quick KPI Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* Quick KPI Stat Cards (Compact Size) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <button
           onClick={() => { setActiveTab('freshers'); setSearchParams({}); }}
-          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+          className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
             activeTab === 'freshers'
               ? 'bg-indigo-50/70 border-indigo-500 shadow-sm ring-2 ring-indigo-200'
               : 'bg-white border-slate-200 shadow-2xs hover:border-slate-300'
@@ -427,19 +468,19 @@ export const AdminDashboard = () => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-slate-500">CA Freshers</p>
-              <h3 className="text-2xl font-extrabold text-indigo-700 mt-0.5">{fresherCandidates.length}</h3>
+              <p className="text-[11px] font-semibold text-slate-500">CA Freshers</p>
+              <h3 className="text-xl font-black text-indigo-700 mt-0.5">{fresherCandidates.length}</h3>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
-              <Users size={20} />
+            <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+              <Users size={16} />
             </div>
           </div>
-          <p className="text-[11px] text-indigo-600 font-semibold mt-2">View Freshers Database →</p>
+          <p className="text-[10px] text-indigo-600 font-semibold mt-1.5">View Freshers Database →</p>
         </button>
 
         <button
           onClick={() => { setActiveTab('experienced'); setSearchParams({ tab: 'experienced' }); }}
-          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+          className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
             activeTab === 'experienced'
               ? 'bg-emerald-50/70 border-emerald-500 shadow-sm ring-2 ring-emerald-200'
               : 'bg-white border-slate-200 shadow-2xs hover:border-slate-300'
@@ -447,19 +488,19 @@ export const AdminDashboard = () => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-slate-500">Experienced Candidates</p>
-              <h3 className="text-2xl font-extrabold text-emerald-700 mt-0.5">{experiencedCandidates.length}</h3>
+              <p className="text-[11px] font-semibold text-slate-500">Experienced Candidates</p>
+              <h3 className="text-xl font-black text-emerald-700 mt-0.5">{experiencedCandidates.length}</h3>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
-              <Briefcase size={20} />
+            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+              <Briefcase size={16} />
             </div>
           </div>
-          <p className="text-[11px] text-emerald-700 font-semibold mt-2">View Experienced CAs →</p>
+          <p className="text-[10px] text-emerald-700 font-semibold mt-1.5">View Experienced CAs →</p>
         </button>
 
         <button
           onClick={() => { setActiveTab('industrial'); setSearchParams({ tab: 'industrial' }); }}
-          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+          className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
             activeTab === 'industrial'
               ? 'bg-amber-50/70 border-amber-500 shadow-sm ring-2 ring-amber-200'
               : 'bg-white border-slate-200 shadow-2xs hover:border-slate-300'
@@ -467,30 +508,30 @@ export const AdminDashboard = () => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <div className="flex items-center gap-1.5">
-                <p className="text-xs font-semibold text-slate-500">Industrial Training Forms</p>
-                <span className="text-[9px] font-black bg-amber-500 text-white px-1.5 py-0.2 rounded-full uppercase">HOT</span>
+              <div className="flex items-center gap-1">
+                <p className="text-[11px] font-semibold text-slate-500">Industrial Training</p>
+                <span className="text-[8px] font-black bg-amber-500 text-white px-1 py-0.2 rounded-full uppercase">HOT</span>
               </div>
-              <h3 className="text-2xl font-extrabold text-amber-600 mt-0.5">{industrialList.length}</h3>
+              <h3 className="text-xl font-black text-amber-600 mt-0.5">{industrialList.length}</h3>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
-              <GraduationCap size={20} />
+            <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+              <GraduationCap size={16} />
             </div>
           </div>
-          <p className="text-[11px] text-amber-700 font-semibold mt-2">View 16-Field Form Submissions →</p>
+          <p className="text-[10px] text-amber-700 font-semibold mt-1.5">View 16-Field Submissions →</p>
         </button>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs text-left">
+        <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs text-left">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-slate-500">Registered Companies</p>
-              <h3 className="text-2xl font-extrabold text-slate-900 mt-0.5">{employers.length}</h3>
+              <p className="text-[11px] font-semibold text-slate-500">Registered Companies</p>
+              <h3 className="text-xl font-black text-slate-900 mt-0.5">{employers.length}</h3>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-              <Building2 size={20} />
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <Building2 size={16} />
             </div>
           </div>
-          <p className="text-[11px] text-slate-400 mt-2">Hiring partner profiles</p>
+          <p className="text-[10px] text-slate-400 mt-1.5">Hiring partner profiles</p>
         </div>
       </div>
 
