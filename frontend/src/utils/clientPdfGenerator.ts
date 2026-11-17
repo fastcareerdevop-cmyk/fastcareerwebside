@@ -15,7 +15,7 @@ export const generateCandidatePdfBlob = (c: any): Blob => {
   const contentWidth = pageWidth - margin * 2;
   let y = 45;
 
-  const fullName = `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Candidate Resume';
+  const fullName = c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Candidate Resume';
 
   // --- HEADER ---
   doc.setFont('helvetica', 'bold');
@@ -33,7 +33,11 @@ export const generateCandidatePdfBlob = (c: any): Blob => {
   }
 
   // Contact Info Bar
-  const location = [c.personalDetails?.currentCity, c.personalDetails?.currentState].filter(Boolean).join(', ');
+  const location = [
+    c.personalDetails?.currentCity || c.currentLocation, 
+    c.personalDetails?.currentState || c.currentState
+  ].filter(Boolean).join(', ');
+
   const contactParts = [
     c.email ? `Email: ${c.email}` : null,
     c.phone ? `Phone: ${c.phone}` : null,
@@ -107,6 +111,17 @@ export const generateCandidatePdfBlob = (c: any): Blob => {
       y += 14;
     }
     y += 8;
+  } else if (c.caInterBatch) {
+    addSectionHeader('PROFESSIONAL QUALIFICATIONS (ICAI)');
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    doc.setTextColor(55, 65, 81);
+    const interStatus = (c.bothGroups1stAttempt === 'Yes' || c.bothGroups1stAttempt === true)
+      ? 'Cleared Both Groups in 1st Attempt'
+      : `Group 1: ${c.group1 || '1st Attempt'}, Group 2: ${c.group2 || '1st Attempt'}`;
+    const rank = c.caInterRank && c.caInterRank !== 'No Rank' && c.caInterRank !== 'No' ? ` [Rank: ${c.caInterRank}]` : '';
+    doc.text(`• CA Intermediate: ${interStatus} (Batch: ${c.caInterBatch})${rank}`, margin + 5, y);
+    y += 22;
   }
 
   // --- ACADEMIC QUALIFICATIONS ---
@@ -161,6 +176,24 @@ export const generateCandidatePdfBlob = (c: any): Blob => {
         y += 15;
       }
     }
+  } else if (c.articleshipFirmName) {
+    addSectionHeader('ARTICLESHIP & PRACTICAL TRAINING');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(31, 41, 55);
+    doc.text(`Articleship Trainee — ${c.articleshipFirmName}`, margin + 5, y);
+    y += 13;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(75, 85, 99);
+    doc.text(`Start Date: ${c.articleshipStartMonthYear || 'N/A'}  |  Program: CA Industrial Training Candidate`, margin + 12, y);
+    y += 13;
+
+    doc.text(`• Engaged in statutory audit, compliance, accounting, and direct/indirect taxation.`, margin + 12, y);
+    y += 12;
+    doc.text(`• Assisted in drafting audit working papers, review of financial controls, and filings.`, margin + 12, y);
+    y += 15;
   }
 
   // --- SKILLS & EXPERTISE ---

@@ -5,7 +5,8 @@ import { AdminLayout } from '../../layouts/AdminLayout';
 import { 
   Users, Building2, Download, MapPin, GraduationCap, 
   FileText, Search, PlusCircle, X, Building, Mail, User, UserCheck, FileSpreadsheet,
-  Trash2, Phone, Award, CheckCircle2, RefreshCw, Eye, Briefcase
+  Trash2, Phone, Award, CheckCircle2, RefreshCw, Eye, Briefcase,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store';
@@ -272,7 +273,211 @@ export const AdminDashboard = () => {
     );
   });
 
+  // Filter industrial training applications
+  const filteredIndustrial = industrialList.filter(app => {
+    if (industrialBatchFilter && app.caInterBatch !== industrialBatchFilter) return false;
+    if (industrialAttemptFilter && app.bothGroups1stAttempt !== industrialAttemptFilter) return false;
+    if (!industrialSearch) return true;
+    const q = industrialSearch.toLowerCase();
+    return (
+      (app.name || '').toLowerCase().includes(q) ||
+      (app.email || '').toLowerCase().includes(q) ||
+      (app.phone || '').toLowerCase().includes(q) ||
+      (app.articleshipFirmName || '').toLowerCase().includes(q) ||
+      (app.currentLocation || '').toLowerCase().includes(q) ||
+      (app.currentState || '').toLowerCase().includes(q) ||
+      (app.caInterRank || '').toLowerCase().includes(q)
+    );
+  });
+
+  // ── Custom Pagination (10 candidates per page) ──
+  const [currentPage, setCurrentPage] = useState(1);
+  const [industrialPage, setIndustrialPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchQuery]);
+
+  useEffect(() => {
+    setIndustrialPage(1);
+  }, [industrialSearch, industrialBatchFilter, industrialAttemptFilter]);
+
+  const totalCandidatePages = Math.max(1, Math.ceil(filteredCandidates.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredCandidates.length);
+  const paginatedCandidates = filteredCandidates.slice(startIndex, endIndex);
+
+  const totalIndustrialPages = Math.max(1, Math.ceil(filteredIndustrial.length / itemsPerPage));
+  const startIndIndex = (industrialPage - 1) * itemsPerPage;
+  const endIndIndex = Math.min(startIndIndex + itemsPerPage, filteredIndustrial.length);
+  const paginatedIndustrial = filteredIndustrial.slice(startIndIndex, endIndIndex);
+
+  const renderPagination = (
+    currPage: number, 
+    total: number, 
+    totalItems: number, 
+    onPageChange: (p: number) => void,
+    start: number,
+    end: number
+  ) => {
+    if (totalItems === 0) return null;
+
+    const pages: (number | string)[] = [];
+    if (total <= 6) {
+      for (let i = 1; i <= total; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currPage > 3) pages.push('...');
+      const startP = Math.max(2, currPage - 1);
+      const endP = Math.min(total - 1, currPage + 1);
+      for (let i = startP; i <= endP; i++) pages.push(i);
+      if (currPage < total - 2) pages.push('...');
+      pages.push(total);
+    }
+
+    return (
+      <div className="p-3.5 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div className="text-slate-500 font-medium">
+          Showing <span className="font-bold text-slate-800">{totalItems > 0 ? start + 1 : 0}</span> to{' '}
+          <span className="font-bold text-slate-800">{end}</span> of{' '}
+          <span className="font-bold text-slate-800">{totalItems}</span> candidates
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => onPageChange(Math.max(1, currPage - 1))}
+            disabled={currPage === 1}
+            className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border font-semibold transition-colors cursor-pointer ${
+              currPage === 1
+                ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
+                : 'border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-indigo-600 bg-white'
+            }`}
+          >
+            <ChevronLeft size={13} /> Prev
+          </button>
+
+          {pages.map((p, idx) => (
+            typeof p === 'number' ? (
+              <button
+                key={idx}
+                onClick={() => onPageChange(p)}
+                className={`w-7 h-7 rounded-lg font-bold text-xs transition-colors cursor-pointer ${
+                  currPage === p
+                    ? 'bg-indigo-600 text-white shadow-2xs'
+                    : 'text-slate-700 hover:bg-slate-100 hover:text-indigo-600 border border-slate-200 bg-white'
+                }`}
+              >
+                {p}
+              </button>
+            ) : (
+              <span key={idx} className="px-1 text-slate-400 font-bold select-none">…</span>
+            )
+          ))}
+
+          <button
+            onClick={() => onPageChange(Math.min(total, currPage + 1))}
+            disabled={currPage === total}
+            className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border font-semibold transition-colors cursor-pointer ${
+              currPage === total
+                ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
+                : 'border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-indigo-600 bg-white'
+            }`}
+          >
+            Next <ChevronRight size={13} />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const handleBulkDownload = async () => {
+    // ── Handle Industrial Training Tab Bulk Download ──
+    if (activeTab === 'industrial') {
+      const currentList = filteredIndustrial.length > 0 ? filteredIndustrial : industrialList;
+      if (currentList.length === 0) {
+        toast.error('No industrial training candidates available to download.');
+        return;
+      }
+
+      setDownloading(true);
+      try {
+        const zip = new JSZip();
+
+        // 1. Standardized 16-field Excel
+        const formatted16Data = currentList.map(formatCandidateTo16Columns);
+        const ws16 = XLSX.utils.json_to_sheet(formatted16Data);
+        const wb16 = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb16, ws16, "Industrial 16 Format");
+        const excelBuffer16 = XLSX.write(wb16, { bookType: 'xlsx', type: 'array' });
+        zip.file("Industrial_Training_16_Format.xlsx", excelBuffer16);
+
+        // 2. Resumes Folder
+        const resumesFolder = zip.folder("Resumes");
+        if (resumesFolder) {
+          const nameCountTracker = new Map<string, number>();
+          const fetchPromises = currentList.map(async (app) => {
+            try {
+              const candidateObj = {
+                ...app,
+                firstName: app.name?.split(' ')[0] || app.name || 'Candidate',
+                lastName: app.name?.split(' ').slice(1).join(' ') || '',
+                personalDetails: {
+                  currentCity: app.currentLocation,
+                  currentState: app.currentState,
+                  permanentCity: app.permanentLocation,
+                  permanentState: app.permanentState,
+                  dateOfBirth: app.dob,
+                  gender: app.gender,
+                  phone: app.phone
+                },
+                caPortfolio: {
+                  isFresherCA: true,
+                  caInter: {
+                    completionSessionMonth: app.caInterBatch?.split(' ')[0] || '',
+                    completionSessionYear: app.caInterBatch?.split(' ')[1] || app.caInterBatch || '',
+                    bothGroups1stAttempt: app.bothGroups1stAttempt === 'Yes',
+                    group1Attempts: app.group1 === '1st Attempt' ? '1' : app.group1,
+                    group2Attempts: app.group2 === '1st Attempt' ? '1' : app.group2,
+                    ranker: app.caInterRank || 'No Rank'
+                  },
+                  articleships: [
+                    {
+                      firmName: app.articleshipFirmName,
+                      startDate: app.articleshipStartMonthYear
+                    }
+                  ]
+                }
+              };
+
+              const blob = await fetchCandidateResumeBlob(candidateObj);
+              const sanitize = (s: string) => (s || '').replace(/[/\\?%*:|"<>_]/g, ' ').replace(/\s+/g, ' ').trim();
+              const base = sanitize(app.name || 'Candidate');
+              const currentCount = nameCountTracker.get(base) || 0;
+              nameCountTracker.set(base, currentCount + 1);
+              const fileName = currentCount === 0 ? `${base}.pdf` : `${base} (${currentCount + 1}).pdf`;
+
+              resumesFolder.file(fileName, blob);
+            } catch (err) {
+              console.error(`Failed to fetch resume for ${app.name}:`, err);
+            }
+          });
+          await Promise.all(fetchPromises);
+        }
+
+        const content = await zip.generateAsync({ type: 'blob' });
+        saveAs(content, "Industrial_Training_Resumes.zip");
+        toast.success('Industrial Training ZIP package downloaded successfully!');
+      } catch (error) {
+        console.error('Error generating industrial bulk download:', error);
+        toast.error('Failed to generate bulk download.');
+      } finally {
+        setDownloading(false);
+      }
+      return;
+    }
+
+    // ── Handle Regular Candidates (Freshers / Experienced) ──
     if (filteredCandidates.length === 0) {
       toast.error('No candidates available to download.');
       return;
@@ -333,6 +538,22 @@ export const AdminDashboard = () => {
   };
 
   const handleExportExcel = () => {
+    if (activeTab === 'industrial') {
+      const list = filteredIndustrial.length > 0 ? filteredIndustrial : industrialList;
+      if (list.length === 0) {
+        toast.error('No industrial candidates available to export.');
+        return;
+      }
+      try {
+        downloadFormatted16FieldExcel(list, 'Industrial_Training_Candidates');
+        toast.success('Excel spreadsheet downloaded successfully!');
+      } catch (error) {
+        console.error('Error exporting Excel:', error);
+        toast.error('Failed to export Excel.');
+      }
+      return;
+    }
+
     if (filteredCandidates.length === 0) {
       toast.error('No candidates available to export.');
       return;
@@ -366,36 +587,21 @@ export const AdminDashboard = () => {
     }
   };
 
-  const filteredIndustrial = industrialList.filter(app => {
-    if (industrialBatchFilter && app.caInterBatch !== industrialBatchFilter) return false;
-    if (industrialAttemptFilter && app.bothGroups1stAttempt !== industrialAttemptFilter) return false;
-    if (!industrialSearch) return true;
-    const q = industrialSearch.toLowerCase();
-    return (
-      (app.name || '').toLowerCase().includes(q) ||
-      (app.email || '').toLowerCase().includes(q) ||
-      (app.phone || '').toLowerCase().includes(q) ||
-      (app.articleshipFirmName || '').toLowerCase().includes(q) ||
-      (app.currentLocation || '').toLowerCase().includes(q) ||
-      (app.currentState || '').toLowerCase().includes(q) ||
-      (app.caInterRank || '').toLowerCase().includes(q)
-    );
-  });
-
   return (
     <AdminLayout>
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-5 gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-2">
             <Users className="text-indigo-600" /> Candidates Database
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 mt-0.5">
             Review registered candidates, search profiles, and export resume packages.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+        {/* Buttons in ONE single line */}
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap overflow-x-auto max-w-full pb-1">
           {user?.role !== 'employee' && (
             <>
               <button
@@ -403,16 +609,18 @@ export const AdminDashboard = () => {
                   setActiveModalTab('register');
                   setIsCompanyModalOpen(true);
                 }}
-                className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-xs transition-colors cursor-pointer"
+                className="whitespace-nowrap inline-flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-2xs transition-colors cursor-pointer shrink-0"
+                title="Register New Company"
               >
-                <Building2 size={16} /> Register New Company
+                <Building2 size={13} /> New Company
               </button>
 
               <Link
                 to="/admin/add-employee"
-                className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-xs transition-colors cursor-pointer"
+                className="whitespace-nowrap inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-2xs transition-colors cursor-pointer shrink-0"
+                title="Manage Employees"
               >
-                <UserCheck size={16} /> Manage Employees
+                <UserCheck size={13} /> Employees
               </Link>
             </>
           )}
@@ -422,36 +630,37 @@ export const AdminDashboard = () => {
               fetchIndustrialApplications();
               setIsIndustrialModalOpen(true);
             }}
-            className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-xs transition-all cursor-pointer"
+            className="whitespace-nowrap inline-flex items-center justify-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-2xs transition-all cursor-pointer shrink-0"
             title="View CA Industrial Training Applications"
           >
-            <GraduationCap size={16} /> Industrial Training {industrialList.length > 0 && `(${industrialList.length})`}
+            <GraduationCap size={13} /> Industrial Training {industrialList.length > 0 && `(${industrialList.length})`}
           </button>
 
           <button 
             onClick={handleExportExcel}
-            className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-xs transition-colors cursor-pointer"
+            className="whitespace-nowrap inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-2xs transition-colors cursor-pointer shrink-0"
             title="Download Excel spreadsheet with all candidate details"
           >
-            <FileSpreadsheet size={16} /> Export Excel
+            <FileSpreadsheet size={13} /> Export Excel
           </button>
 
           <button 
             onClick={handleBulkDownload}
             disabled={downloading}
-            className={`flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-              downloading ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-slate-800 hover:bg-slate-900 text-white shadow-xs cursor-pointer'
+            className={`whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 ${
+              downloading ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-slate-800 hover:bg-slate-900 text-white shadow-2xs cursor-pointer'
             }`}
+            title="Export resumes ZIP package"
           >
-            <Download size={16} /> {downloading ? 'Generating ZIP...' : 'Export ZIP'}
+            <Download size={13} /> {downloading ? 'Generating ZIP...' : 'Export ZIP'}
           </button>
 
           <button 
             onClick={handleExportCustomFormatExcel}
-            className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-xs transition-colors cursor-pointer"
+            className="whitespace-nowrap inline-flex items-center justify-center gap-1.5 bg-teal-600 hover:bg-teal-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-2xs transition-colors cursor-pointer shrink-0"
             title="Download Excel spreadsheet in the exact 16 standardized columns"
           >
-            <FileSpreadsheet size={16} /> Format Excel
+            <FileSpreadsheet size={13} /> Format Excel
           </button>
         </div>
       </div>
@@ -637,7 +846,7 @@ export const AdminDashboard = () => {
                       </td>
                     </tr>
                   ) : (
-                    filteredCandidates.map((candidate) => (
+                    paginatedCandidates.map((candidate) => (
                       <tr key={candidate._id} className="hover:bg-slate-50/70 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
@@ -732,6 +941,9 @@ export const AdminDashboard = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Custom Pagination for Candidates (10 per page) */}
+            {renderPagination(currentPage, totalCandidatePages, filteredCandidates.length, setCurrentPage, startIndex, endIndex)}
           </div>
         </>
       )}
@@ -840,9 +1052,9 @@ export const AdminDashboard = () => {
                       </td>
                     </tr>
                   ) : (
-                    filteredIndustrial.map((app, idx) => (
+                    paginatedIndustrial.map((app, idx) => (
                       <tr key={app._id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="px-3.5 py-3 text-slate-400 font-mono text-[11px]">{idx + 1}</td>
+                        <td className="px-3.5 py-3 text-slate-400 font-mono text-[11px]">{startIndIndex + idx + 1}</td>
                         <td className="px-3.5 py-3">
                           <div className="font-bold text-slate-900">{app.name}</div>
                           <div className="text-[10px] text-slate-500">{app.gender || '—'} • DOB: {app.dob || '—'}</div>
@@ -905,13 +1117,55 @@ export const AdminDashboard = () => {
                           </span>
                         </td>
                         <td className="px-3.5 py-3 text-right">
-                          <button
-                            onClick={() => handleDeleteIndustrial(app._id, app.name)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                            title="Delete"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => {
+                                const candidateObj = {
+                                  ...app,
+                                  firstName: app.name?.split(' ')[0] || app.name || 'Candidate',
+                                  lastName: app.name?.split(' ').slice(1).join(' ') || '',
+                                  personalDetails: {
+                                    currentCity: app.currentLocation,
+                                    currentState: app.currentState,
+                                    permanentCity: app.permanentLocation,
+                                    permanentState: app.permanentState,
+                                    dateOfBirth: app.dob,
+                                    gender: app.gender,
+                                    phone: app.phone
+                                  },
+                                  caPortfolio: {
+                                    isFresherCA: true,
+                                    caInter: {
+                                      completionSessionMonth: app.caInterBatch?.split(' ')[0] || '',
+                                      completionSessionYear: app.caInterBatch?.split(' ')[1] || app.caInterBatch || '',
+                                      bothGroups1stAttempt: app.bothGroups1stAttempt === 'Yes',
+                                      group1Attempts: app.group1 === '1st Attempt' ? '1' : app.group1,
+                                      group2Attempts: app.group2 === '1st Attempt' ? '1' : app.group2,
+                                      ranker: app.caInterRank || 'No Rank'
+                                    },
+                                    articleships: [
+                                      {
+                                        firmName: app.articleshipFirmName,
+                                        startDate: app.articleshipStartMonthYear
+                                      }
+                                    ]
+                                  }
+                                };
+                                viewCandidateResume(candidateObj);
+                              }}
+                              className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-2 py-1 rounded-md text-[11px] font-semibold transition-colors cursor-pointer"
+                              title="View Candidate CV"
+                            >
+                              <FileText size={12} /> View CV
+                            </button>
+                            <button
+                              onClick={() => handleDeleteIndustrial(app._id, app.name)}
+                              className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                              title="Delete"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -920,15 +1174,8 @@ export const AdminDashboard = () => {
               </table>
             </div>
 
-            <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
-              <span>Showing {filteredIndustrial.length} of {industrialList.length} applications</span>
-              <button
-                onClick={handleExportIndustrialExcel}
-                className="text-emerald-700 font-bold hover:underline cursor-pointer"
-              >
-                Download Excel spreadsheet matching recruitment columns →
-              </button>
-            </div>
+            {/* Custom Pagination for Industrial Training (10 per page) */}
+            {renderPagination(industrialPage, totalIndustrialPages, filteredIndustrial.length, setIndustrialPage, startIndIndex, endIndIndex)}
           </div>
         </div>
       )}
