@@ -652,10 +652,6 @@ export const Register = () => {
         newErrors.currentCity = 'Please fill this field: Current Location';
       }
 
-      if (!linkedinUrl.trim()) {
-        newErrors.linkedinUrl = 'Please fill this field: LinkedIn Profile URL';
-      }
-
       if (workStatus === 'experienced') {
         if (!caFinalCompletionYear) {
           newErrors.caFinalCompletionYear = 'Please fill this field: Which CA Final Year Completed?';
@@ -1602,7 +1598,7 @@ export const Register = () => {
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <label htmlFor="linkedinUrl" className="block text-xs font-semibold text-slate-700">
-                          LinkedIn Profile URL <span className="text-red-500">*</span>
+                          LinkedIn Profile URL <span className="text-slate-400 font-normal">(Optional)</span>
                         </label>
                         <span className="text-[10.5px] text-slate-400 font-medium">e.g. linkedin.com/in/username</span>
                       </div>
