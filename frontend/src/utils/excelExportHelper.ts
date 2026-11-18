@@ -2,44 +2,50 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { getResumeUrl } from './urlHelper';
 
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 /**
- * Format any date string to DD-MM-YYYY (e.g. 1984-10-13 -> 13-10-1984)
+ * Format any date string to DD Mon YYYY format (e.g. 1984-10-13 -> 13 Oct 1984, 12-06-2001 -> 12 Jun 2001, 26 dec 2026)
  */
 export const formatDateToDDMMYYYY = (dateVal: any): string => {
   if (!dateVal) return 'N/A';
   const s = String(dateVal).trim();
-  if (!s || s === 'N/A' || s === '-') return 'N/A';
+  if (!s || s === 'N/A' || s === '-' || s === 'null' || s === 'undefined') return 'N/A';
 
-  // If already in DD-MM-YYYY format
-  if (/^\d{2}-\d{2}-\d{4}$/.test(s)) {
+  // If already in DD Mon YYYY format (e.g. "26 Dec 2026", "26 dec 2026", "13 Oct 1984")
+  if (/^\d{1,2}\s+[a-zA-Z]{3,9}\s+\d{4}$/.test(s)) {
     return s;
   }
 
-  // If in YYYY-MM-DD format (e.g. 1984-10-13 or 1984-10-13T00:00:00.000Z)
+  // If in YYYY-MM-DD format (e.g. 1984-10-13 or 1984-10-13T00:00:00.000Z or 1984/10/13)
   const isoMatch = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
   if (isoMatch) {
     const y = isoMatch[1];
-    const m = isoMatch[2].padStart(2, '0');
-    const d = isoMatch[3].padStart(2, '0');
-    return `${d}-${m}-${y}`;
+    const mIdx = parseInt(isoMatch[2], 10) - 1;
+    const d = String(parseInt(isoMatch[3], 10)).padStart(2, '0');
+    if (mIdx >= 0 && mIdx < 12) {
+      return `${d} ${SHORT_MONTHS[mIdx]} ${y}`;
+    }
   }
 
-  // If in DD/MM/YYYY format
+  // If in DD-MM-YYYY or DD/MM/YYYY format (e.g. 12-06-2001, 20/11/2026)
   const dmyMatch = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
   if (dmyMatch) {
-    const d = dmyMatch[1].padStart(2, '0');
-    const m = dmyMatch[2].padStart(2, '0');
+    const d = String(parseInt(dmyMatch[1], 10)).padStart(2, '0');
+    const mIdx = parseInt(dmyMatch[2], 10) - 1;
     const y = dmyMatch[3];
-    return `${d}-${m}-${y}`;
+    if (mIdx >= 0 && mIdx < 12) {
+      return `${d} ${SHORT_MONTHS[mIdx]} ${y}`;
+    }
   }
 
   // Fallback using Date parser
   const parsed = new Date(s);
   if (!isNaN(parsed.getTime())) {
     const day = String(parsed.getDate()).padStart(2, '0');
-    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const month = SHORT_MONTHS[parsed.getMonth()] || String(parsed.getMonth() + 1).padStart(2, '0');
     const year = parsed.getFullYear();
-    return `${day}-${month}-${year}`;
+    return `${day} ${month} ${year}`;
   }
 
   return s;
@@ -106,9 +112,9 @@ export const formatRegistrationTimestamp = (dateVal: any) => {
   }
 
   const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const month = SHORT_MONTHS[d.getMonth()] || String(d.getMonth() + 1).padStart(2, '0');
   const year = d.getFullYear();
-  const formattedDate = `${day}-${month}-${year}`;
+  const formattedDate = `${day} ${month} ${year}`;
 
   const timeFormatted = d.toLocaleTimeString('en-IN', {
     hour: '2-digit',

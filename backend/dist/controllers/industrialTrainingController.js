@@ -517,6 +517,43 @@ exports.getIndustrialTrainingApplications = getIndustrialTrainingApplications;
  * GET /api/industrial-training/export
  * Download Excel matching the exact columns in the user's screenshot
  */
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const formatDateCustom = (dateVal) => {
+    if (!dateVal)
+        return 'N/A';
+    const s = String(dateVal).trim();
+    if (!s || s === 'N/A' || s === '-' || s === 'null' || s === 'undefined')
+        return 'N/A';
+    if (/^\d{1,2}\s+[a-zA-Z]{3,9}\s+\d{4}$/.test(s)) {
+        return s;
+    }
+    const isoMatch = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+    if (isoMatch) {
+        const y = isoMatch[1];
+        const mIdx = parseInt(isoMatch[2], 10) - 1;
+        const d = String(parseInt(isoMatch[3], 10)).padStart(2, '0');
+        if (mIdx >= 0 && mIdx < 12) {
+            return `${d} ${SHORT_MONTHS[mIdx]} ${y}`;
+        }
+    }
+    const dmyMatch = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+    if (dmyMatch) {
+        const d = String(parseInt(dmyMatch[1], 10)).padStart(2, '0');
+        const mIdx = parseInt(dmyMatch[2], 10) - 1;
+        const y = dmyMatch[3];
+        if (mIdx >= 0 && mIdx < 12) {
+            return `${d} ${SHORT_MONTHS[mIdx]} ${y}`;
+        }
+    }
+    const parsed = new Date(s);
+    if (!isNaN(parsed.getTime())) {
+        const day = String(parsed.getDate()).padStart(2, '0');
+        const month = SHORT_MONTHS[parsed.getMonth()] || String(parsed.getMonth() + 1).padStart(2, '0');
+        const year = parsed.getFullYear();
+        return `${day} ${month} ${year}`;
+    }
+    return s;
+};
 const exportIndustrialTrainingExcel = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let applications = [];
@@ -545,7 +582,7 @@ const exportIndustrialTrainingExcel = (req, res) => __awaiter(void 0, void 0, vo
             'Current State': app.currentState,
             'Permanent Location': app.permanentLocation,
             'Permanent State': app.permanentState,
-            'DOB': app.dob,
+            'DOB': formatDateCustom(app.dob),
             'Gender': app.gender,
             'CA Inter Batch': app.caInterBatch,
             'CA Both Groups in 1st Attempt': app.bothGroups1stAttempt,
@@ -560,7 +597,7 @@ const exportIndustrialTrainingExcel = (req, res) => __awaiter(void 0, void 0, vo
             'Remarks': app.remarks || '',
             'Resume URL': app.resumeUrl || '',
             'Verification Status': app.isVerified ? 'Verified ✓' : 'Pending',
-            'Application Date': app.createdAt ? new Date(app.createdAt).toLocaleDateString('en-IN') : ''
+            'Application Date': formatDateCustom(app.createdAt)
         }));
         const worksheet = XLSX.utils.json_to_sheet(formattedRows);
         // Auto-fit column widths
