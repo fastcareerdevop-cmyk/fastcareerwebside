@@ -564,6 +564,23 @@ const formatDateCustom = (dateVal: any): string => {
   return s;
 };
 
+const formatSessionToMonYY = (str?: string): string => {
+  const s = String(str || '').trim();
+  if (!s || s === 'N/A' || s === '-' || s === 'null' || s === 'undefined') return 'N/A';
+  const textYearMatch = s.match(/([a-zA-Z]{3,9})[\s\-']+(\d{2,4})/);
+  if (textYearMatch) {
+    let rawM = textYearMatch[1];
+    if (rawM.toLowerCase().startsWith('sept')) rawM = 'Sep';
+    const m = rawM.charAt(0).toUpperCase() + rawM.slice(1, 3).toLowerCase();
+    const y = textYearMatch[2].slice(-2);
+    return `${m}-${y}`;
+  }
+  if (/^\d{4}$/.test(s)) {
+    return s.slice(-2);
+  }
+  return s;
+};
+
 export const exportIndustrialTrainingExcel = async (req: Request, res: Response): Promise<void> => {
   try {
     let applications: any[] = [];
@@ -596,7 +613,7 @@ export const exportIndustrialTrainingExcel = async (req: Request, res: Response)
       'Permanent State': app.permanentState,
       'DOB': formatDateCustom(app.dob),
       'Gender': app.gender,
-      'CA Inter Batch': app.caInterBatch,
+      'CA Inter Batch': formatSessionToMonYY(app.caInterBatch),
       'CA Both Groups in 1st Attempt': app.bothGroups1stAttempt,
       'Group 1': app.group1,
       'Group 2': app.group2,

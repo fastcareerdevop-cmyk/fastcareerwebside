@@ -52,6 +52,49 @@ export const formatDateToDDMMYYYY = (dateVal: any): string => {
 };
 
 /**
+ * Format examination session / batch to Mon-YY format (e.g. "Nov 2023" -> "Nov-23", "May 2021" -> "May-21", "2025" -> "25")
+ */
+export const formatSessionToMonYY = (
+  month?: string,
+  year?: string,
+  fullStr?: string
+): string => {
+  // Case 1: Separate month and year provided
+  if (month && year) {
+    const cleanM = String(month).trim();
+    const cleanY = String(year).trim().slice(-2);
+    if (cleanM && cleanY && cleanM !== 'N/A' && cleanY !== 'N/A') {
+      let rawM = cleanM;
+      if (rawM.toLowerCase().startsWith('sept')) rawM = 'Sep';
+      const m = rawM.charAt(0).toUpperCase() + rawM.slice(1, 3).toLowerCase();
+      return `${m}-${cleanY}`;
+    }
+  }
+
+  // Case 2: Full string or single field
+  const targetStr = fullStr || (month && !year ? String(month) : (year && !month ? String(year) : ''));
+  const s = String(targetStr).trim();
+  if (!s || s === 'N/A' || s === '-' || s === 'null' || s === 'undefined') return 'N/A';
+
+  // Match text and year e.g. "November 2021", "Nov 2023", "May 2021", "May-2022", "Sep 2025"
+  const textYearMatch = s.match(/([a-zA-Z]{3,9})[\s\-']+(\d{2,4})/);
+  if (textYearMatch) {
+    let rawM = textYearMatch[1];
+    if (rawM.toLowerCase().startsWith('sept')) rawM = 'Sep';
+    const m = rawM.charAt(0).toUpperCase() + rawM.slice(1, 3).toLowerCase();
+    const y = textYearMatch[2].slice(-2);
+    return `${m}-${y}`;
+  }
+
+  // Match year only e.g. "2023" -> "23" or "2025" -> "25"
+  if (/^\d{4}$/.test(s)) {
+    return s.slice(-2);
+  }
+
+  return s;
+};
+
+/**
  * Format articleship completion date to MMM-YY format (e.g. "May 2025" -> "May-25")
  */
 export const formatArticleshipCompletionDate = (
@@ -177,16 +220,20 @@ export const formatCandidateForExcel = (c: any, index?: number) => {
     'CAFinalG1_AttNos': final.group1Attempts || 'N/A',
     'CAFinalG2_AttNos': final.group2Attempts || 'N/A',
     'CAFinal_IsRanker': (final.ranker === 'No' || !final.ranker) ? 'No' : String(final.ranker),
-    'CAFinalSession': final.completionSessionMonth && final.completionSessionYear 
-      ? `${final.completionSessionMonth} ${final.completionSessionYear}` 
-      : (final.completionSessionYear || exp.caFinalCompletionYear || 'N/A'),
+    'CAFinalSession': formatSessionToMonYY(
+      final.completionSessionMonth,
+      final.completionSessionYear || exp.caFinalCompletionYear,
+      c.caFinalSession
+    ),
     'IsCAInterBothGrpIn1stAtt': inter.bothGroups1stAttempt ? 'Yes' : 'No',
     'CAInterG1_AttNos': inter.group1Attempts || 'N/A',
     'CAInterG2_AttNos': inter.group2Attempts || 'N/A',
     'CAInter_IsRanker': (inter.ranker === 'No' || !inter.ranker) ? 'No' : String(inter.ranker),
-    'CAInterSession': inter.completionSessionMonth && inter.completionSessionYear 
-      ? `${inter.completionSessionMonth} ${inter.completionSessionYear}` 
-      : (inter.completionSessionYear || 'N/A'),
+    'CAInterSession': formatSessionToMonYY(
+      inter.completionSessionMonth,
+      inter.completionSessionYear,
+      c.caInterSession
+    ),
     'ArtCompletionDate': formatArticleshipCompletionDate(
       ca.articleshipCompletionDateMonth, 
       ca.articleshipCompletionDateYear, 
@@ -289,15 +336,12 @@ export const formatCandidateTo16Columns = (item: any) => {
   const rawDob = pd.dateOfBirth || item.dateOfBirth || item.dob || '';
   const dobFormatted = formatDateToDDMMYYYY(rawDob);
 
-  // CA Inter Batch
-  let interBatch = item.caInterBatch || '';
-  if (!interBatch && inter.completionSessionMonth && inter.completionSessionYear) {
-    interBatch = `${inter.completionSessionMonth} ${inter.completionSessionYear}`;
-  } else if (!interBatch && inter.completionSessionYear) {
-    interBatch = String(inter.completionSessionYear);
-  } else if (!interBatch) {
-    interBatch = 'N/A';
-  }
+  // CA Inter Batch (formatted e.g. Nov-23, May-21)
+  const interBatch = formatSessionToMonYY(
+    inter.completionSessionMonth,
+    inter.completionSessionYear,
+    item.caInterBatch
+  );
 
   // CA both Group in 1st Attempt
   let both1st = 'No';
