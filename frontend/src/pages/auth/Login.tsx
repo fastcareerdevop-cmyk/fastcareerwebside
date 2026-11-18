@@ -50,9 +50,21 @@ export const Login = () => {
   );
 
   useEffect(() => {
+    // Clear any stale auth messages on mount and unmount
+    dispatch(reset());
+    setFormError('');
+    return () => {
+      dispatch(reset());
+    };
+  }, [dispatch]);
+
+  useEffect(() => {
     if (isError && message) {
-      setFormError(message);
-      toast.error(message, { duration: 6000 });
+      // Do not display leftover registration errors on the login page
+      if (!message.toLowerCase().includes('already registered')) {
+        setFormError(message);
+        toast.error(message, { duration: 6000 });
+      }
     }
 
     if (isSuccess || user) {

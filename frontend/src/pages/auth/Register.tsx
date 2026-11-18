@@ -356,7 +356,7 @@ export const Register = () => {
       if (res.data.exists) {
         setFieldErrors(prev => ({
           ...prev,
-          email: `The email "${trimmed}" is already registered. Please enter a unique email address or sign in.`
+          email: `This email is already registered. Please enter a different email address.`
         }));
         return false;
       } else {
@@ -424,9 +424,40 @@ export const Register = () => {
   );
 
   useEffect(() => {
+    // Clear stale auth messages on mount and unmount
+    dispatch(reset());
+    return () => {
+      dispatch(reset());
+    };
+  }, [dispatch]);
+
+  useEffect(() => {
     if (isError && message) {
-      setFormError(message);
+      const lower = message.toLowerCase();
+      if (lower.includes('email') || lower.includes('already registered')) {
+        const msg = `This email is already registered. Please enter a different email address.`;
+        setFieldErrors(prev => ({ ...prev, email: msg }));
+        setFormError(msg);
+        const el = document.getElementById('email');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          (el as HTMLElement).focus?.();
+        }
+      } else if (lower.includes('phone') || lower.includes('mobile')) {
+        const msg = `This mobile number is already registered. Please use a different number.`;
+        setFieldErrors(prev => ({ ...prev, phone: msg }));
+        setFormError(msg);
+        const el = document.getElementById('phone');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          (el as HTMLElement).focus?.();
+        }
+      } else {
+        setFormError(message);
+      }
       toast.error(message, { duration: 6000 });
+      dispatch(reset());
+      return;
     }
     if (isSuccess || user) {
       if (user?.role === 'candidate') {
@@ -767,7 +798,7 @@ export const Register = () => {
       try {
         const res = await api.get(`/users/check-email?email=${encodeURIComponent(trimmedEmail)}`);
         if (res.data.exists) {
-          newErrors.email = `The email "${trimmedEmail}" is already registered. Please sign in or enter a unique email address.`;
+          newErrors.email = `This email is already registered. Please enter a different email address.`;
         }
       } catch (err) {
         console.error('Error checking email uniqueness:', err);
@@ -783,14 +814,22 @@ export const Register = () => {
 
     if (Object.keys(newErrors).length > 0) {
       setFieldErrors(newErrors);
-      const firstErrorMsg = Object.values(newErrors)[0];
-      setFormError('Please fill in all required fields highlighted below before submitting.');
+      const hasDuplicateError = Object.values(newErrors).find(msg => msg.toLowerCase().includes('already registered'));
+      const firstErrorMsg = hasDuplicateError || Object.values(newErrors)[0];
+      setFormError(hasDuplicateError ? hasDuplicateError : 'Please fill in all required fields highlighted below before submitting.');
       toast.error(firstErrorMsg || 'Please complete all mandatory fields.');
 
-      const firstKey = Object.keys(newErrors)[0];
-      const el = document.getElementById(firstKey) || document.querySelector(`[name="${firstKey}"]`);
+      // Prioritize scrolling to duplicate email/phone or first missing field
+      const targetKey = newErrors.email?.includes('already registered')
+        ? 'email'
+        : (newErrors.phone?.includes('already registered')
+          ? 'phone'
+          : Object.keys(newErrors)[0]);
+
+      const el = document.getElementById(targetKey) || document.querySelector(`[name="${targetKey}"]`);
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        (el as HTMLElement).focus?.();
       }
       return;
     }
@@ -897,8 +936,35 @@ export const Register = () => {
     const resultAction = await dispatch(register(userData));
     if (register.rejected.match(resultAction)) {
       const err = (resultAction.payload as string) || 'Registration failed. Please check your details.';
-      setFormError(err);
-      toast.error(err, { duration: 6000 });
+      // Immediately reset redux auth state so registration errors NEVER leak to /login page
+      dispatch(reset());
+
+      const lowerErr = err.toLowerCase();
+      if (lowerErr.includes('email') || lowerErr.includes('already registered')) {
+        const msg = `This email is already registered. Please enter a different email address.`;
+        setFieldErrors(prev => ({ ...prev, email: msg }));
+        setFormError(msg);
+        toast.error(msg, { duration: 6000 });
+        const el = document.getElementById('email');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          (el as HTMLElement).focus?.();
+        }
+      } else if (lowerErr.includes('phone') || lowerErr.includes('mobile')) {
+        const msg = `This mobile number is already registered. Please use a different number.`;
+        setFieldErrors(prev => ({ ...prev, phone: msg }));
+        setFormError(msg);
+        toast.error(msg, { duration: 6000 });
+        const el = document.getElementById('phone');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          (el as HTMLElement).focus?.();
+        }
+      } else {
+        setFormError(err);
+        toast.error(err, { duration: 6000 });
+      }
+      return;
     }
   };
 
