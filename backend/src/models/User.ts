@@ -89,21 +89,25 @@ export interface IUser extends Document {
   // Step 3: Qualifications
   qualifications?: {
     graduation?: {
-      completed?: 'Yes' | 'No/Pursuing' | 'No';
+      completed?: string;
+      degree?: string;
       yearOfCompletion?: string;
       percentage?: string;
       college?: string;
-      type?: 'REGULAR' | 'CORRESPONDENCE';
+      customCollege?: string;
+      type?: 'REGULAR' | 'CORRESPONDENCE' | string;
     };
     class12?: {
       percentage?: string;
       year?: string;
       board?: string;
+      customBoard?: string;
     };
     class10?: {
       percentage?: string;
       year?: string;
       board?: string;
+      customBoard?: string;
     };
   };
   
@@ -221,20 +225,24 @@ const UserSchema: Schema = new Schema(
     qualifications: {
       graduation: {
         completed: { type: String },
+        degree: { type: String },
         yearOfCompletion: { type: String },
         percentage: { type: String },
         college: { type: String },
+        customCollege: { type: String },
         type: { type: String },
       },
       class12: {
         percentage: { type: String },
         year: { type: String },
         board: { type: String },
+        customBoard: { type: String },
       },
       class10: {
         percentage: { type: String },
         year: { type: String },
         board: { type: String },
+        customBoard: { type: String },
       }
     },
     

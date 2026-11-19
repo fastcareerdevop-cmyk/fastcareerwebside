@@ -137,20 +137,24 @@ const UserSchema = new mongoose_1.Schema({
     qualifications: {
         graduation: {
             completed: { type: String },
+            degree: { type: String },
             yearOfCompletion: { type: String },
             percentage: { type: String },
             college: { type: String },
+            customCollege: { type: String },
             type: { type: String },
         },
         class12: {
             percentage: { type: String },
             year: { type: String },
             board: { type: String },
+            customBoard: { type: String },
         },
         class10: {
             percentage: { type: String },
             year: { type: String },
             board: { type: String },
+            customBoard: { type: String },
         }
     },
     // Experience Info

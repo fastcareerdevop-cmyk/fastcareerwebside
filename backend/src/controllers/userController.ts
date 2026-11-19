@@ -191,6 +191,7 @@ export const registerUser = async (req: Request, res: Response) => {
     industrialTrainee,
     listedCompanyWork,
     cgpaPercentage,
+    qualifications,
   } = req.body;
 
   try {
@@ -266,7 +267,8 @@ export const registerUser = async (req: Request, res: Response) => {
               ...(listedCompanyWork ? { listedCompanyWork } : {}),
               ...(cgpaPercentage ? { cgpaPercentage } : {}),
             },
-            ...(experienceInfo ? { experienceInfo } : {})
+            ...(experienceInfo ? { experienceInfo } : {}),
+            ...(qualifications ? { qualifications } : {})
           }
         });
 
@@ -345,7 +347,8 @@ export const registerUser = async (req: Request, res: Response) => {
         ...(listedCompanyWork ? { listedCompanyWork } : {}),
         ...(cgpaPercentage ? { cgpaPercentage } : {}),
       },
-      ...(experienceInfo ? { experienceInfo } : {})
+      ...(experienceInfo ? { experienceInfo } : {}),
+      ...(qualifications ? { qualifications } : {})
     });
 
     if (user) {
