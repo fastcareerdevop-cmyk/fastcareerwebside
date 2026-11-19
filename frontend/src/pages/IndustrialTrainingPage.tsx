@@ -49,20 +49,28 @@ const TOP_20_CITIES = [
   'Chennai',
   'Kolkata',
   'Pune',
-  'Ahmedabad',
-  'Gurugram',
-  'Noida',
-  'Chandigarh',
-  'Jaipur',
-  'Indore',
-  'Surat',
-  'Kochi',
-  'Lucknow',
-  'Coimbatore',
-  'Vadodara',
-  'Nagpur',
-  'Bhubaneswar'
+  'Ahmedabad'
 ];
+
+const DOB_DAYS = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
+const DOB_MONTHS = [
+  { value: '01', label: 'Jan (01)' },
+  { value: '02', label: 'Feb (02)' },
+  { value: '03', label: 'Mar (03)' },
+  { value: '04', label: 'Apr (04)' },
+  { value: '05', label: 'May (05)' },
+  { value: '06', label: 'Jun (06)' },
+  { value: '07', label: 'Jul (07)' },
+  { value: '08', label: 'Aug (08)' },
+  { value: '09', label: 'Sep (09)' },
+  { value: '10', label: 'Oct (10)' },
+  { value: '11', label: 'Nov (11)' },
+  { value: '12', label: 'Dec (12)' },
+];
+const CURRENT_YEAR = new Date().getFullYear();
+const MAX_DOB_YEAR = Math.max(CURRENT_YEAR - 14, 2012);
+const MIN_DOB_YEAR = 1940;
+const DOB_YEARS = Array.from({ length: MAX_DOB_YEAR - MIN_DOB_YEAR + 1 }, (_, i) => String(MAX_DOB_YEAR - i));
 
 const SECTOR_OPTIONS = [
   'Any',
@@ -259,6 +267,24 @@ export const IndustrialTrainingPage: React.FC = () => {
     const val = e.target.value;
     setFormData(prev => ({ ...prev, permanentLocation: val }));
     if (errors.permanentLocation) setErrors(prev => ({ ...prev, permanentLocation: '' }));
+  };
+
+  const dobParts = (formData.dob || '').split('-');
+  const dobYear = dobParts[0] || '';
+  const dobMonth = dobParts[1] || '';
+  const dobDay = dobParts[2] || '';
+
+  const handleDobPartChange = (part: 'day' | 'month' | 'year', val: string) => {
+    const nextDay = part === 'day' ? val : dobDay;
+    const nextMonth = part === 'month' ? val : dobMonth;
+    const nextYear = part === 'year' ? val : dobYear;
+
+    if (nextYear && nextMonth && nextDay) {
+      setFormData(prev => ({ ...prev, dob: `${nextYear}-${nextMonth}-${nextDay}` }));
+      if (errors.dob) setErrors(prev => ({ ...prev, dob: '' }));
+    } else {
+      setFormData(prev => ({ ...prev, dob: '' }));
+    }
   };
 
   const handleSameAddressToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -949,19 +975,61 @@ export const IndustrialTrainingPage: React.FC = () => {
                 {/* DOB & Gender */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                   <div>
-                    <label htmlFor={`${formId}-dob`} className="block text-xs font-semibold text-slate-700 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
                       DOB (Date of Birth) <span className="text-rose-500">*</span>
                     </label>
-                    <input
-                      id={`${formId}-dob`}
-                      type="date"
-                      name="dob"
-                      value={formData.dob}
-                      onChange={handleChange}
-                      className={`w-full px-3 py-2 text-sm rounded-xl border bg-white focus:outline-none focus:ring-2 transition-all ${
-                        errors.dob ? 'border-rose-400 focus:ring-rose-200' : 'border-slate-300 focus:ring-blue-200 focus:border-blue-600'
-                      }`}
-                    />
+                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                      <div>
+                        <label htmlFor={`${formId}-dobDay`} className="block text-[10px] font-semibold text-slate-500 mb-0.5">Day *</label>
+                        <select
+                          id={`${formId}-dobDay`}
+                          value={dobDay}
+                          onChange={(e) => handleDobPartChange('day', e.target.value)}
+                          className={`w-full px-2 py-2 text-xs rounded-xl border bg-white focus:outline-none focus:ring-2 font-medium cursor-pointer transition-all ${
+                            errors.dob ? 'border-rose-400 focus:ring-rose-200 bg-rose-50/20' : 'border-slate-300 focus:ring-blue-200 focus:border-blue-600'
+                          }`}
+                        >
+                          <option value="">Day</option>
+                          {DOB_DAYS.map(d => (
+                            <option key={d} value={d}>{d}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label htmlFor={`${formId}-dobMonth`} className="block text-[10px] font-semibold text-slate-500 mb-0.5">Month *</label>
+                        <select
+                          id={`${formId}-dobMonth`}
+                          value={dobMonth}
+                          onChange={(e) => handleDobPartChange('month', e.target.value)}
+                          className={`w-full px-2 py-2 text-xs rounded-xl border bg-white focus:outline-none focus:ring-2 font-medium cursor-pointer transition-all ${
+                            errors.dob ? 'border-rose-400 focus:ring-rose-200 bg-rose-50/20' : 'border-slate-300 focus:ring-blue-200 focus:border-blue-600'
+                          }`}
+                        >
+                          <option value="">Month</option>
+                          {DOB_MONTHS.map(m => (
+                            <option key={m.value} value={m.value}>{m.label}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label htmlFor={`${formId}-dobYear`} className="block text-[10px] font-semibold text-slate-500 mb-0.5">Year *</label>
+                        <select
+                          id={`${formId}-dobYear`}
+                          value={dobYear}
+                          onChange={(e) => handleDobPartChange('year', e.target.value)}
+                          className={`w-full px-2 py-2 text-xs rounded-xl border bg-white focus:outline-none focus:ring-2 font-medium cursor-pointer transition-all ${
+                            errors.dob ? 'border-rose-400 focus:ring-rose-200 bg-rose-50/20' : 'border-slate-300 focus:ring-blue-200 focus:border-blue-600'
+                          }`}
+                        >
+                          <option value="">Year</option>
+                          {DOB_YEARS.map(y => (
+                            <option key={y} value={y}>{y}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
                     {errors.dob && <p className="text-[11px] text-rose-500 mt-1">{errors.dob}</p>}
                   </div>
 

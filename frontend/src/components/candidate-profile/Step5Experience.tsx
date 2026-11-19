@@ -1,7 +1,18 @@
 import React from 'react';
-import { PREFERRED_CAMPUS_CITIES, ALL_CITIES } from '../../utils/constants';
+import { PREFERRED_CAMPUS_CITIES } from '../../utils/constants';
 
-export const Step5Experience = ({ experienceInfo, setExperienceInfo, personal, setPersonal }) => {
+const PREFERRED_JOB_CITIES = [
+  'Mumbai',
+  'Delhi NCR',
+  'Bengaluru',
+  'Hyderabad',
+  'Chennai',
+  'Kolkata',
+  'Pune',
+  'Ahmedabad'
+];
+
+export const Step5Experience = ({ experienceInfo, setExperienceInfo, personal, setPersonal }: any) => {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-6">
@@ -28,15 +39,27 @@ export const Step5Experience = ({ experienceInfo, setExperienceInfo, personal, s
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Job Cities (Optional)</label>
             <div className="space-y-3">
-              {[1, 2, 3].map((num) => (
-                <div key={`prefCity${num}`} className="flex items-center gap-3">
-                  <span className="text-xs font-bold text-gray-400 w-6">#{num}</span>
-                  <input type="text" list="allCitiesList" value={personal[`prefCity${num}`]} onChange={(e) => setPersonal({...personal, [`prefCity${num}`]: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 text-sm" placeholder={`Preference ${num}`} />
-                </div>
-              ))}
-              <datalist id="allCitiesList">
-                {ALL_CITIES.map(c => <option key={c} value={c} />)}
-              </datalist>
+              {[1, 2, 3].map((num) => {
+                const currentVal = personal[`prefCity${num}`] || '';
+                return (
+                  <div key={`prefCity${num}`} className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-gray-400 w-6">#{num}</span>
+                    <select
+                      value={currentVal}
+                      onChange={(e) => setPersonal({ ...personal, [`prefCity${num}`]: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 text-sm bg-white cursor-pointer font-medium outline-none"
+                    >
+                      <option value="">Preference {num} (Select City)</option>
+                      {currentVal && !PREFERRED_JOB_CITIES.includes(currentVal) && (
+                        <option value={currentVal}>{currentVal}</option>
+                      )}
+                      {PREFERRED_JOB_CITIES.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
