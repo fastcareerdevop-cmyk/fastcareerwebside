@@ -190,6 +190,7 @@ export const registerUser = async (req: Request, res: Response) => {
     gmcsCompleted,
     industrialTrainee,
     listedCompanyWork,
+    cgpaPercentage,
   } = req.body;
 
   try {
@@ -263,6 +264,7 @@ export const registerUser = async (req: Request, res: Response) => {
               ...(gmcsCompleted ? { gmcsCompleted } : {}),
               ...(industrialTrainee ? { industrialTrainee } : {}),
               ...(listedCompanyWork ? { listedCompanyWork } : {}),
+              ...(cgpaPercentage ? { cgpaPercentage } : {}),
             },
             ...(experienceInfo ? { experienceInfo } : {})
           }
@@ -341,6 +343,7 @@ export const registerUser = async (req: Request, res: Response) => {
         ...(gmcsCompleted ? { gmcsCompleted } : {}),
         ...(industrialTrainee ? { industrialTrainee } : {}),
         ...(listedCompanyWork ? { listedCompanyWork } : {}),
+        ...(cgpaPercentage ? { cgpaPercentage } : {}),
       },
       ...(experienceInfo ? { experienceInfo } : {})
     });
@@ -1852,8 +1855,8 @@ export const resetPassword = async (req: Request, res: Response) => {
   const resetToken = typeof req.body.resetToken === 'string' ? req.body.resetToken : '';
   const password = typeof req.body.password === 'string' ? req.body.password : '';
 
-  if (!email || !resetToken || password.length < 6) {
-    res.status(400).json({ message: 'Password must be at least 6 characters long.' });
+  if (!email || !resetToken || password.length < 4) {
+    res.status(400).json({ message: 'Password must be at least 4 characters long.' });
     return;
   }
 

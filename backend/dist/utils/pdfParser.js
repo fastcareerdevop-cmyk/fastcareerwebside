@@ -460,6 +460,21 @@ function parseResumeBuffer(buffer_1) {
             else
                 caFinalObj.ranker = 'Rank 1-10';
         }
+        const finalPctMatch = searchPool.match(/\b(?:CA\s+Final|Final)[^\n]{0,30}\b([5-9]\d(?:\.\d+)?)\s*%/i) ||
+            searchPool.match(/\b([5-9]\d(?:\.\d+)?)\s*%\s*(?:in|marks|percentage)?[^\n]{0,20}\b(?:CA\s+Final|Final)\b/i);
+        if (finalPctMatch) {
+            caFinalObj.percentage = finalPctMatch[1];
+        }
+        const cgpaMatch = searchPool.match(/\b(?:cgpa|gpa)[\s:-]*([0-9]+(?:\.[0-9]+)?)\s*(?:\/\s*10)?\b/i);
+        if (cgpaMatch) {
+            result.cgpaPercentage = cgpaMatch[1];
+        }
+        else {
+            const gradPctMatch = searchPool.match(/\b(?:graduation|b\.?com|bba|degree)[\s\w,-]{0,25}\b([5-9]\d(?:\.\d+)?)\s*%/i);
+            if (gradPctMatch) {
+                result.cgpaPercentage = gradPctMatch[1] + '%';
+            }
+        }
         result.caFinal = caFinalObj;
         // 9. CA Intermediate / IPCC Details Extraction
         const caInterObj = {

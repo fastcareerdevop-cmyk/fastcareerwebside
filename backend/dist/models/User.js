@@ -99,6 +99,7 @@ const UserSchema = new mongoose_1.Schema({
             completionSessionMonth: { type: String },
             completionSessionYear: { type: String },
             percentage: { type: String },
+            cgpaPercentage: { type: String },
         },
         caFinal: {
             bothGroups1stAttempt: { type: Boolean, default: false },
@@ -112,6 +113,7 @@ const UserSchema = new mongoose_1.Schema({
             completionSessionMonth: { type: String },
             completionSessionYear: { type: String },
             percentage: { type: String },
+            cgpaPercentage: { type: String },
         },
         articleships: [{
                 type: { type: String },

@@ -141,7 +141,9 @@ export const Register = () => {
   const [noticePeriod, setNoticePeriod] = useState('');
   const [isCustomNoticePeriod, setIsCustomNoticePeriod] = useState(false);
   const [linkedinUrl, setLinkedinUrl] = useState('');
+  const [cgpaPercentage, setCgpaPercentage] = useState('');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [autoUploadedResumeUrl, setAutoUploadedResumeUrl] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
   const [isScanningResume, setIsScanningResume] = useState(false);
   const [scannedFields, setScannedFields] = useState<string[]>([]);
@@ -612,6 +614,15 @@ export const Register = () => {
         extracted.push('CA Final Details');
       }
 
+      if (parsed.cgpaPercentage) {
+        setCgpaPercentage(parsed.cgpaPercentage);
+        extracted.push('CGPA / Percentage');
+      }
+
+      if (parsed.resumeUrl) {
+        setAutoUploadedResumeUrl(parsed.resumeUrl);
+      }
+
       setScannedFields(extracted);
 
       if (extracted.length > 0) {
@@ -662,8 +673,8 @@ export const Register = () => {
 
     if (!password) {
       newErrors.password = 'Please fill this field: Create Password';
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters.';
+    } else if (password.length < 4) {
+      newErrors.password = 'Password must be at least 4 digits / characters.';
     }
 
     if (role === 'candidate') {
@@ -754,7 +765,16 @@ export const Register = () => {
         }
         if (!caFinal.percentage || !caFinal.percentage.trim()) {
           newErrors.caFinalPercentage = 'Please fill this field: CA Final Percentage (%)';
+        } else {
+          const pct = parseFloat(caFinal.percentage);
+          if (isNaN(pct) || pct < 50 || pct > 100) {
+            newErrors.caFinalPercentage = 'CA Final Percentage must be between 50% and 100%';
+          }
         }
+      }
+
+      if (!cgpaPercentage || !cgpaPercentage.trim()) {
+        newErrors.cgpaPercentage = 'Please fill this field: CGPA / Percentage';
       }
 
       // Validate CA Intermediate
@@ -793,39 +813,14 @@ export const Register = () => {
       }
     }
 
-    // Check email uniqueness from API if email format is valid
-    if (trimmedEmail && emailRegex.test(trimmedEmail) && !newErrors.email) {
-      try {
-        const res = await api.get(`/users/check-email?email=${encodeURIComponent(trimmedEmail)}`);
-        if (res.data.exists) {
-          newErrors.email = `This email is already registered. Please enter a different email address.`;
-        }
-      } catch (err) {
-        console.error('Error checking email uniqueness:', err);
-      }
-    }
-
-    if (role === 'candidate' && !newErrors.phone && phone.replace(/\D/g, '').length === 10) {
-      const phoneError = await checkPhoneUnique(phone);
-      if (phoneError) {
-        newErrors.phone = phoneError;
-      }
-    }
-
+    // 1. FAST SYNCHRONOUS VALIDATION (0ms response on button click!)
     if (Object.keys(newErrors).length > 0) {
       setFieldErrors(newErrors);
-      const hasDuplicateError = Object.values(newErrors).find(msg => msg.toLowerCase().includes('already registered'));
-      const firstErrorMsg = hasDuplicateError || Object.values(newErrors)[0];
-      setFormError(hasDuplicateError ? hasDuplicateError : 'Please fill in all required fields highlighted below before submitting.');
+      const firstErrorMsg = Object.values(newErrors)[0];
+      setFormError('Please fill in all required fields highlighted below before submitting.');
       toast.error(firstErrorMsg || 'Please complete all mandatory fields.');
 
-      // Prioritize scrolling to duplicate email/phone or first missing field
-      const targetKey = newErrors.email?.includes('already registered')
-        ? 'email'
-        : (newErrors.phone?.includes('already registered')
-          ? 'phone'
-          : Object.keys(newErrors)[0]);
-
+      const targetKey = Object.keys(newErrors)[0];
       const el = document.getElementById(targetKey) || document.querySelector(`[name="${targetKey}"]`);
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -834,10 +829,51 @@ export const Register = () => {
       return;
     }
 
-    setFieldErrors({});
-    let uploadedResumeUrl = '';
+    // 2. ONLY IF ALL SYNCHRONOUS FIELDS ARE VALID, check uniqueness in parallel
+    setIsSubmitting(true);
+    const asyncErrors: { [key: string]: string } = {};
 
-    if (role === 'candidate' && resumeFile) {
+    try {
+      const [emailRes, phoneError] = await Promise.all([
+        (trimmedEmail && emailRegex.test(trimmedEmail))
+          ? api.get(`/users/check-email?email=${encodeURIComponent(trimmedEmail)}`).catch(() => null)
+          : Promise.resolve(null),
+        (role === 'candidate' && phone.replace(/\D/g, '').length === 10)
+          ? checkPhoneUnique(phone).catch(() => null)
+          : Promise.resolve(null),
+      ]);
+
+      if (emailRes?.data?.exists) {
+        asyncErrors.email = 'This email is already registered. Please enter a different email address.';
+      }
+      if (phoneError) {
+        asyncErrors.phone = phoneError;
+      }
+    } catch (err) {
+      console.error('Error checking uniqueness:', err);
+    }
+
+    if (Object.keys(asyncErrors).length > 0) {
+      setFieldErrors(prev => ({ ...prev, ...asyncErrors }));
+      const hasDuplicateError = Object.values(asyncErrors).find(msg => msg.toLowerCase().includes('already registered'));
+      const firstErrorMsg = hasDuplicateError || Object.values(asyncErrors)[0];
+      setFormError(hasDuplicateError || 'Please fix the highlighted issue.');
+      toast.error(firstErrorMsg);
+
+      const targetKey = asyncErrors.email ? 'email' : 'phone';
+      const el = document.getElementById(targetKey) || document.querySelector(`[name="${targetKey}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        (el as HTMLElement).focus?.();
+      }
+      setIsSubmitting(false);
+      return;
+    }
+
+    setFieldErrors({});
+    let uploadedResumeUrl = autoUploadedResumeUrl || '';
+
+    if (!uploadedResumeUrl && role === 'candidate' && resumeFile) {
       setIsUploading(true);
       const formData = new FormData();
       formData.append('resume', resumeFile);
@@ -850,6 +886,7 @@ export const Register = () => {
         setFormError('Failed to upload resume. Please try again.');
         toast.error('Failed to upload resume. Please try again.');
         setIsUploading(false);
+        setIsSubmitting(false);
         return;
       }
       setIsUploading(false);
@@ -862,6 +899,7 @@ export const Register = () => {
       password,
       role,
       linkedinUrl: linkedinUrl.trim(),
+      cgpaPercentage: cgpaPercentage.trim(),
       ...(role === 'candidate' && {
         phone,
         currentCity: (currentCity === 'Other' ? customCityInput.trim() : currentCity.trim()),
@@ -869,6 +907,7 @@ export const Register = () => {
         isFresherCA: workStatus === 'fresher',
         isExperienced: workStatus === 'experienced',
         resumeUrl: uploadedResumeUrl,
+        cgpaPercentage: cgpaPercentage.trim(),
         articleships: workStatus === 'fresher' ? articleships.map(a => ({
           type: a.type === 'Other' && a.customType ? a.customType.trim() : a.type,
           firmName: a.firmName === 'Other' && a.customFirmName ? a.customFirmName.trim() : a.firmName.trim(),
@@ -929,6 +968,7 @@ export const Register = () => {
           completionSessionMonth: caFinal.completionSessionMonth || 'May',
           completionSessionYear: caFinalCompletionYear || caFinal.completionSessionYear || '2023',
           percentage: caFinal.percentage ? String(caFinal.percentage).trim() : '',
+          cgpaPercentage: cgpaPercentage.trim(),
         },
       }),
     };
@@ -1270,12 +1310,12 @@ export const Register = () => {
                         onBlur={() => {
                           if (!password) {
                             setFieldErrors(prev => ({ ...prev, password: 'Please fill this field: Create Password' }));
-                          } else if (password.length < 6) {
-                            setFieldErrors(prev => ({ ...prev, password: 'Password must be at least 6 characters.' }));
+                          } else if (password.length < 4) {
+                            setFieldErrors(prev => ({ ...prev, password: 'Password must be at least 4 digits / characters.' }));
                           }
                         }}
-                        placeholder="Min. 8 characters"
-                        minLength={6}
+                        placeholder="Min. 4 digits"
+                        minLength={4}
                         className={`w-full pl-3.5 pr-9 py-2.5 border rounded-xl text-sm focus:outline-none transition-all ${
                           fieldErrors.password
                             ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20 focus:border-rose-600'
@@ -3041,8 +3081,8 @@ export const Register = () => {
                         </div>
                       </div>
 
-                      {/* Ranker & Completion Session & CA Final Percentage for Freshers */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
+                      {/* Ranker & Completion Session & CA Final Percentage & CGPA / Percentage */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">Ranker *</label>
                           <select 
@@ -3058,7 +3098,7 @@ export const Register = () => {
                             )}
                           </select>
                         </div>
-                        <div className={workStatus === 'fresher' ? 'sm:col-span-1' : 'sm:col-span-2'}>
+                        <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">CA Final Completion Session *</label>
                           <div className="grid grid-cols-2 gap-2">
                             <select 
@@ -3093,7 +3133,7 @@ export const Register = () => {
                               id="caFinalPercentage"
                               name="caFinalPercentage"
                               step="0.01"
-                              min="0"
+                              min="50"
                               max="100"
                               required
                               value={caFinal.percentage || ''}
@@ -3116,6 +3156,36 @@ export const Register = () => {
                             )}
                           </div>
                         )}
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label htmlFor="cgpaPercentage" className="block text-xs font-semibold text-slate-700">
+                              CGPA / Percentage <span className="text-red-500">*</span>
+                            </label>
+                          </div>
+                          <input
+                            type="text"
+                            id="cgpaPercentage"
+                            name="cgpaPercentage"
+                            required
+                            value={cgpaPercentage}
+                            onChange={(e) => {
+                              setCgpaPercentage(e.target.value);
+                              if (fieldErrors.cgpaPercentage) setFieldErrors(prev => ({ ...prev, cgpaPercentage: '' }));
+                            }}
+                            placeholder="e.g. 8.5 or 85%"
+                            className={`w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500/20 font-medium bg-white outline-none transition-all ${
+                              fieldErrors.cgpaPercentage
+                                ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                                : 'border-slate-200'
+                            }`}
+                          />
+                          {fieldErrors.cgpaPercentage && (
+                            <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                              <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                              <span>{fieldErrors.cgpaPercentage}</span>
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
 

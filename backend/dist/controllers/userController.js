@@ -206,7 +206,7 @@ const whatsappService_1 = require("../utils/whatsappService");
 // @access  Public
 const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d, _e;
-    const { firstName, lastName, companyName, email, password, role, phone, currentCity, dateOfBirth, isFresherCA, resumeUrl, linkedinUrl, caFinal, caInter, experienceInfo, articleships, articleshipCompletionDate, natureOfWork, gmcsCompleted, industrialTrainee, listedCompanyWork, } = req.body;
+    const { firstName, lastName, companyName, email, password, role, phone, currentCity, dateOfBirth, isFresherCA, resumeUrl, linkedinUrl, caFinal, caInter, experienceInfo, articleships, articleshipCompletionDate, natureOfWork, gmcsCompleted, industrialTrainee, listedCompanyWork, cgpaPercentage, } = req.body;
     try {
         const trimmedEmail = (email || '').toLowerCase().trim();
         if (!trimmedEmail) {
@@ -250,7 +250,7 @@ const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                             phone: phone || '',
                             currentCity: currentCity || '',
                             dateOfBirth: dateOfBirth || '',
-                        }, caPortfolio: Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({ isFresherCA: isFresherCA === true || isFresherCA === 'true' }, (caFinal ? { caFinal } : {})), (caInter ? { caInter } : {})), (articleships && Array.isArray(articleships) && articleships.length > 0 ? { articleships } : {})), (articleshipCompletionDate ? { articleshipCompletionDate } : {})), (natureOfWork ? { natureOfWork } : {})), (gmcsCompleted ? { gmcsCompleted } : {})), (industrialTrainee ? { industrialTrainee } : {})), (listedCompanyWork ? { listedCompanyWork } : {})) }, (experienceInfo ? { experienceInfo } : {}))
+                        }, caPortfolio: Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({ isFresherCA: isFresherCA === true || isFresherCA === 'true' }, (caFinal ? { caFinal } : {})), (caInter ? { caInter } : {})), (articleships && Array.isArray(articleships) && articleships.length > 0 ? { articleships } : {})), (articleshipCompletionDate ? { articleshipCompletionDate } : {})), (natureOfWork ? { natureOfWork } : {})), (gmcsCompleted ? { gmcsCompleted } : {})), (industrialTrainee ? { industrialTrainee } : {})), (listedCompanyWork ? { listedCompanyWork } : {})), (cgpaPercentage ? { cgpaPercentage } : {})) }, (experienceInfo ? { experienceInfo } : {}))
                 });
                 if (normalizedPhone) {
                     (0, whatsappService_1.sendRegistrationWhatsApp)(normalizedPhone, `${firstName || ''} ${lastName || ''}`.trim())
@@ -298,7 +298,7 @@ const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                 phone: phone || '',
                 currentCity: currentCity || '',
                 dateOfBirth: dateOfBirth || '',
-            }, caPortfolio: Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({ isFresherCA: isFresherCA === true || isFresherCA === 'true' }, (caFinal ? { caFinal } : {})), (caInter ? { caInter } : {})), (articleships && Array.isArray(articleships) && articleships.length > 0 ? { articleships } : {})), (articleshipCompletionDate ? { articleshipCompletionDate } : {})), (natureOfWork ? { natureOfWork } : {})), (gmcsCompleted ? { gmcsCompleted } : {})), (industrialTrainee ? { industrialTrainee } : {})), (listedCompanyWork ? { listedCompanyWork } : {})) }), (experienceInfo ? { experienceInfo } : {})));
+            }, caPortfolio: Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({ isFresherCA: isFresherCA === true || isFresherCA === 'true' }, (caFinal ? { caFinal } : {})), (caInter ? { caInter } : {})), (articleships && Array.isArray(articleships) && articleships.length > 0 ? { articleships } : {})), (articleshipCompletionDate ? { articleshipCompletionDate } : {})), (natureOfWork ? { natureOfWork } : {})), (gmcsCompleted ? { gmcsCompleted } : {})), (industrialTrainee ? { industrialTrainee } : {})), (listedCompanyWork ? { listedCompanyWork } : {})), (cgpaPercentage ? { cgpaPercentage } : {})) }), (experienceInfo ? { experienceInfo } : {})));
         if (user) {
             const candidatePhone = user.phone || ((_a = user.personalDetails) === null || _a === void 0 ? void 0 : _a.phone) || phone || '';
             if (candidatePhone) {
@@ -1694,8 +1694,8 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     const email = typeof req.body.email === 'string' ? req.body.email.toLowerCase().trim() : '';
     const resetToken = typeof req.body.resetToken === 'string' ? req.body.resetToken : '';
     const password = typeof req.body.password === 'string' ? req.body.password : '';
-    if (!email || !resetToken || password.length < 6) {
-        res.status(400).json({ message: 'Password must be at least 6 characters long.' });
+    if (!email || !resetToken || password.length < 4) {
+        res.status(400).json({ message: 'Password must be at least 4 characters long.' });
         return;
     }
     try {

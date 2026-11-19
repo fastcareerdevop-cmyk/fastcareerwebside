@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, LayoutDashboard, LogOut, LogIn, GraduationCap, Sparkles, Building2 } from 'lucide-react';
+import { Menu, X, LayoutDashboard, LogOut, LogIn, GraduationCap, Sparkles, Building2, UserPlus } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout, reset } from '../store/authSlice';
 import type { RootState, AppDispatch } from '../store';
@@ -130,6 +130,22 @@ export const Navbar = () => {
                   </span>
                 </div>
               </button>
+
+              <Link
+                to="/login"
+                className="flex items-center gap-2 text-xs font-bold text-slate-800 bg-gradient-to-r from-emerald-50 to-teal-50/80 hover:from-emerald-100 hover:to-teal-100 px-3 py-1.5 rounded-xl border border-emerald-200/90 hover:border-emerald-400 transition-all shadow-xs hover:shadow-sm cursor-pointer group"
+                title="Register Candidate - CA Candidates & Students"
+              >
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+                  <UserPlus size={13} className="text-white" />
+                </div>
+                <div className="flex flex-col text-left leading-tight">
+                  <span className="text-[11.5px] font-extrabold text-emerald-950">Register Candidate</span>
+                  <span className="text-[9.5px] font-bold text-emerald-600 flex items-center gap-1">
+                    Fill Form <span className="text-[8px] bg-emerald-600 text-white font-black px-1 rounded">HOT</span>
+                  </span>
+                </div>
+              </Link>
             </div>
 
             {user ? (
@@ -215,6 +231,25 @@ export const Navbar = () => {
               Fill Form →
             </span>
           </button>
+
+          <Link
+            to="/login"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center justify-between p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 text-emerald-950 rounded-xl text-xs font-bold shadow-xs cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center">
+                <UserPlus size={16} />
+              </div>
+              <div className="text-left">
+                <p className="font-extrabold text-emerald-950">Register Candidate Form</p>
+                <p className="text-[10px] text-emerald-700 font-medium">Create CA Candidate Profile & Get Hired</p>
+              </div>
+            </div>
+            <span className="bg-emerald-600 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full uppercase shadow-2xs">
+              Fill Form →
+            </span>
+          </Link>
 
           {navLinks.map((link) => {
             const isActive = location.pathname === link.path;

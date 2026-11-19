@@ -54,6 +54,7 @@ export interface IUser extends Document {
       completionSessionMonth?: string;
       completionSessionYear?: string;
       percentage?: string;
+      cgpaPercentage?: string;
     };
     caFinal?: {
       bothGroups1stAttempt?: boolean;
@@ -67,6 +68,7 @@ export interface IUser extends Document {
       completionSessionMonth?: string;
       completionSessionYear?: string;
       percentage?: string;
+      cgpaPercentage?: string;
     };
     articleships?: {
       type?: string;
@@ -180,6 +182,7 @@ const UserSchema: Schema = new Schema(
         completionSessionMonth: { type: String },
         completionSessionYear: { type: String },
         percentage: { type: String },
+        cgpaPercentage: { type: String },
       },
       caFinal: {
         bothGroups1stAttempt: { type: Boolean, default: false },
@@ -193,6 +196,7 @@ const UserSchema: Schema = new Schema(
         completionSessionMonth: { type: String },
         completionSessionYear: { type: String },
         percentage: { type: String },
+        cgpaPercentage: { type: String },
       },
       articleships: [{
         type: { type: String },

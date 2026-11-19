@@ -2,9 +2,14 @@ import * as pdfjsLib from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import JSZip from 'jszip';
 import { ALL_CITIES, STATE_CITY_MAP } from './constants';
+import api from '../services/api';
 
 // Configure pdfjs worker locally via Vite asset pipeline
-pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+try {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+} catch (e) {
+  console.warn('pdfjs workerSrc init warning:', e);
+}
 
 export interface ParsedResumeData {
   firstName?: string;
@@ -77,6 +82,7 @@ export interface ParsedResumeData {
   workProfile?: string;
   noticePeriod?: string;
   caFinalPercentage?: string;
+  cgpaPercentage?: string;
 }
 
 const COMMON_NON_NAMES = new Set([
@@ -136,51 +142,59 @@ const POPULAR_CITIES = [
  * Extract raw text from a PDF file
  */
 export async function extractTextFromPdf(file: File | Blob): Promise<string> {
-  const arrayBuffer = await file.arrayBuffer();
-  const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-  const pdf = await loadingTask.promise;
-  let fullText = '';
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+    }
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    let fullText = '';
 
-  const maxPages = Math.min(pdf.numPages, 5);
-  for (let i = 1; i <= maxPages; i++) {
-    const page = await pdf.getPage(i);
-    const textContent = await page.getTextContent();
-    let lastY: number | null = null;
-    const pageLines: string[] = [];
-    let currentLine = '';
+    const maxPages = Math.min(pdf.numPages, 5);
+    for (let i = 1; i <= maxPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      let lastY: number | null = null;
+      const pageLines: string[] = [];
+      let currentLine = '';
 
-    for (const item of textContent.items as any[]) {
-      if (!item || typeof item.str !== 'string') continue;
-      const str = item.str;
-      const transform = item.transform; // [scaleX, skewY, skewX, scaleY, transX, transY]
-      const y = transform ? Math.round(transform[5]) : null;
+      for (const item of textContent.items as any[]) {
+        if (!item || typeof item.str !== 'string') continue;
+        const str = item.str;
+        const transform = item.transform; // [scaleX, skewY, skewX, scaleY, transX, transY]
+        const y = transform ? Math.round(transform[5]) : null;
 
-      if (lastY !== null && y !== null && Math.abs(y - lastY) > 3) {
-        if (currentLine.trim()) {
-          pageLines.push(currentLine.trim());
-        }
-        currentLine = str;
-      } else {
-        if (item.hasEOL) {
-          currentLine += (currentLine ? ' ' : '') + str;
+        if (lastY !== null && y !== null && Math.abs(y - lastY) > 3) {
           if (currentLine.trim()) {
             pageLines.push(currentLine.trim());
           }
-          currentLine = '';
+          currentLine = str;
         } else {
-          currentLine += (currentLine && !currentLine.endsWith(' ') && !str.startsWith(' ') ? ' ' : '') + str;
+          if (item.hasEOL) {
+            currentLine += (currentLine ? ' ' : '') + str;
+            if (currentLine.trim()) {
+              pageLines.push(currentLine.trim());
+            }
+            currentLine = '';
+          } else {
+            currentLine += (currentLine && !currentLine.endsWith(' ') && !str.startsWith(' ') ? ' ' : '') + str;
+          }
         }
+        if (y !== null) lastY = y;
       }
-      if (y !== null) lastY = y;
-    }
-    if (currentLine.trim()) {
-      pageLines.push(currentLine.trim());
+      if (currentLine.trim()) {
+        pageLines.push(currentLine.trim());
+      }
+
+      fullText += '\n' + pageLines.join('\n');
     }
 
-    fullText += '\n' + pageLines.join('\n');
+    return fullText;
+  } catch (err) {
+    console.warn('Client extractTextFromPdf warning (will fallback to server parser):', err);
+    return '';
   }
-
-  return fullText;
 }
 
 /**
@@ -761,24 +775,115 @@ export function parseResumeText(rawText: string, originalFileName?: string): Par
     else result.noticePeriod = rawNotice;
   }
 
+  // 12. CGPA / Percentage
+  const cgpaMatch = cleanText.match(/\b(?:cgpa|gpa)[\s:-]*([0-9]+(?:\.[0-9]+)?)\s*(?:\/\s*10)?\b/i);
+  if (cgpaMatch) {
+    result.cgpaPercentage = cgpaMatch[1];
+  } else {
+    const gradPctMatch = cleanText.match(/\b(?:graduation|b\.?com|bba|degree)[\s\w,-]{0,25}\b([5-9]\d(?:\.\d+)?)\s*%/i);
+    if (gradPctMatch) {
+      result.cgpaPercentage = gradPctMatch[1] + '%';
+    }
+  }
+
   return result;
 }
 
 /**
  * High-level function to scan a resume file and extract all data
  */
-export async function parseResumeFile(file: File | Blob): Promise<ParsedResumeData> {
+export async function parseResumeFile(file: File | Blob): Promise<ParsedResumeData & { resumeUrl?: string }> {
   const originalName = (file as File).name || '';
   const fileName = originalName ? originalName.toLowerCase() : 'resume.pdf';
   let rawText = '';
 
-  if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
-    rawText = await extractTextFromDocx(file);
-  } else {
-    rawText = await extractTextFromPdf(file);
+  try {
+    if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
+      rawText = await extractTextFromDocx(file);
+    } else {
+      rawText = await extractTextFromPdf(file);
+    }
+  } catch (err) {
+    console.warn('Client-side extract failed:', err);
   }
 
-  return parseResumeText(rawText, originalName);
+  let clientParsed: ParsedResumeData = {};
+  if (rawText && rawText.trim().length > 15) {
+    try {
+      clientParsed = parseResumeText(rawText, originalName);
+    } catch (e) {
+      console.warn('Client-side parseResumeText error:', e);
+    }
+  }
+
+  // Always attempt server-side parse as fallback / enhancement
+  let serverParsed: any = {};
+  let serverUrl = '';
+
+  try {
+    const formData = new FormData();
+    formData.append('resume', file, originalName || 'resume.pdf');
+    const response = await api.post('/upload/parse', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 15000,
+    });
+    if (response.data && (response.data.success || response.data.parsedData)) {
+      serverParsed = response.data.parsedData || {};
+      serverUrl = response.data.url || response.data.resumeUrl || '';
+    }
+  } catch (apiErr) {
+    console.warn('Server resume parse fallback notice:', apiErr);
+  }
+
+  // Merge client and server parsing (prefer whichever is non-empty)
+  const merged: ParsedResumeData & { resumeUrl?: string } = {
+    ...clientParsed,
+    resumeUrl: serverUrl,
+  };
+
+  if (serverParsed.firstName && !merged.firstName) merged.firstName = serverParsed.firstName;
+  if (serverParsed.lastName && !merged.lastName) merged.lastName = serverParsed.lastName;
+  if (serverParsed.email && !merged.email) merged.email = serverParsed.email;
+  if (serverParsed.phone && !merged.phone) merged.phone = serverParsed.phone;
+  if (serverParsed.city && !merged.city) merged.city = serverParsed.city;
+  if (serverParsed.dateOfBirth && !merged.dateOfBirth) merged.dateOfBirth = serverParsed.dateOfBirth;
+  if (serverParsed.linkedinUrl && !merged.linkedinUrl) merged.linkedinUrl = serverParsed.linkedinUrl;
+  if (serverParsed.workStatus && !merged.workStatus) merged.workStatus = serverParsed.workStatus;
+  if (serverParsed.articleshipFirm && !merged.articleshipFirm) merged.articleshipFirm = serverParsed.articleshipFirm;
+  if (serverParsed.caFinalYear && !merged.caFinalCompletionYear) {
+    merged.caFinalCompletionYear = serverParsed.caFinalYear;
+  }
+  if (serverParsed.caFinal) {
+    if (serverParsed.caFinal.bothGroups1stAttempt !== undefined && merged.caFinalBothGroups1stAttempt === undefined) {
+      merged.caFinalBothGroups1stAttempt = serverParsed.caFinal.bothGroups1stAttempt;
+    }
+    if (serverParsed.caFinal.group1Attempts && !merged.caFinalGroup1Attempts) merged.caFinalGroup1Attempts = serverParsed.caFinal.group1Attempts;
+    if (serverParsed.caFinal.group1Month && !merged.caFinalGroup1Month) merged.caFinalGroup1Month = serverParsed.caFinal.group1Month;
+    if (serverParsed.caFinal.group1Year && !merged.caFinalGroup1Year) merged.caFinalGroup1Year = serverParsed.caFinal.group1Year;
+    if (serverParsed.caFinal.group2Attempts && !merged.caFinalGroup2Attempts) merged.caFinalGroup2Attempts = serverParsed.caFinal.group2Attempts;
+    if (serverParsed.caFinal.group2Month && !merged.caFinalGroup2Month) merged.caFinalGroup2Month = serverParsed.caFinal.group2Month;
+    if (serverParsed.caFinal.group2Year && !merged.caFinalGroup2Year) merged.caFinalGroup2Year = serverParsed.caFinal.group2Year;
+    if (serverParsed.caFinal.ranker && !merged.caFinalRanker) merged.caFinalRanker = serverParsed.caFinal.ranker;
+    if (serverParsed.caFinal.completionSessionMonth && !merged.caFinalCompletionMonth) merged.caFinalCompletionMonth = serverParsed.caFinal.completionSessionMonth;
+    if (serverParsed.caFinal.completionSessionYear && !merged.caFinalCompletionYear) merged.caFinalCompletionYear = serverParsed.caFinal.completionSessionYear;
+    if (serverParsed.caFinal.percentage && !merged.caFinalPercentage) merged.caFinalPercentage = serverParsed.caFinal.percentage;
+  }
+  if (serverParsed.caInter) {
+    if (serverParsed.caInter.bothGroups1stAttempt !== undefined && merged.caInterBothGroups1stAttempt === undefined) {
+      merged.caInterBothGroups1stAttempt = serverParsed.caInter.bothGroups1stAttempt;
+    }
+    if (serverParsed.caInter.group1Attempts && !merged.caInterGroup1Attempts) merged.caInterGroup1Attempts = serverParsed.caInter.group1Attempts;
+    if (serverParsed.caInter.group1Month && !merged.caInterGroup1Month) merged.caInterGroup1Month = serverParsed.caInter.group1Month;
+    if (serverParsed.caInter.group1Year && !merged.caInterGroup1Year) merged.caInterGroup1Year = serverParsed.caInter.group1Year;
+    if (serverParsed.caInter.group2Attempts && !merged.caInterGroup2Attempts) merged.caInterGroup2Attempts = serverParsed.caInter.group2Attempts;
+    if (serverParsed.caInter.group2Month && !merged.caInterGroup2Month) merged.caInterGroup2Month = serverParsed.caInter.group2Month;
+    if (serverParsed.caInter.group2Year && !merged.caInterGroup2Year) merged.caInterGroup2Year = serverParsed.caInter.group2Year;
+    if (serverParsed.caInter.ranker && !merged.caInterRanker) merged.caInterRanker = serverParsed.caInter.ranker;
+    if (serverParsed.caInter.completionSessionMonth && !merged.caInterCompletionMonth) merged.caInterCompletionMonth = serverParsed.caInter.completionSessionMonth;
+    if (serverParsed.caInter.completionSessionYear && !merged.caInterCompletionYear) merged.caInterCompletionYear = serverParsed.caInter.completionSessionYear;
+  }
+
+  return merged;
 }
 
 /**
