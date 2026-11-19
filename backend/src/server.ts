@@ -61,6 +61,14 @@ app.use(morgan('dev'));
 
 import { fetchOrGenerateResumeBuffer } from './utils/resumeGenerator';
 
+// MIME header middleware for JavaScript modules (.mjs / .js)
+app.use((req, res, next) => {
+  if (req.path.endsWith('.mjs') || req.path.endsWith('.js')) {
+    res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  }
+  next();
+});
+
 // Static folder for uploads
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 

@@ -67,6 +67,13 @@ app.use((0, helmet_1.default)({
 }));
 app.use((0, morgan_1.default)('dev'));
 const resumeGenerator_1 = require("./utils/resumeGenerator");
+// MIME header middleware for JavaScript modules (.mjs / .js)
+app.use((req, res, next) => {
+    if (req.path.endsWith('.mjs') || req.path.endsWith('.js')) {
+        res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    }
+    next();
+});
 // Static folder for uploads
 app.use('/uploads', express_1.default.static(path_1.default.join(__dirname, '../uploads')));
 // Static folder for React frontend client (Production / Hostinger)

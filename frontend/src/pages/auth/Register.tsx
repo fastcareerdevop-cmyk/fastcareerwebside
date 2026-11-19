@@ -424,6 +424,7 @@ export const Register = () => {
   const { user, isLoading, isError, isSuccess, message } = useSelector(
     (state: RootState) => state.auth
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     // Clear stale auth messages on mount and unmount
@@ -973,38 +974,43 @@ export const Register = () => {
       }),
     };
 
-    const resultAction = await dispatch(register(userData));
-    if (register.rejected.match(resultAction)) {
-      const err = (resultAction.payload as string) || 'Registration failed. Please check your details.';
-      // Immediately reset redux auth state so registration errors NEVER leak to /login page
-      dispatch(reset());
+    try {
+      const resultAction = await dispatch(register(userData));
+      setIsSubmitting(false);
+      if (register.rejected.match(resultAction)) {
+        const err = (resultAction.payload as string) || 'Registration failed. Please check your details.';
+        // Immediately reset redux auth state so registration errors NEVER leak to /login page
+        dispatch(reset());
 
-      const lowerErr = err.toLowerCase();
-      if (lowerErr.includes('email') || lowerErr.includes('already registered')) {
-        const msg = `This email is already registered. Please enter a different email address.`;
-        setFieldErrors(prev => ({ ...prev, email: msg }));
-        setFormError(msg);
-        toast.error(msg, { duration: 6000 });
-        const el = document.getElementById('email');
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          (el as HTMLElement).focus?.();
+        const lowerErr = err.toLowerCase();
+        if (lowerErr.includes('email') || lowerErr.includes('already registered')) {
+          const msg = `This email is already registered. Please enter a different email address.`;
+          setFieldErrors(prev => ({ ...prev, email: msg }));
+          setFormError(msg);
+          toast.error(msg, { duration: 6000 });
+          const el = document.getElementById('email');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            (el as HTMLElement).focus?.();
+          }
+        } else if (lowerErr.includes('phone') || lowerErr.includes('mobile')) {
+          const msg = `This mobile number is already registered. Please use a different number.`;
+          setFieldErrors(prev => ({ ...prev, phone: msg }));
+          setFormError(msg);
+          toast.error(msg, { duration: 6000 });
+          const el = document.getElementById('phone');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            (el as HTMLElement).focus?.();
+          }
+        } else {
+          setFormError(err);
+          toast.error(err, { duration: 6000 });
         }
-      } else if (lowerErr.includes('phone') || lowerErr.includes('mobile')) {
-        const msg = `This mobile number is already registered. Please use a different number.`;
-        setFieldErrors(prev => ({ ...prev, phone: msg }));
-        setFormError(msg);
-        toast.error(msg, { duration: 6000 });
-        const el = document.getElementById('phone');
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          (el as HTMLElement).focus?.();
-        }
-      } else {
-        setFormError(err);
-        toast.error(err, { duration: 6000 });
+        return;
       }
-      return;
+    } catch (submitErr) {
+      setIsSubmitting(false);
     }
   };
 
@@ -1082,6 +1088,8 @@ export const Register = () => {
                             <div className="text-[11px] text-slate-500 mt-0.5">
                               {scannedFields.length > 0
                                 ? `✓ Extracted: ${scannedFields.join(', ')}`
+                                : resumeFile.size < 1024 * 1024
+                                ? `${Math.max(1, Math.round(resumeFile.size / 1024))} KB • Ready to verify`
                                 : `${(resumeFile.size / (1024 * 1024)).toFixed(2)} MB • Ready to verify`}
                             </div>
                           </div>
@@ -3246,7 +3254,9 @@ export const Register = () => {
                             </div>
                             <div className="text-[11px] text-slate-500">
                               {resumeFile
-                                ? `${(resumeFile.size / (1024 * 1024)).toFixed(2)} MB • Ready to verify`
+                                ? (resumeFile.size < 1024 * 1024
+                                    ? `${Math.max(1, Math.round(resumeFile.size / 1024))} KB • Ready to verify`
+                                    : `${(resumeFile.size / (1024 * 1024)).toFixed(2)} MB • Ready to verify`)
                                 : 'Max 5MB (Direct CA verification engine)'}
                             </div>
                           </div>
@@ -3277,12 +3287,12 @@ export const Register = () => {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    disabled={isLoading || isUploading}
+                    disabled={isLoading || isUploading || isSubmitting}
                     className="w-full bg-[#0b1c33] hover:bg-[#081424] text-white py-3.5 px-6 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-slate-900/15 hover:shadow-xl transition-all duration-200 cursor-pointer disabled:opacity-70"
                   >
                     {isUploading ? (
                       <span>Uploading Resume...</span>
-                    ) : isLoading ? (
+                    ) : (isLoading || isSubmitting) ? (
                       <span>Registering Profile...</span>
                     ) : (
                       <>

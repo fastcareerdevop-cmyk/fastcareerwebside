@@ -4,12 +4,36 @@ import JSZip from 'jszip';
 import { ALL_CITIES, STATE_CITY_MAP } from './constants';
 import api from '../services/api';
 
-// Configure pdfjs worker locally via Vite asset pipeline
-try {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
-} catch (e) {
-  console.warn('pdfjs workerSrc init warning:', e);
+let blobWorkerUrl: string | null = null;
+let workerInitPromise: Promise<void> | null = null;
+
+export async function initPdfWorker(): Promise<void> {
+  if (blobWorkerUrl) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = blobWorkerUrl;
+    return;
+  }
+  if (!workerInitPromise) {
+    workerInitPromise = (async () => {
+      try {
+        const res = await fetch(workerUrl);
+        if (res.ok) {
+          const scriptText = await res.text();
+          const blob = new Blob([scriptText], { type: 'application/javascript' });
+          blobWorkerUrl = URL.createObjectURL(blob);
+          pdfjsLib.GlobalWorkerOptions.workerSrc = blobWorkerUrl;
+          return;
+        }
+      } catch (e) {
+        // Fallback to CDN if local fetch fails
+      }
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version || '5.6.205'}/build/pdf.worker.min.mjs`;
+    })();
+  }
+  await workerInitPromise;
 }
+
+// Initial fire-and-forget worker preparation
+initPdfWorker().catch(() => {});
 
 export interface ParsedResumeData {
   firstName?: string;
@@ -143,10 +167,8 @@ const POPULAR_CITIES = [
  */
 export async function extractTextFromPdf(file: File | Blob): Promise<string> {
   try {
+    await initPdfWorker();
     const arrayBuffer = await file.arrayBuffer();
-    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
-    }
     const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
     const pdf = await loadingTask.promise;
     let fullText = '';
