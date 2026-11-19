@@ -82,7 +82,7 @@ export const Navbar = () => {
           <div className="hidden lg:flex items-center space-x-3">
             
             {/* Industrial Training Logo & Button with Floating Pop-up Message near Login */}
-            <div className="relative flex items-center">
+            <div className="relative flex items-center gap-2">
               {showIndustrialPopup && (
                 <div className="absolute -top-12 right-0 z-30 flex items-center">
                   <div 
@@ -116,33 +116,33 @@ export const Navbar = () => {
               <button
                 type="button"
                 onClick={() => setIndustrialModalOpen(true)}
-                className="flex items-center gap-2 text-xs font-bold text-slate-800 bg-gradient-to-r from-blue-50 to-indigo-50/80 hover:from-blue-100 hover:to-indigo-100 px-3 py-1.5 rounded-xl border border-blue-200/90 hover:border-blue-400 transition-all shadow-xs hover:shadow-sm cursor-pointer group"
+                className="flex items-center gap-1.5 text-slate-800 bg-gradient-to-r from-blue-50 to-indigo-50/80 hover:from-blue-100 hover:to-indigo-100 px-2 py-1 rounded-lg border border-blue-200/90 hover:border-blue-400 transition-all shadow-2xs hover:shadow-xs cursor-pointer group"
                 title="CA Industrial Training Registration Form"
               >
                 {/* Logo emblem */}
-                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
-                  <Building2 size={13} className="text-amber-300" />
+                <div className="w-5 h-5 rounded-md bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+                  <Building2 size={11} className="text-amber-300" />
                 </div>
                 <div className="flex flex-col text-left leading-tight">
-                  <span className="text-[11.5px] font-extrabold text-blue-950">Industrial Training</span>
-                  <span className="text-[9.5px] font-bold text-blue-600 flex items-center gap-1">
-                    Fill Form <span className="text-[8px] bg-amber-500 text-white font-black px-1 rounded">HOT</span>
+                  <span className="text-[10.5px] font-extrabold text-blue-950 whitespace-nowrap">Industrial Training</span>
+                  <span className="text-[8px] font-bold text-blue-600 flex items-center gap-1">
+                    Fill Form <span className="text-[7px] bg-amber-500 text-white font-black px-1 rounded">HOT</span>
                   </span>
                 </div>
               </button>
 
               <Link
                 to="/login"
-                className="flex items-center gap-2 text-xs font-bold text-slate-800 bg-gradient-to-r from-emerald-50 to-teal-50/80 hover:from-emerald-100 hover:to-teal-100 px-3 py-1.5 rounded-xl border border-emerald-200/90 hover:border-emerald-400 transition-all shadow-xs hover:shadow-sm cursor-pointer group"
+                className="flex items-center gap-1.5 text-slate-800 bg-gradient-to-r from-emerald-50 to-teal-50/80 hover:from-emerald-100 hover:to-teal-100 px-2 py-1 rounded-lg border border-emerald-200/90 hover:border-emerald-400 transition-all shadow-2xs hover:shadow-xs cursor-pointer group"
                 title="Register Candidate - CA Candidates & Students"
               >
-                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
-                  <UserPlus size={13} className="text-white" />
+                <div className="w-5 h-5 rounded-md bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+                  <UserPlus size={11} className="text-white" />
                 </div>
                 <div className="flex flex-col text-left leading-tight">
-                  <span className="text-[11.5px] font-extrabold text-emerald-950">Register Candidate</span>
-                  <span className="text-[9.5px] font-bold text-emerald-600 flex items-center gap-1">
-                    Fill Form <span className="text-[8px] bg-emerald-600 text-white font-black px-1 rounded">HOT</span>
+                  <span className="text-[10.5px] font-extrabold text-emerald-950 whitespace-nowrap">Register Candidate</span>
+                  <span className="text-[8px] font-bold text-emerald-600 flex items-center gap-1">
+                    Fill Form <span className="text-[7px] bg-emerald-600 text-white font-black px-1 rounded">HOT</span>
                   </span>
                 </div>
               </Link>
