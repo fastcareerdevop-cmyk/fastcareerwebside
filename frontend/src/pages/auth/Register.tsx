@@ -2633,69 +2633,25 @@ export const Register = () => {
                                   <label htmlFor="currentCTC" className="block text-xs font-semibold text-slate-700">
                                     Current CTC (LPA) <span className="text-red-500">*</span>
                                   </label>
-                                  {isCustomCurrentCTC && (
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setIsCustomCurrentCTC(false);
-                                        setCurrentCTC('');
-                                      }}
-                                      className="text-[10.5px] font-semibold text-blue-600 hover:text-blue-700 hover:underline"
-                                    >
-                                      Select list
-                                    </button>
-                                  )}
                                 </div>
-                                {isCustomCurrentCTC ? (
-                                  <input
-                                    type="text"
-                                    id="currentCTC"
-                                    name="currentCTC"
-                                    value={currentCTC}
-                                    onChange={(e) => {
-                                      setCurrentCTC(e.target.value);
-                                      if (fieldErrors.currentCTC) setFieldErrors(prev => ({ ...prev, currentCTC: '' }));
-                                    }}
-                                    placeholder="e.g. 12 LPA"
-                                    autoFocus
-                                    className={`w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none bg-white font-medium transition-all ${
-                                      fieldErrors.currentCTC
-                                        ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
-                                        : 'border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
-                                    }`}
-                                  />
-                                ) : (
-                                  <select
-                                    id="currentCTC"
-                                    name="currentCTC"
-                                    value={currentCTC}
-                                    onChange={(e) => {
-                                      if (e.target.value === '__custom__') {
-                                        setIsCustomCurrentCTC(true);
-                                        setCurrentCTC('');
-                                      } else {
-                                        setCurrentCTC(e.target.value);
-                                        if (fieldErrors.currentCTC) setFieldErrors(prev => ({ ...prev, currentCTC: '' }));
-                                      }
-                                    }}
-                                    className={`w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none bg-white font-medium transition-all cursor-pointer ${
-                                      fieldErrors.currentCTC
-                                        ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
-                                        : 'border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
-                                    }`}
-                                  >
-                                    <option value="">-- Select Current CTC --</option>
-                                    {currentCTC && !CTC_OPTIONS.includes(currentCTC) && (
-                                      <option value={currentCTC}>{currentCTC}</option>
-                                    )}
-                                    {CTC_OPTIONS.map((ctc) => (
-                                      <option key={ctc} value={ctc}>
-                                        {ctc}
-                                      </option>
-                                    ))}
-                                    <option value="__custom__">✏️ Other / Custom CTC</option>
-                                  </select>
-                                )}
+                                <input
+                                  type="number"
+                                  step="any"
+                                  min="0"
+                                  id="currentCTC"
+                                  name="currentCTC"
+                                  value={currentCTC}
+                                  onChange={(e) => {
+                                    setCurrentCTC(e.target.value);
+                                    if (fieldErrors.currentCTC) setFieldErrors(prev => ({ ...prev, currentCTC: '' }));
+                                  }}
+                                  placeholder="e.g. 12.5"
+                                  className={`w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none bg-white font-medium transition-all ${
+                                    fieldErrors.currentCTC
+                                      ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                                      : 'border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+                                  }`}
+                                />
                                 {fieldErrors.currentCTC && (
                                   <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
                                     <AlertCircle size={13} className="shrink-0 text-rose-600" />
@@ -2708,70 +2664,25 @@ export const Register = () => {
                                   <label htmlFor="expectedCTC" className="block text-xs font-semibold text-slate-700">
                                     Expected CTC (LPA) <span className="text-red-500">*</span>
                                   </label>
-                                  {isCustomExpectedCTC && (
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setIsCustomExpectedCTC(false);
-                                        setExpectedCTC('');
-                                      }}
-                                      className="text-[10.5px] font-semibold text-blue-600 hover:text-blue-700 hover:underline"
-                                    >
-                                      Select list
-                                    </button>
-                                  )}
                                 </div>
-                                {isCustomExpectedCTC ? (
-                                  <input
-                                    type="text"
-                                    id="expectedCTC"
-                                    name="expectedCTC"
-                                    value={expectedCTC}
-                                    onChange={(e) => {
-                                      setExpectedCTC(e.target.value);
-                                      if (fieldErrors.expectedCTC) setFieldErrors(prev => ({ ...prev, expectedCTC: '' }));
-                                    }}
-                                    placeholder="e.g. 16 LPA"
-                                    autoFocus
-                                    className={`w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none bg-white font-medium transition-all ${
-                                      fieldErrors.expectedCTC
-                                        ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
-                                        : 'border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
-                                    }`}
-                                  />
-                                ) : (
-                                  <select
-                                    id="expectedCTC"
-                                    name="expectedCTC"
-                                    value={expectedCTC}
-                                    onChange={(e) => {
-                                      if (e.target.value === '__custom__') {
-                                        setIsCustomExpectedCTC(true);
-                                        setExpectedCTC('');
-                                      } else {
-                                        setExpectedCTC(e.target.value);
-                                        if (fieldErrors.expectedCTC) setFieldErrors(prev => ({ ...prev, expectedCTC: '' }));
-                                      }
-                                    }}
-                                    className={`w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none bg-white font-medium transition-all cursor-pointer ${
-                                      fieldErrors.expectedCTC
-                                        ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
-                                        : 'border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
-                                    }`}
-                                  >
-                                    <option value="">-- Select Expected CTC --</option>
-                                    <option value="Negotiable">Negotiable</option>
-                                    {expectedCTC && expectedCTC !== 'Negotiable' && !CTC_OPTIONS.includes(expectedCTC) && (
-                                      <option value={expectedCTC}>{expectedCTC}</option>
-                                    )}
-                                    {CTC_OPTIONS.map((ctc) => (
-                                      <option key={ctc} value={ctc}>
-                                        {ctc}
-                                      </option>
-                                    ))}
-                                    <option value="__custom__">✏️ Other / Custom CTC</option>
-                                  </select>
-                                )}
+                                <input
+                                  type="number"
+                                  step="any"
+                                  min="0"
+                                  id="expectedCTC"
+                                  name="expectedCTC"
+                                  value={expectedCTC}
+                                  onChange={(e) => {
+                                    setExpectedCTC(e.target.value);
+                                    if (fieldErrors.expectedCTC) setFieldErrors(prev => ({ ...prev, expectedCTC: '' }));
+                                  }}
+                                  placeholder="e.g. 15.5"
+                                  className={`w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none bg-white font-medium transition-all ${
+                                    fieldErrors.expectedCTC
+                                      ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                                      : 'border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+                                  }`}
+                                />
                                 {fieldErrors.expectedCTC && (
                                   <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
                                     <AlertCircle size={13} className="shrink-0 text-rose-600" />
