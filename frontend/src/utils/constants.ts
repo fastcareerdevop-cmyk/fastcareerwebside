@@ -123,7 +123,7 @@ export const CTC_OPTIONS = [
 export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 export const BOARDS = ['CBSE', 'ICSE', 'State Board'];
 export const ATTEMPT_YEARS = ['Sept\'25', 'Jan\'26', 'May\'25', 'Nov\'24', 'May\'24', 'Nov\'23', 'May\'23', 'Nov\'22', 'May\'22', 'Nov\'21', 'May\'21', 'Nov\'20', 'May\'20'];
-export const ATTEMPTS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'];
+export const ATTEMPTS = Array.from({ length: 50 }, (_, i) => String(i + 1));
 export const CA_EXAM_MONTHS = ['Jan', 'May', 'Sep', 'Nov'];
 export const RANKER_OPTIONS = [
   'No Rank',

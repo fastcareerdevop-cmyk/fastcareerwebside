@@ -27,13 +27,7 @@ const CA_INTER_BATCHES = [
   'Prior to 2021'
 ];
 
-const ATTEMPT_OPTIONS = [
-  '1st Attempt',
-  '2nd Attempt',
-  '3rd Attempt',
-  '4th Attempt',
-  '5+ Attempts'
-];
+const ATTEMPT_OPTIONS = Array.from({ length: 50 }, (_, i) => String(i + 1));
 
 const CA_INTER_RANK_OPTIONS = [
   'No Rank',
@@ -103,8 +97,8 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
     gender: 'Male',
     caInterBatch: 'Nov 2023',
     bothGroups1stAttempt: 'Yes',
-    group1: '1st Attempt',
-    group2: '1st Attempt',
+    group1: '1',
+    group2: '1',
     group1Batch: 'Nov 2023',
     group2Batch: 'Nov 2023',
     caInterRank: 'No Rank',
@@ -179,11 +173,11 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
     setFormData(prev => {
       const updated = { ...prev, [name]: value };
 
-      // If both groups in 1st attempt is Yes, auto-set Group 1 and Group 2 to 1st Attempt
+      // If both groups in 1st attempt is Yes, auto-set Group 1 and Group 2 to 1
       if (name === 'bothGroups1stAttempt') {
         if (value === 'Yes') {
-          updated.group1 = '1st Attempt';
-          updated.group2 = '1st Attempt';
+          updated.group1 = '1';
+          updated.group2 = '1';
           updated.group1Batch = prev.caInterBatch;
           updated.group2Batch = prev.caInterBatch;
         }
@@ -1096,8 +1090,8 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
                             setFormData(prev => ({
                               ...prev,
                               bothGroups1stAttempt: opt,
-                              group1: opt === 'Yes' ? '1st Attempt' : prev.group1,
-                              group2: opt === 'Yes' ? '1st Attempt' : prev.group2,
+                              group1: opt === 'Yes' ? '1' : (prev.group1 || '1'),
+                              group2: opt === 'Yes' ? '1' : (prev.group2 || '1'),
                               group1Batch: opt === 'Yes' ? prev.caInterBatch : prev.group1Batch,
                               group2Batch: opt === 'Yes' ? prev.caInterBatch : prev.group2Batch
                             }));
@@ -1155,7 +1149,7 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
                   )}
                 </div>
 
-                {/* If Yes: Group 1 & Group 2 locked to 1st Attempt */}
+                {/* If Yes: Group 1 & Group 2 locked to 1 */}
                 {formData.bothGroups1stAttempt === 'Yes' ? (
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
                     <div>
@@ -1163,7 +1157,7 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
                         Group 1 <span className="text-rose-500">*</span>
                       </label>
                       <div className="px-3 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium flex items-center justify-between">
-                        <span>1st Attempt</span>
+                        <span className="font-bold text-slate-900">1</span>
                         <span className="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 font-semibold">
                           Locked (1st Attempt)
                         </span>
@@ -1175,7 +1169,7 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
                         Group 2 <span className="text-rose-500">*</span>
                       </label>
                       <div className="px-3 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium flex items-center justify-between">
-                        <span>1st Attempt</span>
+                        <span className="font-bold text-slate-900">1</span>
                         <span className="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 font-semibold">
                           Locked (1st Attempt)
                         </span>
@@ -1200,10 +1194,10 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
                     </div>
                   </div>
                 ) : (
-                  /* If No: Group 1 & Group 2 can have different attempts and different months/batches */
+                  /* If No: Group 1 & Group 2 can have different attempts (1 to 50) and different months/batches */
                   <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3 pt-2">
                     <p className="text-[11px] font-semibold text-slate-600">
-                      Specify separate passing batch (month/year) and attempts for each group:
+                      Specify separate passing batch (month/year) and attempts (1-50) for each group:
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                       {/* Group 1 Batch & Attempt */}
@@ -1226,13 +1220,13 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
                         </div>
                         <div>
                           <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                            Group 1 Attempt <span className="text-rose-500">*</span>
+                            CA Inter Group 1 Attempt <span className="text-rose-500">*</span>
                           </label>
                           <select
                             name="group1"
                             value={formData.group1}
                             onChange={handleChange}
-                            className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600"
+                            className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600 font-semibold text-slate-800"
                           >
                             {ATTEMPT_OPTIONS.map(att => (
                               <option key={att} value={att}>{att}</option>
@@ -1261,13 +1255,13 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
                         </div>
                         <div>
                           <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                            Group 2 Attempt <span className="text-rose-500">*</span>
+                            CA Inter Group 2 Attempt <span className="text-rose-500">*</span>
                           </label>
                           <select
                             name="group2"
                             value={formData.group2}
                             onChange={handleChange}
-                            className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600"
+                            className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600 font-semibold text-slate-800"
                           >
                             {ATTEMPT_OPTIONS.map(att => (
                               <option key={att} value={att}>{att}</option>

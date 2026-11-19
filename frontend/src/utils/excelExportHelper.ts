@@ -355,24 +355,28 @@ export const formatCandidateTo16Columns = (item: any) => {
   let g1 = item.group1 || '';
   if (!g1) {
     if (inter.group1Attempts) {
-      g1 = String(inter.group1Attempts) === '1' ? '1st Attempt' : `${inter.group1Attempts} Attempt(s)`;
+      g1 = String(inter.group1Attempts);
     } else if (both1st === 'Yes') {
-      g1 = '1st Attempt';
+      g1 = '1';
     } else {
       g1 = 'N/A';
     }
+  } else if (g1 === '1st Attempt') {
+    g1 = '1';
   }
 
   // Group 2
   let g2 = item.group2 || '';
   if (!g2) {
     if (inter.group2Attempts) {
-      g2 = String(inter.group2Attempts) === '1' ? '1st Attempt' : `${inter.group2Attempts} Attempt(s)`;
+      g2 = String(inter.group2Attempts);
     } else if (both1st === 'Yes') {
-      g2 = '1st Attempt';
+      g2 = '1';
     } else {
       g2 = 'N/A';
     }
+  } else if (g2 === '1st Attempt') {
+    g2 = '1';
   }
 
   // CA Inter Rank
