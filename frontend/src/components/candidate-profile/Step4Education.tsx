@@ -224,22 +224,17 @@ export const Step4Education = ({ qualifications, setQualifications }: any) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Board</label>
-                <input type="text" list="boardsList" value={qualifications.class12.board} onChange={(e) => setQualifications({...qualifications, class12: {...qualifications.class12, board: e.target.value}})} className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 text-sm" placeholder="Select Board" />
-                <datalist id="boardsList">
-                  {BOARDS.map(b => <option key={b} value={b} />)}
-                </datalist>
-                {qualifications.class12.board === 'Other' && (
-                  <input
-                    type="text"
-                    placeholder="Enter board name"
-                    value={qualifications.class12.customBoard || ''}
-                    onChange={(e) => setQualifications({
-                      ...qualifications,
-                      class12: { ...qualifications.class12, customBoard: e.target.value }
-                    })}
-                    className="mt-2 w-full px-4 py-2 border border-gray-200 rounded-xl text-sm animate-in fade-in"
-                  />
-                )}
+                <select
+                  value={qualifications.class12.board}
+                  onChange={(e) => setQualifications({
+                    ...qualifications,
+                    class12: { ...qualifications.class12, board: e.target.value }
+                  })}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 text-sm bg-white cursor-pointer"
+                >
+                  <option value="">Select Board</option>
+                  {BOARDS.map(b => <option key={b} value={b}>{b}</option>)}
+                </select>
               </div>
             </div>
           </div>
@@ -262,19 +257,17 @@ export const Step4Education = ({ qualifications, setQualifications }: any) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Board</label>
-                <input type="text" list="boardsList" value={qualifications.class10.board} onChange={(e) => setQualifications({...qualifications, class10: {...qualifications.class10, board: e.target.value}})} className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 text-sm" placeholder="Select Board" />
-                {qualifications.class10.board === 'Other' && (
-                  <input
-                    type="text"
-                    placeholder="Enter board name"
-                    value={qualifications.class10.customBoard || ''}
-                    onChange={(e) => setQualifications({
-                      ...qualifications,
-                      class10: { ...qualifications.class10, customBoard: e.target.value }
-                    })}
-                    className="mt-2 w-full px-4 py-2 border border-gray-200 rounded-xl text-sm animate-in fade-in"
-                  />
-                )}
+                <select
+                  value={qualifications.class10.board}
+                  onChange={(e) => setQualifications({
+                    ...qualifications,
+                    class10: { ...qualifications.class10, board: e.target.value }
+                  })}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 text-sm bg-white cursor-pointer"
+                >
+                  <option value="">Select Board</option>
+                  {BOARDS.map(b => <option key={b} value={b}>{b}</option>)}
+                </select>
               </div>
             </div>
           </div>

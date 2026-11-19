@@ -831,23 +831,13 @@ export const PlacementDriveForm = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Class 12th Board</label>
                     <select
                       name="class12_board"
-                      value={BOARDS.includes(formData.class12_board) ? formData.class12_board : (formData.class12_board ? 'Other' : '')}
+                      value={formData.class12_board}
                       onChange={handleChange}
                       className="w-full p-3 pr-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white"
                     >
                       <option value="">Select Board...</option>
                       {BOARDS.map(b => <option key={b} value={b}>{b}</option>)}
                     </select>
-                    {(formData.class12_board === 'Other' || (formData.class12_board && !BOARDS.filter(b => b !== 'Other').includes(formData.class12_board))) && (
-                      <input
-                        type="text"
-                        name="class12_board"
-                        placeholder="Please enter board name"
-                        value={formData.class12_board === 'Other' ? '' : formData.class12_board}
-                        onChange={handleChange}
-                        className="mt-2 w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition text-sm animate-in fade-in"
-                      />
-                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Class 12th Percentage</label>
@@ -864,23 +854,13 @@ export const PlacementDriveForm = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Class 10th Board</label>
                     <select
                       name="class10_board"
-                      value={BOARDS.includes(formData.class10_board) ? formData.class10_board : (formData.class10_board ? 'Other' : '')}
+                      value={formData.class10_board}
                       onChange={handleChange}
                       className="w-full p-3 pr-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white"
                     >
                       <option value="">Select Board...</option>
                       {BOARDS.map(b => <option key={b} value={b}>{b}</option>)}
                     </select>
-                    {(formData.class10_board === 'Other' || (formData.class10_board && !BOARDS.filter(b => b !== 'Other').includes(formData.class10_board))) && (
-                      <input
-                        type="text"
-                        name="class10_board"
-                        placeholder="Please enter board name"
-                        value={formData.class10_board === 'Other' ? '' : formData.class10_board}
-                        onChange={handleChange}
-                        className="mt-2 w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition text-sm animate-in fade-in"
-                      />
-                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Class 10th Percentage</label>

@@ -151,12 +151,10 @@ export const Register = () => {
   // Academic Qualifications State (10th, 12th & Graduation)
   const [class10Percentage, setClass10Percentage] = useState('');
   const [class10Board, setClass10Board] = useState('CBSE');
-  const [class10CustomBoard, setClass10CustomBoard] = useState('');
   const [class10Year, setClass10Year] = useState('');
 
   const [class12Percentage, setClass12Percentage] = useState('');
   const [class12Board, setClass12Board] = useState('CBSE');
-  const [class12CustomBoard, setClass12CustomBoard] = useState('');
   const [class12Year, setClass12Year] = useState('');
 
   const [graduationStatus, setGraduationStatus] = useState<'Completed' | 'Pursuing' | 'Not Pursuing'>('Completed');
@@ -653,9 +651,12 @@ export const Register = () => {
       if (parsed.class10Board) {
         if (BOARDS.includes(parsed.class10Board)) {
           setClass10Board(parsed.class10Board);
+        } else if (parsed.class10Board.toLowerCase().includes('state')) {
+          setClass10Board('State Board');
+        } else if (parsed.class10Board.toLowerCase().includes('icse')) {
+          setClass10Board('ICSE');
         } else {
-          setClass10Board('Other');
-          setClass10CustomBoard(parsed.class10Board);
+          setClass10Board('CBSE');
         }
       }
       if (parsed.class10Year) {
@@ -669,9 +670,12 @@ export const Register = () => {
       if (parsed.class12Board) {
         if (BOARDS.includes(parsed.class12Board)) {
           setClass12Board(parsed.class12Board);
+        } else if (parsed.class12Board.toLowerCase().includes('state')) {
+          setClass12Board('State Board');
+        } else if (parsed.class12Board.toLowerCase().includes('icse')) {
+          setClass12Board('ICSE');
         } else {
-          setClass12Board('Other');
-          setClass12CustomBoard(parsed.class12Board);
+          setClass12Board('CBSE');
         }
       }
       if (parsed.class12Year) {
@@ -863,9 +867,6 @@ export const Register = () => {
       if (!class10Year) {
         newErrors.class10Year = 'Please select Class 10th Passing Year';
       }
-      if (class10Board === 'Other' && !class10CustomBoard.trim()) {
-        newErrors.class10CustomBoard = 'Please specify your Class 10th Board Name';
-      }
 
       if (!class12Percentage || !class12Percentage.trim()) {
         newErrors.class12Percentage = 'Please fill this field: Class 12th Percentage (%)';
@@ -879,9 +880,6 @@ export const Register = () => {
         newErrors.class12Year = 'Please select Class 12th Passing Year';
       } else if (class10Year && parseInt(class12Year, 10) < parseInt(class10Year, 10)) {
         newErrors.class12Year = `Class 12th Passing Year cannot be earlier than Class 10th Year (${class10Year})`;
-      }
-      if (class12Board === 'Other' && !class12CustomBoard.trim()) {
-        newErrors.class12CustomBoard = 'Please specify your Class 12th Board Name';
       }
 
       // Graduation Validation
@@ -1119,14 +1117,12 @@ export const Register = () => {
           class12: {
             percentage: class12Percentage.trim(),
             year: class12Year,
-            board: class12Board === 'Other' ? class12CustomBoard.trim() : class12Board,
-            customBoard: class12CustomBoard.trim(),
+            board: class12Board,
           },
           class10: {
             percentage: class10Percentage.trim(),
             year: class10Year,
-            board: class10Board === 'Other' ? class10CustomBoard.trim() : class10Board,
-            customBoard: class10CustomBoard.trim(),
+            board: class10Board,
           },
         },
       }),
@@ -1910,6 +1906,426 @@ export const Register = () => {
                 {/* Candidate Career Stage & Resume Upload */}
                 {role === 'candidate' && (
                   <>
+                    {/* Academic Qualifications Card (10th, 12th & Graduation) - Now ABOVE Career Stage */}
+                    <div id="academicQualifications" className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200/80 pb-3 gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <BookOpen className="w-5 h-5 text-blue-600" />
+                            <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                              Academic Qualifications (10th, 12th & Graduation) <span className="text-red-500">*</span>
+                            </h3>
+                          </div>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            Auto-filled from resume if present, or enter manually (10th, 12th & Graduation)
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Graduation Card */}
+                      <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-800">
+                              Graduation Status <span className="text-red-500">*</span>
+                            </label>
+                            <p className="text-[11px] text-slate-500">Select whether you have completed, are pursuing, or not pursuing graduation</p>
+                          </div>
+
+                          {/* Graduation Status Toggle Buttons: Completed | Pursuing | Not Pursuing */}
+                          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0">
+                            {(['Completed', 'Pursuing', 'Not Pursuing'] as const).map((status) => (
+                              <button
+                                key={status}
+                                type="button"
+                                onClick={() => {
+                                  setGraduationStatus(status);
+                                  if (fieldErrors.graduationCollege || fieldErrors.graduationYear || fieldErrors.graduationPercentage || fieldErrors.graduationCustomDegree) {
+                                    setFieldErrors(prev => {
+                                      const copy = { ...prev };
+                                      delete copy.graduationCollege;
+                                      delete copy.graduationYear;
+                                      delete copy.graduationPercentage;
+                                      delete copy.graduationCustomDegree;
+                                      return copy;
+                                    });
+                                  }
+                                }}
+                                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                                  graduationStatus === status
+                                    ? status === 'Not Pursuing'
+                                      ? 'bg-amber-600 text-white shadow-xs'
+                                      : 'bg-blue-600 text-white shadow-xs'
+                                    : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                              >
+                                {status}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* If Not Pursuing */}
+                        {graduationStatus === 'Not Pursuing' && (
+                          <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 flex items-center gap-2.5 animate-in fade-in">
+                            <AlertCircle size={16} className="text-amber-600 shrink-0" />
+                            <p className="text-xs text-amber-800 font-medium">
+                              Not pursuing graduation (Direct CA entry / Foundation route). No graduation details are required.
+                            </p>
+                          </div>
+                        )}
+
+                        {/* If Completed or Pursuing */}
+                        {graduationStatus !== 'Not Pursuing' && (
+                          <div className="space-y-3 animate-in fade-in">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {/* Degree / Course */}
+                              <div>
+                                <label htmlFor="graduationDegree" className="block text-xs font-semibold text-slate-700 mb-1">
+                                  Degree / Course <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  id="graduationDegree"
+                                  value={graduationDegree}
+                                  onChange={(e) => setGraduationDegree(e.target.value)}
+                                  className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none cursor-pointer"
+                                >
+                                  {GRADUATION_DEGREES.map((d) => (
+                                    <option key={d} value={d}>{d}</option>
+                                  ))}
+                                </select>
+                                {graduationDegree === 'Other' && (
+                                  <input
+                                    type="text"
+                                    id="graduationCustomDegree"
+                                    placeholder="Specify your degree (e.g. BAF, BBI)"
+                                    value={graduationCustomDegree}
+                                    onChange={(e) => {
+                                      setGraduationCustomDegree(e.target.value);
+                                      if (fieldErrors.graduationCustomDegree) setFieldErrors(prev => ({ ...prev, graduationCustomDegree: '' }));
+                                    }}
+                                    className={`mt-1.5 w-full px-3 py-1.5 text-xs border rounded-lg outline-none font-medium ${
+                                      fieldErrors.graduationCustomDegree ? 'border-rose-500 bg-rose-50/20' : 'border-slate-200'
+                                    }`}
+                                  />
+                                )}
+                                {fieldErrors.graduationCustomDegree && (
+                                  <p className="mt-1 text-[11px] font-semibold text-rose-600">{fieldErrors.graduationCustomDegree}</p>
+                                )}
+                              </div>
+
+                              {/* College / University Name */}
+                              <div className="sm:col-span-2 lg:col-span-1">
+                                <label htmlFor="graduationCollege" className="block text-xs font-semibold text-slate-700 mb-1">
+                                  College / University Name <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                  type="text"
+                                  id="graduationCollege"
+                                  name="graduationCollege"
+                                  list="collegesListRegister"
+                                  value={graduationCollege}
+                                  onChange={(e) => {
+                                    setGraduationCollege(e.target.value);
+                                    if (fieldErrors.graduationCollege) setFieldErrors(prev => ({ ...prev, graduationCollege: '' }));
+                                  }}
+                                  placeholder="e.g. Delhi University / HR College"
+                                  className={`w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none transition-all ${
+                                    fieldErrors.graduationCollege ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20' : 'border-slate-200'
+                                  }`}
+                                />
+                                <datalist id="collegesListRegister">
+                                  {COLLEGES.map((c) => (
+                                    <option key={c} value={c} />
+                                  ))}
+                                </datalist>
+                                {fieldErrors.graduationCollege && (
+                                  <p className="mt-1 text-[11px] font-semibold text-rose-600">{fieldErrors.graduationCollege}</p>
+                                )}
+                              </div>
+
+                              {/* Degree Type (Regular vs Correspondence) */}
+                              <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                  Degree Mode
+                                </label>
+                                <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+                                  <button
+                                    type="button"
+                                    onClick={() => setGraduationType('REGULAR')}
+                                    className={`flex-1 py-1.5 text-[11px] font-bold rounded-md transition-all cursor-pointer ${
+                                      graduationType === 'REGULAR' ? 'bg-white text-blue-600 shadow-2xs font-bold' : 'text-slate-600'
+                                    }`}
+                                  >
+                                    Regular
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setGraduationType('CORRESPONDENCE')}
+                                    className={`flex-1 py-1.5 text-[11px] font-bold rounded-md transition-all cursor-pointer ${
+                                      graduationType === 'CORRESPONDENCE' ? 'bg-white text-blue-600 shadow-2xs font-bold' : 'text-slate-600'
+                                    }`}
+                                  >
+                                    Distance / Open
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Year of Completion & Percentage / CGPA (For Completed status) */}
+                            {graduationStatus === 'Completed' && (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-100">
+                                <div>
+                                  <label htmlFor="graduationYear" className="block text-xs font-semibold text-slate-700 mb-1">
+                                    Year of Completion <span className="text-red-500">*</span>
+                                  </label>
+                                  <select
+                                    id="graduationYear"
+                                    value={graduationYear}
+                                    onChange={(e) => {
+                                      setGraduationYear(e.target.value);
+                                      if (fieldErrors.graduationYear) setFieldErrors(prev => ({ ...prev, graduationYear: '' }));
+                                    }}
+                                    className={`w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none cursor-pointer ${
+                                      fieldErrors.graduationYear ? 'border-rose-500 bg-rose-50/20' : 'border-slate-200'
+                                    }`}
+                                  >
+                                    <option value="">Select Year</option>
+                                    {YEARS.map((y) => (
+                                      <option key={y} value={y}>{y}</option>
+                                    ))}
+                                  </select>
+                                  {fieldErrors.graduationYear && (
+                                    <p className="mt-1 text-[11px] font-semibold text-rose-600">{fieldErrors.graduationYear}</p>
+                                  )}
+                                </div>
+
+                                <div>
+                                  <label htmlFor="graduationPercentage" className="block text-xs font-semibold text-slate-700 mb-1">
+                                    Graduation Percentage (%) / CGPA <span className="text-red-500">*</span>
+                                  </label>
+                                  <input
+                                    type="text"
+                                    id="graduationPercentage"
+                                    value={graduationPercentage}
+                                    onChange={(e) => {
+                                      setGraduationPercentage(e.target.value);
+                                      if (fieldErrors.graduationPercentage) setFieldErrors(prev => ({ ...prev, graduationPercentage: '' }));
+                                    }}
+                                    placeholder="e.g. 75.5 or 8.2 CGPA"
+                                    className={`w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none transition-all ${
+                                      fieldErrors.graduationPercentage ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20' : 'border-slate-200'
+                                    }`}
+                                  />
+                                  {fieldErrors.graduationPercentage && (
+                                    <p className="mt-1 text-[11px] font-semibold text-rose-600">{fieldErrors.graduationPercentage}</p>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* For Pursuing status */}
+                            {graduationStatus === 'Pursuing' && (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-100">
+                                <div>
+                                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                    Expected Completion Year (Optional)
+                                  </label>
+                                  <select
+                                    value={graduationYear}
+                                    onChange={(e) => setGraduationYear(e.target.value)}
+                                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none cursor-pointer"
+                                  >
+                                    <option value="">Select Expected Year</option>
+                                    {YEARS.map((y) => (
+                                      <option key={y} value={y}>{y}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                    Current % / CGPA (Optional)
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={graduationPercentage}
+                                    onChange={(e) => setGraduationPercentage(e.target.value)}
+                                    placeholder="e.g. 72.0 or 7.8 CGPA"
+                                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none"
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Class 12th & Class 10th Grid (Without 'Other' Board Option) */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        {/* Class 12th Card */}
+                        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-3">
+                          <div className="border-b border-slate-100 pb-2">
+                            <h4 className="text-xs font-bold text-slate-800">Class XII (Senior Secondary) *</h4>
+                            <p className="text-[11px] text-slate-500">Board, passing year & score</p>
+                          </div>
+
+                          <div className="space-y-2.5">
+                            <div>
+                              <label htmlFor="class12Percentage" className="block text-xs font-semibold text-slate-700 mb-1">
+                                Percentage (%) <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="number"
+                                step="any"
+                                min="30"
+                                max="100"
+                                id="class12Percentage"
+                                value={class12Percentage}
+                                onChange={(e) => {
+                                  setClass12Percentage(e.target.value);
+                                  if (fieldErrors.class12Percentage) setFieldErrors(prev => ({ ...prev, class12Percentage: '' }));
+                                }}
+                                placeholder="e.g. 84.5"
+                                className={`w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none transition-all ${
+                                  fieldErrors.class12Percentage ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20' : 'border-slate-200'
+                                }`}
+                              />
+                              {fieldErrors.class12Percentage && (
+                                <p className="mt-1 text-[11px] font-semibold text-rose-600">{fieldErrors.class12Percentage}</p>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label htmlFor="class12Year" className="block text-xs font-semibold text-slate-700 mb-1">
+                                  Passing Year <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  id="class12Year"
+                                  value={class12Year}
+                                  onChange={(e) => {
+                                    setClass12Year(e.target.value);
+                                    if (fieldErrors.class12Year) setFieldErrors(prev => ({ ...prev, class12Year: '' }));
+                                  }}
+                                  className={`w-full px-2.5 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none cursor-pointer ${
+                                    fieldErrors.class12Year ? 'border-rose-500 bg-rose-50/20' : 'border-slate-200'
+                                  }`}
+                                >
+                                  <option value="">Select Year</option>
+                                  {YEARS.map((y) => (
+                                    <option key={y} value={y}>{y}</option>
+                                  ))}
+                                </select>
+                                {fieldErrors.class12Year && (
+                                  <p className="mt-1 text-[11px] font-semibold text-rose-600">{fieldErrors.class12Year}</p>
+                                )}
+                              </div>
+
+                              <div>
+                                <label htmlFor="class12Board" className="block text-xs font-semibold text-slate-700 mb-1">
+                                  Board <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  id="class12Board"
+                                  value={class12Board}
+                                  onChange={(e) => {
+                                    setClass12Board(e.target.value);
+                                    if (fieldErrors.class12Board) setFieldErrors(prev => ({ ...prev, class12Board: '' }));
+                                  }}
+                                  className="w-full px-2.5 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none cursor-pointer"
+                                >
+                                  {BOARDS.map((b) => (
+                                    <option key={b} value={b}>{b}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Class 10th Card */}
+                        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-3">
+                          <div className="border-b border-slate-100 pb-2">
+                            <h4 className="text-xs font-bold text-slate-800">Class X (Secondary School) *</h4>
+                            <p className="text-[11px] text-slate-500">Board, passing year & score</p>
+                          </div>
+
+                          <div className="space-y-2.5">
+                            <div>
+                              <label htmlFor="class10Percentage" className="block text-xs font-semibold text-slate-700 mb-1">
+                                Percentage (%) <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="number"
+                                step="any"
+                                min="30"
+                                max="100"
+                                id="class10Percentage"
+                                value={class10Percentage}
+                                onChange={(e) => {
+                                  setClass10Percentage(e.target.value);
+                                  if (fieldErrors.class10Percentage) setFieldErrors(prev => ({ ...prev, class10Percentage: '' }));
+                                }}
+                                placeholder="e.g. 88.5"
+                                className={`w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none transition-all ${
+                                  fieldErrors.class10Percentage ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20' : 'border-slate-200'
+                                }`}
+                              />
+                              {fieldErrors.class10Percentage && (
+                                <p className="mt-1 text-[11px] font-semibold text-rose-600">{fieldErrors.class10Percentage}</p>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label htmlFor="class10Year" className="block text-xs font-semibold text-slate-700 mb-1">
+                                  Passing Year <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  id="class10Year"
+                                  value={class10Year}
+                                  onChange={(e) => {
+                                    setClass10Year(e.target.value);
+                                    if (fieldErrors.class10Year) setFieldErrors(prev => ({ ...prev, class10Year: '' }));
+                                  }}
+                                  className={`w-full px-2.5 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none cursor-pointer ${
+                                    fieldErrors.class10Year ? 'border-rose-500 bg-rose-50/20' : 'border-slate-200'
+                                  }`}
+                                >
+                                  <option value="">Select Year</option>
+                                  {YEARS.map((y) => (
+                                    <option key={y} value={y}>{y}</option>
+                                  ))}
+                                </select>
+                                {fieldErrors.class10Year && (
+                                  <p className="mt-1 text-[11px] font-semibold text-rose-600">{fieldErrors.class10Year}</p>
+                                )}
+                              </div>
+
+                              <div>
+                                <label htmlFor="class10Board" className="block text-xs font-semibold text-slate-700 mb-1">
+                                  Board <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                  id="class10Board"
+                                  value={class10Board}
+                                  onChange={(e) => {
+                                    setClass10Board(e.target.value);
+                                    if (fieldErrors.class10Board) setFieldErrors(prev => ({ ...prev, class10Board: '' }));
+                                  }}
+                                  className="w-full px-2.5 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none cursor-pointer"
+                                >
+                                  {BOARDS.map((b) => (
+                                    <option key={b} value={b}>{b}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Qualification & Career Stage */}
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-2">
@@ -2011,468 +2427,6 @@ export const Register = () => {
                               : 'border-slate-300'
                           }`}>
                             {workStatus === 'experienced' && <Check size={12} strokeWidth={3} />}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Academic Qualifications Card (10th, 12th & Graduation) */}
-                      <div id="academicQualifications" className="mt-3.5 bg-slate-50/80 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200/80 pb-3 gap-2">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <BookOpen className="w-5 h-5 text-blue-600" />
-                              <h3 className="text-sm sm:text-base font-bold text-slate-900">
-                                Academic Qualifications (10th, 12th & Graduation) <span className="text-red-500">*</span>
-                              </h3>
-                            </div>
-                            <p className="text-[11px] text-slate-500 mt-0.5">
-                              Auto-filled from resume if present, or enter manually (10th, 12th & Graduation)
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Graduation Card */}
-                        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-3">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-                            <div>
-                              <label className="block text-xs font-bold text-slate-800">
-                                Graduation Status <span className="text-red-500">*</span>
-                              </label>
-                              <p className="text-[11px] text-slate-500">Select whether you have completed, are pursuing, or not pursuing graduation</p>
-                            </div>
-
-                            {/* Graduation Status Toggle Buttons: Completed | Pursuing | Not Pursuing */}
-                            <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0">
-                              {(['Completed', 'Pursuing', 'Not Pursuing'] as const).map((status) => (
-                                <button
-                                  key={status}
-                                  type="button"
-                                  onClick={() => {
-                                    setGraduationStatus(status);
-                                    if (fieldErrors.graduationCollege || fieldErrors.graduationYear || fieldErrors.graduationPercentage || fieldErrors.graduationCustomDegree) {
-                                      setFieldErrors(prev => {
-                                        const copy = { ...prev };
-                                        delete copy.graduationCollege;
-                                        delete copy.graduationYear;
-                                        delete copy.graduationPercentage;
-                                        delete copy.graduationCustomDegree;
-                                        return copy;
-                                      });
-                                    }
-                                  }}
-                                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                                    graduationStatus === status
-                                      ? status === 'Not Pursuing'
-                                        ? 'bg-amber-600 text-white shadow-xs'
-                                        : 'bg-blue-600 text-white shadow-xs'
-                                      : 'text-slate-600 hover:text-slate-900'
-                                  }`}
-                                >
-                                  {status}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* If Not Pursuing */}
-                          {graduationStatus === 'Not Pursuing' && (
-                            <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 flex items-center gap-2.5 animate-in fade-in">
-                              <AlertCircle size={16} className="text-amber-600 shrink-0" />
-                              <p className="text-xs text-amber-800 font-medium">
-                                Not pursuing graduation (Direct CA entry / Foundation route). No graduation details are required.
-                              </p>
-                            </div>
-                          )}
-
-                          {/* If Completed or Pursuing */}
-                          {graduationStatus !== 'Not Pursuing' && (
-                            <div className="space-y-3 animate-in fade-in">
-                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                {/* Degree / Course */}
-                                <div>
-                                  <label htmlFor="graduationDegree" className="block text-xs font-semibold text-slate-700 mb-1">
-                                    Degree / Course <span className="text-red-500">*</span>
-                                  </label>
-                                  <select
-                                    id="graduationDegree"
-                                    value={graduationDegree}
-                                    onChange={(e) => setGraduationDegree(e.target.value)}
-                                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none cursor-pointer"
-                                  >
-                                    {GRADUATION_DEGREES.map((d) => (
-                                      <option key={d} value={d}>{d}</option>
-                                    ))}
-                                  </select>
-                                  {graduationDegree === 'Other' && (
-                                    <input
-                                      type="text"
-                                      id="graduationCustomDegree"
-                                      placeholder="Specify your degree (e.g. BAF, BBI)"
-                                      value={graduationCustomDegree}
-                                      onChange={(e) => {
-                                        setGraduationCustomDegree(e.target.value);
-                                        if (fieldErrors.graduationCustomDegree) setFieldErrors(prev => ({ ...prev, graduationCustomDegree: '' }));
-                                      }}
-                                      className={`mt-1.5 w-full px-3 py-1.5 text-xs border rounded-lg outline-none font-medium ${
-                                        fieldErrors.graduationCustomDegree ? 'border-rose-500 bg-rose-50/20' : 'border-slate-200'
-                                      }`}
-                                    />
-                                  )}
-                                  {fieldErrors.graduationCustomDegree && (
-                                    <p className="mt-1 text-[11px] font-semibold text-rose-600">{fieldErrors.graduationCustomDegree}</p>
-                                  )}
-                                </div>
-
-                                {/* College / University Name */}
-                                <div className="sm:col-span-2 lg:col-span-1">
-                                  <label htmlFor="graduationCollege" className="block text-xs font-semibold text-slate-700 mb-1">
-                                    College / University Name <span className="text-red-500">*</span>
-                                  </label>
-                                  <input
-                                    type="text"
-                                    id="graduationCollege"
-                                    name="graduationCollege"
-                                    list="collegesListRegister"
-                                    value={graduationCollege}
-                                    onChange={(e) => {
-                                      setGraduationCollege(e.target.value);
-                                      if (fieldErrors.graduationCollege) setFieldErrors(prev => ({ ...prev, graduationCollege: '' }));
-                                    }}
-                                    placeholder="e.g. Delhi University / HR College"
-                                    className={`w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none transition-all ${
-                                      fieldErrors.graduationCollege ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20' : 'border-slate-200'
-                                    }`}
-                                  />
-                                  <datalist id="collegesListRegister">
-                                    {COLLEGES.map((c) => (
-                                      <option key={c} value={c} />
-                                    ))}
-                                  </datalist>
-                                  {fieldErrors.graduationCollege && (
-                                    <p className="mt-1 text-[11px] font-semibold text-rose-600">{fieldErrors.graduationCollege}</p>
-                                  )}
-                                </div>
-
-                                {/* Degree Type (Regular vs Correspondence) */}
-                                <div>
-                                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                                    Degree Mode
-                                  </label>
-                                  <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-                                    <button
-                                      type="button"
-                                      onClick={() => setGraduationType('REGULAR')}
-                                      className={`flex-1 py-1.5 text-[11px] font-bold rounded-md transition-all cursor-pointer ${
-                                        graduationType === 'REGULAR' ? 'bg-white text-blue-600 shadow-2xs font-bold' : 'text-slate-600'
-                                      }`}
-                                    >
-                                      Regular
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => setGraduationType('CORRESPONDENCE')}
-                                      className={`flex-1 py-1.5 text-[11px] font-bold rounded-md transition-all cursor-pointer ${
-                                        graduationType === 'CORRESPONDENCE' ? 'bg-white text-blue-600 shadow-2xs font-bold' : 'text-slate-600'
-                                      }`}
-                                    >
-                                      Distance / Open
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Year of Completion & Percentage / CGPA (For Completed status) */}
-                              {graduationStatus === 'Completed' && (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-100">
-                                  <div>
-                                    <label htmlFor="graduationYear" className="block text-xs font-semibold text-slate-700 mb-1">
-                                      Year of Completion <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                      id="graduationYear"
-                                      value={graduationYear}
-                                      onChange={(e) => {
-                                        setGraduationYear(e.target.value);
-                                        if (fieldErrors.graduationYear) setFieldErrors(prev => ({ ...prev, graduationYear: '' }));
-                                      }}
-                                      className={`w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none cursor-pointer ${
-                                        fieldErrors.graduationYear ? 'border-rose-500 bg-rose-50/20' : 'border-slate-200'
-                                      }`}
-                                    >
-                                      <option value="">Select Year</option>
-                                      {YEARS.map((y) => (
-                                        <option key={y} value={y}>{y}</option>
-                                      ))}
-                                    </select>
-                                    {fieldErrors.graduationYear && (
-                                      <p className="mt-1 text-[11px] font-semibold text-rose-600">{fieldErrors.graduationYear}</p>
-                                    )}
-                                  </div>
-
-                                  <div>
-                                    <label htmlFor="graduationPercentage" className="block text-xs font-semibold text-slate-700 mb-1">
-                                      Graduation Percentage (%) / CGPA <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                      type="text"
-                                      id="graduationPercentage"
-                                      value={graduationPercentage}
-                                      onChange={(e) => {
-                                        setGraduationPercentage(e.target.value);
-                                        if (fieldErrors.graduationPercentage) setFieldErrors(prev => ({ ...prev, graduationPercentage: '' }));
-                                      }}
-                                      placeholder="e.g. 75.5 or 8.2 CGPA"
-                                      className={`w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none transition-all ${
-                                        fieldErrors.graduationPercentage ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20' : 'border-slate-200'
-                                      }`}
-                                    />
-                                    {fieldErrors.graduationPercentage && (
-                                      <p className="mt-1 text-[11px] font-semibold text-rose-600">{fieldErrors.graduationPercentage}</p>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* For Pursuing status */}
-                              {graduationStatus === 'Pursuing' && (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-100">
-                                  <div>
-                                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                                      Expected Completion Year (Optional)
-                                    </label>
-                                    <select
-                                      value={graduationYear}
-                                      onChange={(e) => setGraduationYear(e.target.value)}
-                                      className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none cursor-pointer"
-                                    >
-                                      <option value="">Select Expected Year</option>
-                                      {YEARS.map((y) => (
-                                        <option key={y} value={y}>{y}</option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                  <div>
-                                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                                      Current % / CGPA (Optional)
-                                    </label>
-                                    <input
-                                      type="text"
-                                      value={graduationPercentage}
-                                      onChange={(e) => setGraduationPercentage(e.target.value)}
-                                      placeholder="e.g. 72.0 or 7.8 CGPA"
-                                      className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none"
-                                    />
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Class 12th & Class 10th Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                          {/* Class 12th Card */}
-                          <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-3">
-                            <div className="border-b border-slate-100 pb-2">
-                              <h4 className="text-xs font-bold text-slate-800">Class XII (Senior Secondary) *</h4>
-                              <p className="text-[11px] text-slate-500">Board, passing year & score</p>
-                            </div>
-
-                            <div className="space-y-2.5">
-                              <div>
-                                <label htmlFor="class12Percentage" className="block text-xs font-semibold text-slate-700 mb-1">
-                                  Percentage (%) <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                  type="number"
-                                  step="any"
-                                  min="30"
-                                  max="100"
-                                  id="class12Percentage"
-                                  value={class12Percentage}
-                                  onChange={(e) => {
-                                    setClass12Percentage(e.target.value);
-                                    if (fieldErrors.class12Percentage) setFieldErrors(prev => ({ ...prev, class12Percentage: '' }));
-                                  }}
-                                  placeholder="e.g. 84.5"
-                                  className={`w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none transition-all ${
-                                    fieldErrors.class12Percentage ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20' : 'border-slate-200'
-                                  }`}
-                                />
-                                {fieldErrors.class12Percentage && (
-                                  <p className="mt-1 text-[11px] font-semibold text-rose-600">{fieldErrors.class12Percentage}</p>
-                                )}
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                  <label htmlFor="class12Year" className="block text-xs font-semibold text-slate-700 mb-1">
-                                    Passing Year <span className="text-red-500">*</span>
-                                  </label>
-                                  <select
-                                    id="class12Year"
-                                    value={class12Year}
-                                    onChange={(e) => {
-                                      setClass12Year(e.target.value);
-                                      if (fieldErrors.class12Year) setFieldErrors(prev => ({ ...prev, class12Year: '' }));
-                                    }}
-                                    className={`w-full px-2.5 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none cursor-pointer ${
-                                      fieldErrors.class12Year ? 'border-rose-500 bg-rose-50/20' : 'border-slate-200'
-                                    }`}
-                                  >
-                                    <option value="">Select Year</option>
-                                    {YEARS.map((y) => (
-                                      <option key={y} value={y}>{y}</option>
-                                    ))}
-                                  </select>
-                                  {fieldErrors.class12Year && (
-                                    <p className="mt-1 text-[11px] font-semibold text-rose-600">{fieldErrors.class12Year}</p>
-                                  )}
-                                </div>
-
-                                <div>
-                                  <label htmlFor="class12Board" className="block text-xs font-semibold text-slate-700 mb-1">
-                                    Board <span className="text-red-500">*</span>
-                                  </label>
-                                  <select
-                                    id="class12Board"
-                                    value={class12Board}
-                                    onChange={(e) => {
-                                      setClass12Board(e.target.value);
-                                      if (fieldErrors.class12Board) setFieldErrors(prev => ({ ...prev, class12Board: '' }));
-                                    }}
-                                    className="w-full px-2.5 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none cursor-pointer"
-                                  >
-                                    {BOARDS.map((b) => (
-                                      <option key={b} value={b}>{b}</option>
-                                    ))}
-                                  </select>
-                                </div>
-                              </div>
-
-                              {class12Board === 'Other' && (
-                                <div>
-                                  <input
-                                    type="text"
-                                    id="class12CustomBoard"
-                                    placeholder="Specify Board Name (e.g. Maharashtra State Board)"
-                                    value={class12CustomBoard}
-                                    onChange={(e) => {
-                                      setClass12CustomBoard(e.target.value);
-                                      if (fieldErrors.class12CustomBoard) setFieldErrors(prev => ({ ...prev, class12CustomBoard: '' }));
-                                    }}
-                                    className={`w-full px-3 py-1.5 text-xs border rounded-lg outline-none font-medium ${
-                                      fieldErrors.class12CustomBoard ? 'border-rose-500 bg-rose-50/20' : 'border-slate-200'
-                                    }`}
-                                  />
-                                  {fieldErrors.class12CustomBoard && (
-                                    <p className="mt-1 text-[11px] font-semibold text-rose-600">{fieldErrors.class12CustomBoard}</p>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Class 10th Card */}
-                          <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-3">
-                            <div className="border-b border-slate-100 pb-2">
-                              <h4 className="text-xs font-bold text-slate-800">Class X (Secondary School) *</h4>
-                              <p className="text-[11px] text-slate-500">Board, passing year & score</p>
-                            </div>
-
-                            <div className="space-y-2.5">
-                              <div>
-                                <label htmlFor="class10Percentage" className="block text-xs font-semibold text-slate-700 mb-1">
-                                  Percentage (%) <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                  type="number"
-                                  step="any"
-                                  min="30"
-                                  max="100"
-                                  id="class10Percentage"
-                                  value={class10Percentage}
-                                  onChange={(e) => {
-                                    setClass10Percentage(e.target.value);
-                                    if (fieldErrors.class10Percentage) setFieldErrors(prev => ({ ...prev, class10Percentage: '' }));
-                                  }}
-                                  placeholder="e.g. 88.5"
-                                  className={`w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none transition-all ${
-                                    fieldErrors.class10Percentage ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20' : 'border-slate-200'
-                                  }`}
-                                />
-                                {fieldErrors.class10Percentage && (
-                                  <p className="mt-1 text-[11px] font-semibold text-rose-600">{fieldErrors.class10Percentage}</p>
-                                )}
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                  <label htmlFor="class10Year" className="block text-xs font-semibold text-slate-700 mb-1">
-                                    Passing Year <span className="text-red-500">*</span>
-                                  </label>
-                                  <select
-                                    id="class10Year"
-                                    value={class10Year}
-                                    onChange={(e) => {
-                                      setClass10Year(e.target.value);
-                                      if (fieldErrors.class10Year) setFieldErrors(prev => ({ ...prev, class10Year: '' }));
-                                    }}
-                                    className={`w-full px-2.5 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none cursor-pointer ${
-                                      fieldErrors.class10Year ? 'border-rose-500 bg-rose-50/20' : 'border-slate-200'
-                                    }`}
-                                  >
-                                    <option value="">Select Year</option>
-                                    {YEARS.map((y) => (
-                                      <option key={y} value={y}>{y}</option>
-                                    ))}
-                                  </select>
-                                  {fieldErrors.class10Year && (
-                                    <p className="mt-1 text-[11px] font-semibold text-rose-600">{fieldErrors.class10Year}</p>
-                                  )}
-                                </div>
-
-                                <div>
-                                  <label htmlFor="class10Board" className="block text-xs font-semibold text-slate-700 mb-1">
-                                    Board <span className="text-red-500">*</span>
-                                  </label>
-                                  <select
-                                    id="class10Board"
-                                    value={class10Board}
-                                    onChange={(e) => {
-                                      setClass10Board(e.target.value);
-                                      if (fieldErrors.class10Board) setFieldErrors(prev => ({ ...prev, class10Board: '' }));
-                                    }}
-                                    className="w-full px-2.5 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 bg-white font-medium outline-none cursor-pointer"
-                                  >
-                                    {BOARDS.map((b) => (
-                                      <option key={b} value={b}>{b}</option>
-                                    ))}
-                                  </select>
-                                </div>
-                              </div>
-
-                              {class10Board === 'Other' && (
-                                <div>
-                                  <input
-                                    type="text"
-                                    id="class10CustomBoard"
-                                    placeholder="Specify Board Name (e.g. CBSE / State Board)"
-                                    value={class10CustomBoard}
-                                    onChange={(e) => {
-                                      setClass10CustomBoard(e.target.value);
-                                      if (fieldErrors.class10CustomBoard) setFieldErrors(prev => ({ ...prev, class10CustomBoard: '' }));
-                                    }}
-                                    className={`w-full px-3 py-1.5 text-xs border rounded-lg outline-none font-medium ${
-                                      fieldErrors.class10CustomBoard ? 'border-rose-500 bg-rose-50/20' : 'border-slate-200'
-                                    }`}
-                                  />
-                                  {fieldErrors.class10CustomBoard && (
-                                    <p className="mt-1 text-[11px] font-semibold text-rose-600">{fieldErrors.class10CustomBoard}</p>
-                                  )}
-                                </div>
-                              )}
-                            </div>
                           </div>
                         </div>
                       </div>
