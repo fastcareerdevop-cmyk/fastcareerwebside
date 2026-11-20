@@ -16,7 +16,8 @@ import {
   GraduationCap,
   AlertCircle,
   KeyRound,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
 import { login, reset } from '../../store/authSlice';
 import type { AppDispatch, RootState } from '../../store';
@@ -218,6 +219,17 @@ export const Login = () => {
       setIsResetLoading(false);
     }
   };
+
+  if (user) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex items-center gap-2.5 text-slate-600 font-semibold text-sm">
+          <Loader2 className="animate-spin text-blue-600" size={20} />
+          <span>Opening your dashboard...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/25 to-slate-100 flex flex-col justify-between pt-28 pb-8 px-4 sm:px-6 lg:px-8">

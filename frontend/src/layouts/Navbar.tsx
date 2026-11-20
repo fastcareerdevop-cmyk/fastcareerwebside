@@ -34,17 +34,6 @@ export const Navbar = () => {
     setMobileMenuOpen(false);
   };
 
-  const handleDashboardClick = (e: React.MouseEvent) => {
-    if (!user) {
-      e.preventDefault();
-      toast('Please sign in to access your dashboard', {
-        icon: '🔒',
-        duration: 4000,
-      });
-      navigate('/login?redirect=dashboard');
-    }
-  };
-
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
@@ -112,17 +101,6 @@ export const Navbar = () => {
               </div>
             ) : (
               <div className="flex items-center gap-2.5">
-                {/* Dashboard: If logged in opens directly, if not prompts sign in */}
-                <button 
-                  type="button"
-                  onClick={handleDashboardClick}
-                  className="flex items-center gap-1.5 text-sm font-bold text-slate-800 hover:text-blue-600 transition-colors px-3 py-1.5 rounded-xl hover:bg-slate-50 cursor-pointer"
-                  title="Access your dashboard"
-                >
-                  <LayoutDashboard size={17} className="text-blue-600" />
-                  <span>Dashboard</span>
-                </button>
-
                 {/* Sign In */}
                 <Link 
                   to="/login"
@@ -223,42 +201,28 @@ export const Navbar = () => {
                 </button>
               </>
             ) : (
-              <>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <Link 
+                  to="/login" 
+                  onClick={() => setMobileMenuOpen(false)} 
+                  className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-800 bg-white border border-slate-300 hover:border-blue-500 rounded-xl py-2.5 shadow-2xs"
+                >
+                  <LogIn size={15} className="text-blue-600" />
+                  <span>Sign In</span>
+                </Link>
+
                 <button 
                   type="button"
-                  onClick={(e) => {
+                  onClick={() => {
                     setMobileMenuOpen(false);
-                    handleDashboardClick(e);
+                    setSignUpModalOpen(true);
                   }}
-                  className="flex items-center justify-center gap-2 text-sm font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl py-2.5 cursor-pointer"
+                  className="flex items-center justify-center gap-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl py-2.5 shadow-sm cursor-pointer"
                 >
-                  <LayoutDashboard size={16} className="text-blue-600" />
-                  <span>Dashboard</span>
+                  <UserPlus size={15} />
+                  <span>Sign Up</span>
                 </button>
-
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <Link 
-                    to="/login" 
-                    onClick={() => setMobileMenuOpen(false)} 
-                    className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-800 bg-white border border-slate-300 hover:border-blue-500 rounded-xl py-2.5 shadow-2xs"
-                  >
-                    <LogIn size={15} className="text-blue-600" />
-                    <span>Sign In</span>
-                  </Link>
-
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      setSignUpModalOpen(true);
-                    }}
-                    className="flex items-center justify-center gap-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl py-2.5 shadow-sm cursor-pointer"
-                  >
-                    <UserPlus size={15} />
-                    <span>Sign Up</span>
-                  </button>
-                </div>
-              </>
+              </div>
             )}
           </div>
         </div>

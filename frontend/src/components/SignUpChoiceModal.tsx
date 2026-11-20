@@ -1,5 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../store';
 import { X, Building2, UserPlus, ArrowRight, Sparkles, GraduationCap, CheckCircle2 } from 'lucide-react';
 
 interface SignUpChoiceModalProps {
@@ -14,6 +16,7 @@ export const SignUpChoiceModal: React.FC<SignUpChoiceModalProps> = ({
   onSelectIndustrial,
 }) => {
   const navigate = useNavigate();
+  const { user } = useSelector((state: RootState) => state.auth);
 
   if (!isOpen) return null;
 
@@ -29,7 +32,14 @@ export const SignUpChoiceModal: React.FC<SignUpChoiceModalProps> = ({
 
   const handleSignIn = () => {
     onClose();
-    navigate('/login');
+    if (user) {
+      if (user.role === 'candidate') navigate('/candidate/dashboard');
+      else if (user.role === 'employer') navigate('/employer/dashboard');
+      else if (user.role === 'admin' || user.role === 'employee') navigate('/admin/dashboard');
+      else navigate('/');
+    } else {
+      navigate('/login');
+    }
   };
 
   return (
@@ -68,7 +78,54 @@ export const SignUpChoiceModal: React.FC<SignUpChoiceModalProps> = ({
           {/* 2 Choice Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
-            {/* Option 1: CA Industrial Training */}
+            {/* Option 1: CA Professional Registration Form */}
+            <div 
+              onClick={handleSelectCandidate}
+              className="group relative bg-gradient-to-b from-blue-50/60 via-white to-indigo-50/40 rounded-2xl border-2 border-blue-200/90 hover:border-blue-600 p-5 shadow-xs hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-col justify-between"
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                    <UserPlus size={22} className="text-white" />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-300 px-2 py-0.5 rounded-full">
+                    Placements
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-base font-black text-slate-900 group-hover:text-blue-700 transition-colors">
+                    CA Professional Registration Form
+                  </h3>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    For Qualified CAs, Semi-Qualified, and Freshers seeking full-time corporate campus placements across 500+ top corporates.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5 text-[11px] text-slate-600 font-medium pt-1">
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 size={13} className="text-blue-600 shrink-0" />
+                    <span>Upload CV & 1-click auto-fill</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 size={13} className="text-blue-600 shrink-0" />
+                    <span>Free candidate placement dashboard</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 mt-3 border-t border-blue-100/80">
+                <button
+                  type="button"
+                  className="w-full py-2.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs group-hover:shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <span>Register as CA Professional</span>
+                  <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              </div>
+            </div>
+
+            {/* Option 2: CA Industrial Training */}
             <div 
               onClick={handleSelectIndustrial}
               className="group relative bg-gradient-to-b from-amber-50/60 via-white to-orange-50/40 rounded-2xl border-2 border-amber-200/90 hover:border-amber-500 p-5 shadow-xs hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-col justify-between"
@@ -110,53 +167,6 @@ export const SignUpChoiceModal: React.FC<SignUpChoiceModalProps> = ({
                   className="w-full py-2.5 px-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold text-xs rounded-xl shadow-xs group-hover:shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <span>Fill Industrial Training Form</span>
-                  <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-                </button>
-              </div>
-            </div>
-
-            {/* Option 2: Register Candidate (Full Job Placement) */}
-            <div 
-              onClick={handleSelectCandidate}
-              className="group relative bg-gradient-to-b from-blue-50/60 via-white to-indigo-50/40 rounded-2xl border-2 border-blue-200/90 hover:border-blue-600 p-5 shadow-xs hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-col justify-between"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
-                    <UserPlus size={22} className="text-white" />
-                  </div>
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-300 px-2 py-0.5 rounded-full">
-                    Placements
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="text-base font-black text-slate-900 group-hover:text-blue-700 transition-colors">
-                    Register Candidate
-                  </h3>
-                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                    For Qualified CAs, Semi-Qualified, and Freshers seeking full-time corporate campus placements across 500+ top corporates.
-                  </p>
-                </div>
-
-                <div className="space-y-1.5 text-[11px] text-slate-600 font-medium pt-1">
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle2 size={13} className="text-blue-600 shrink-0" />
-                    <span>Upload CV & 1-click auto-fill</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle2 size={13} className="text-blue-600 shrink-0" />
-                    <span>Free candidate placement dashboard</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 mt-3 border-t border-blue-100/80">
-                <button
-                  type="button"
-                  className="w-full py-2.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs group-hover:shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <span>Register as Candidate</span>
                   <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
                 </button>
               </div>
