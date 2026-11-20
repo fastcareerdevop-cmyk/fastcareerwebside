@@ -1178,7 +1178,7 @@ export const Register = () => {
           {/* Header */}
           <div className="text-center mb-6">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              {role === 'candidate' ? 'Create Candidate Account' : 'Create Employer Account'}
+              {role === 'candidate' ? 'CA Professional Registration Form' : 'Create Employer Account'}
             </h1>
             <p className="mt-1.5 text-xs sm:text-sm text-slate-500">
               {role === 'candidate'

@@ -21,13 +21,25 @@ export const SignUpChoiceModal: React.FC<SignUpChoiceModalProps> = ({
   if (!isOpen) return null;
 
   const handleSelectCandidate = () => {
+    if (window.location.pathname === '/register') {
+      onClose();
+      return;
+    }
+    // Navigate first while modal is still rendered over the old page
     navigate('/register');
-    onClose();
+    // Ensure modal closes seamlessly as the register page mounts
+    setTimeout(() => {
+      onClose();
+    }, 150);
   };
 
   const handleSelectIndustrial = () => {
-    navigate('/industrial-training');
     onClose();
+    if (onSelectIndustrial) {
+      onSelectIndustrial();
+    } else {
+      navigate('/industrial-training');
+    }
   };
 
   const handleSignIn = () => {

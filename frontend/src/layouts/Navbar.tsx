@@ -26,6 +26,11 @@ export const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Automatically close sign up modal whenever route changes so background page is never flashed
+  useEffect(() => {
+    setSignUpModalOpen(false);
+  }, [location.pathname]);
   
   const onLogout = () => {
     dispatch(logout());
