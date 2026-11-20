@@ -15,8 +15,8 @@ const Employers = lazy(() => import('./pages/Employers').then(m => ({ default: m
 const Contact = lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
 const JobListings = lazy(() => import('./pages/JobListings').then(m => ({ default: m.JobListings })));
 const JobDetails = lazy(() => import('./pages/JobDetails').then(m => ({ default: m.JobDetails })));
-const Login = lazy(() => import('./pages/auth/Login').then(m => ({ default: m.Login })));
-const Register = lazy(() => import('./pages/auth/Register').then(m => ({ default: m.Register })));
+import { Login } from './pages/auth/Login';
+import { Register } from './pages/auth/Register';
 const PlacementDriveForm = lazy(() => import('./pages/PlacementDriveForm').then(m => ({ default: m.PlacementDriveForm })));
 const IndustrialTrainingPage = lazy(() => import('./pages/IndustrialTrainingPage').then(m => ({ default: m.IndustrialTrainingPage })));
 const IndustrialTrainingAdmin = lazy(() => import('./pages/admin/IndustrialTrainingAdmin').then(m => ({ default: m.IndustrialTrainingAdmin })));

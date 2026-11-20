@@ -18,13 +18,13 @@ export const SignUpChoiceModal: React.FC<SignUpChoiceModalProps> = ({
   if (!isOpen) return null;
 
   const handleSelectCandidate = () => {
-    onClose();
     navigate('/register');
+    onClose();
   };
 
   const handleSelectIndustrial = () => {
+    navigate('/industrial-training');
     onClose();
-    onSelectIndustrial();
   };
 
   const handleSignIn = () => {
