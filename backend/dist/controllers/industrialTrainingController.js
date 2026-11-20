@@ -186,8 +186,8 @@ const submitIndustrialTraining = (req, res) => __awaiter(void 0, void 0, void 0,
                     gender: gender || '',
                     caInterBatch: caInterBatch || '',
                     bothGroups1stAttempt: bothGroups1stAttempt || 'No',
-                    group1: bothGroups1stAttempt === 'Yes' ? '1st Attempt' : (group1 || '1st Attempt'),
-                    group2: bothGroups1stAttempt === 'Yes' ? '1st Attempt' : (group2 || '1st Attempt'),
+                    group1: bothGroups1stAttempt === 'Yes' ? '1' : (group1 || '1'),
+                    group2: bothGroups1stAttempt === 'Yes' ? '1' : (group2 || '1'),
                     group1Batch: bothGroups1stAttempt === 'Yes' ? caInterBatch : (group1Batch || caInterBatch || null),
                     group2Batch: bothGroups1stAttempt === 'Yes' ? caInterBatch : (group2Batch || caInterBatch || null),
                     caInterRank: caInterRank || 'No Rank',
@@ -282,8 +282,8 @@ const submitIndustrialTraining = (req, res) => __awaiter(void 0, void 0, void 0,
             application.gender = gender;
             application.caInterBatch = caInterBatch;
             application.bothGroups1stAttempt = bothGroups1stAttempt || 'No';
-            application.group1 = bothGroups1stAttempt === 'Yes' ? '1st Attempt' : (group1 || '1st Attempt');
-            application.group2 = bothGroups1stAttempt === 'Yes' ? '1st Attempt' : (group2 || '1st Attempt');
+            application.group1 = bothGroups1stAttempt === 'Yes' ? '1' : (group1 || '1');
+            application.group2 = bothGroups1stAttempt === 'Yes' ? '1' : (group2 || '1');
             application.group1Batch = bothGroups1stAttempt === 'Yes' ? caInterBatch : (group1Batch || caInterBatch);
             application.group2Batch = bothGroups1stAttempt === 'Yes' ? caInterBatch : (group2Batch || caInterBatch);
             application.caInterRank = caInterRank || 'No Rank';
@@ -320,8 +320,8 @@ const submitIndustrialTraining = (req, res) => __awaiter(void 0, void 0, void 0,
                 gender,
                 caInterBatch,
                 bothGroups1stAttempt: bothGroups1stAttempt || 'No',
-                group1: group1 || '1st Attempt',
-                group2: group2 || '1st Attempt',
+                group1: bothGroups1stAttempt === 'Yes' ? '1' : (group1 || '1'),
+                group2: bothGroups1stAttempt === 'Yes' ? '1' : (group2 || '1'),
                 caInterRank: caInterRank || 'No Rank',
                 articleshipFirmName: articleshipFirmName.trim(),
                 articleshipStartMonthYear: articleshipStartMonthYear.trim(),
@@ -368,8 +368,8 @@ const submitIndustrialTraining = (req, res) => __awaiter(void 0, void 0, void 0,
                         industrialTrainee: 'Yes',
                         caInter: {
                             bothGroups1stAttempt: bothGroups1stAttempt === 'Yes',
-                            group1Attempts: group1 || '1st Attempt',
-                            group2Attempts: group2 || '1st Attempt',
+                            group1Attempts: bothGroups1stAttempt === 'Yes' ? '1' : (group1 || '1'),
+                            group2Attempts: bothGroups1stAttempt === 'Yes' ? '1' : (group2 || '1'),
                             ranker: caInterRank || 'No Rank',
                         },
                         articleships: [{
