@@ -183,6 +183,24 @@ export const Hero = () => {
           India Rankers (AIRs), and seasoned finance leaders.
         </motion.p>
 
+        {/* Blinking Live CA Job Registration Badge */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.25 }}
+          className="flex items-center gap-2 mb-3.5 w-fit"
+        >
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-90"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-full shadow-2xs">
+            <span>🔥 CA Job Registration Live</span>
+            <span className="text-slate-400">•</span>
+            <span className="text-emerald-700 font-bold normal-case">Freshers &amp; Experienced • Free</span>
+          </span>
+        </motion.div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -193,8 +211,12 @@ export const Hero = () => {
             <motion.button
               whileHover={{ scale: 1.03, y: -2 }}
               whileTap={{ scale: 0.97 }}
-              className="w-full sm:w-auto px-5 py-3.5 bg-[#1d64f2] hover:bg-[#1554cf] text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-xs sm:text-sm whitespace-nowrap hover:shadow-lg"
+              className="relative w-full sm:w-auto px-5 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm whitespace-nowrap hover:shadow-xl ring-2 ring-blue-400/50"
             >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-90"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+              </span>
               <User size={16} className="shrink-0" />
               <span>Register as CA Candidate</span>
               <ArrowRight size={15} className="shrink-0" />
