@@ -13,7 +13,6 @@ export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [industrialModalOpen, setIndustrialModalOpen] = useState(false);
   const [signUpModalOpen, setSignUpModalOpen] = useState(false);
-  const [showSignUpHint, setShowSignUpHint] = useState(true);
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -133,52 +132,23 @@ export const Navbar = () => {
                   <span>Sign In</span>
                 </Link>
 
-                {/* Sign Up with Blinking Live Hint */}
-                <div className="relative">
-                  {showSignUpHint && (
-                    <div className="absolute -top-11 right-0 z-30 flex items-center">
-                      <div 
-                        onClick={() => setSignUpModalOpen(true)}
-                        className="cursor-pointer group flex items-center gap-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white text-[11px] font-extrabold px-3.5 py-1.5 rounded-full border border-blue-300 shadow-xl hover:shadow-2xl hover:scale-105 transition-all whitespace-nowrap animate-bounce"
-                        title="Click here to register for CA Jobs & Training"
-                      >
-                        <span className="flex h-2 w-2 relative">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-90"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
-                        </span>
-                        <span>Register for CA Jobs &amp; Training</span>
-                        <span className="text-amber-300 text-xs font-black group-hover:translate-x-0.5 transition-transform">👇</span>
-                      </div>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowSignUpHint(false);
-                        }}
-                        className="ml-1 text-white/80 hover:text-white bg-slate-900/60 hover:bg-slate-900/90 rounded-full p-1 cursor-pointer transition-colors"
-                        title="Dismiss"
-                        aria-label="Dismiss message"
-                      >
-                        <X size={10} />
-                      </button>
-                      {/* Speech bubble pointer arrow */}
-                      <div className="absolute -bottom-1 right-8 w-2 h-2 bg-indigo-700 rotate-45 transform origin-center"></div>
-                    </div>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => setSignUpModalOpen(true)}
-                    className="relative flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 px-4 py-2 rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer group ring-2 ring-blue-400/50 hover:ring-blue-500"
-                  >
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
-                    </span>
-                    <UserPlus size={14} className="text-white" />
-                    <span>Sign Up</span>
-                    <span className="text-[10px] text-blue-200 group-hover:translate-x-0.5 transition-transform">→</span>
-                  </button>
-                </div>
+                {/* Sign Up: Prominent with Blinking Live Indicator and CA Jobs Badge */}
+                <button
+                  type="button"
+                  onClick={() => setSignUpModalOpen(true)}
+                  className="relative flex items-center gap-2 text-xs font-bold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 px-3.5 py-2 rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer group ring-2 ring-blue-400/50 hover:ring-blue-500"
+                  title="Register for CA Jobs & Industrial Training"
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-90"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                  </span>
+                  <span>Sign Up</span>
+                  <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider shadow-2xs">
+                    CA Jobs
+                  </span>
+                  <span className="text-white text-xs group-hover:translate-x-0.5 transition-transform">→</span>
+                </button>
               </div>
             )}
           </div>
@@ -192,11 +162,13 @@ export const Navbar = () => {
                 className="flex items-center gap-1.5 text-[11px] font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 px-3 py-1.5 rounded-lg shadow-xs cursor-pointer ring-1 ring-blue-300"
               >
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-90"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
                 </span>
-                <UserPlus size={13} />
                 <span>Sign Up</span>
+                <span className="bg-amber-400 text-slate-950 text-[9px] font-black px-1 rounded uppercase">
+                  CA Jobs
+                </span>
               </button>
             )}
             <button 
