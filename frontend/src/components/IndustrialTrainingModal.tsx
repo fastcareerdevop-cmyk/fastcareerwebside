@@ -180,12 +180,19 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
           updated.group2 = '1';
           updated.group1Batch = prev.caInterBatch;
           updated.group2Batch = prev.caInterBatch;
+        } else if (prev.group1 === '1') {
+          updated.group1 = '2';
+          updated.group2 = '2';
         }
       }
 
-      if (name === 'caInterBatch' && prev.bothGroups1stAttempt === 'Yes') {
+      if (name === 'caInterBatch') {
         updated.group1Batch = value;
         updated.group2Batch = value;
+      }
+
+      if (name === 'group1') {
+        updated.group2 = value;
       }
 
       // If same address is checked, keep permanent in sync
@@ -568,14 +575,12 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
         permanentLocation: formData.permanentLocation.trim(),
         dob: formData.dob,
         gender: formData.gender,
-        caInterBatch: formData.bothGroups1stAttempt === 'Yes' 
-          ? formData.caInterBatch 
-          : `${formData.group1Batch || formData.caInterBatch} (G1) / ${formData.group2Batch || formData.caInterBatch} (G2)`,
+        caInterBatch: formData.caInterBatch,
         bothGroups1stAttempt: formData.bothGroups1stAttempt,
         group1: formData.group1,
-        group2: formData.group2,
-        group1Batch: formData.group1Batch,
-        group2Batch: formData.group2Batch,
+        group2: formData.group1,
+        group1Batch: formData.caInterBatch,
+        group2Batch: formData.caInterBatch,
         caInterRank: formData.caInterRank || 'No Rank',
         articleshipFirmName: formData.articleshipFirmName.trim(),
         articleshipStartMonthYear,
@@ -1090,10 +1095,10 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
                             setFormData(prev => ({
                               ...prev,
                               bothGroups1stAttempt: opt,
-                              group1: opt === 'Yes' ? '1' : (prev.group1 || '1'),
-                              group2: opt === 'Yes' ? '1' : (prev.group2 || '1'),
-                              group1Batch: opt === 'Yes' ? prev.caInterBatch : prev.group1Batch,
-                              group2Batch: opt === 'Yes' ? prev.caInterBatch : prev.group2Batch
+                              group1: opt === 'Yes' ? '1' : (prev.group1 === '1' ? '2' : (prev.group1 || '2')),
+                              group2: opt === 'Yes' ? '1' : (prev.group2 === '1' ? '2' : (prev.group2 || '2')),
+                              group1Batch: prev.caInterBatch,
+                              group2Batch: prev.caInterBatch
                             }));
                           }}
                           className={`py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
@@ -1108,18 +1113,18 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
                     </div>
                   </div>
 
-                  {/* CA Inter Batch (Single batch for Yes) */}
-                  {formData.bothGroups1stAttempt === 'Yes' ? (
+                  {/* Passing Batch / Month (Single batch for Yes) */}
+                  {formData.bothGroups1stAttempt === 'Yes' && (
                     <div>
                       <label htmlFor={`${formId}-caInterBatch`} className="block text-xs font-semibold text-slate-700 mb-1">
-                        CA Inter Batch (Both Groups) <span className="text-rose-500">*</span>
+                        Passing Batch / Month <span className="text-rose-500">*</span>
                       </label>
                       <select
                         id={`${formId}-caInterBatch`}
                         name="caInterBatch"
                         value={formData.caInterBatch}
                         onChange={handleChange}
-                        className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600"
+                        className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600 font-medium text-slate-800"
                       >
                         {CA_INTER_BATCHES.map(b => (
                           <option key={b} value={b}>{b}</option>
@@ -1129,44 +1134,15 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
                         ✓ Both groups cleared in this same exam batch ({formData.caInterBatch})
                       </p>
                     </div>
-                  ) : (
-                    <div>
-                      <label htmlFor={`${formId}-caInterRank`} className="block text-xs font-semibold text-slate-700 mb-1">
-                        CA Inter Rank
-                      </label>
-                      <select
-                        id={`${formId}-caInterRank`}
-                        name="caInterRank"
-                        value={formData.caInterRank || 'No Rank'}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600 font-medium text-slate-800"
-                      >
-                        {CA_INTER_RANK_OPTIONS.map(r => (
-                          <option key={r} value={r}>{r}</option>
-                        ))}
-                      </select>
-                    </div>
                   )}
                 </div>
 
-                {/* If Yes: Group 1 & Group 2 locked to 1 */}
+                {/* If Yes: Only CA Inter Attempt (Locked 1st Attempt) & CA Inter Rank (Group 2 completely removed) */}
                 {formData.bothGroups1stAttempt === 'Yes' ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Group 1 <span className="text-rose-500">*</span>
-                      </label>
-                      <div className="px-3 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium flex items-center justify-between">
-                        <span className="font-bold text-slate-900">1</span>
-                        <span className="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 font-semibold">
-                          Locked (1st Attempt)
-                        </span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Group 2 <span className="text-rose-500">*</span>
+                        CA Inter Attempt <span className="text-rose-500">*</span>
                       </label>
                       <div className="px-3 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium flex items-center justify-between">
                         <span className="font-bold text-slate-900">1</span>
@@ -1194,80 +1170,85 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
                     </div>
                   </div>
                 ) : (
-                  /* If No: Group 1 & Group 2 can have different attempts (1 to 50) and different months/batches */
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3 pt-2">
-                    <p className="text-[11px] font-semibold text-slate-600">
-                      Specify separate passing batch (month/year) and attempts (1-50) for each group:
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      {/* Group 1 Batch & Attempt */}
-                      <div className="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
-                        <span className="text-xs font-bold text-slate-800 block">Group 1 Credentials</span>
-                        <div>
-                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                            Group 1 Passing Batch / Month <span className="text-rose-500">*</span>
-                          </label>
-                          <select
-                            name="group1Batch"
-                            value={formData.group1Batch}
-                            onChange={handleChange}
-                            className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600"
-                          >
-                            {CA_INTER_BATCHES.map(b => (
-                              <option key={b} value={b}>{b}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                            CA Inter Group 1 Attempt <span className="text-rose-500">*</span>
-                          </label>
-                          <select
-                            name="group1"
-                            value={formData.group1}
-                            onChange={handleChange}
-                            className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600 font-semibold text-slate-800"
-                          >
-                            {ATTEMPT_OPTIONS.map(att => (
-                              <option key={att} value={att}>{att}</option>
-                            ))}
-                          </select>
-                        </div>
+                  /* If No: CA Inter Exam Qualification (No Group 1 / Group 2, single unified fields) */
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3 pt-2.5">
+                    <div className="flex items-center justify-between pb-1.5 border-b border-slate-200">
+                      <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                        CA Inter Exam Qualification
+                      </span>
+                      <span className="text-[11px] text-slate-500 font-medium">
+                        Select passing batch & attempt
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
+                      {/* Passing Batch / Month */}
+                      <div>
+                        <label htmlFor={`${formId}-caInterBatch-no`} className="block text-xs font-semibold text-slate-700 mb-1">
+                          Passing Batch / Month <span className="text-rose-500">*</span>
+                        </label>
+                        <select
+                          id={`${formId}-caInterBatch-no`}
+                          name="caInterBatch"
+                          value={formData.caInterBatch}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFormData(prev => ({
+                              ...prev,
+                              caInterBatch: val,
+                              group1Batch: val,
+                              group2Batch: val,
+                            }));
+                          }}
+                          className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600 font-medium text-slate-800"
+                        >
+                          {CA_INTER_BATCHES.map(b => (
+                            <option key={b} value={b}>{b}</option>
+                          ))}
+                        </select>
                       </div>
 
-                      {/* Group 2 Batch & Attempt */}
-                      <div className="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
-                        <span className="text-xs font-bold text-slate-800 block">Group 2 Credentials</span>
-                        <div>
-                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                            Group 2 Passing Batch / Month <span className="text-rose-500">*</span>
-                          </label>
-                          <select
-                            name="group2Batch"
-                            value={formData.group2Batch}
-                            onChange={handleChange}
-                            className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600"
-                          >
-                            {CA_INTER_BATCHES.map(b => (
-                              <option key={b} value={b}>{b}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                            CA Inter Group 2 Attempt <span className="text-rose-500">*</span>
-                          </label>
-                          <select
-                            name="group2"
-                            value={formData.group2}
-                            onChange={handleChange}
-                            className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600 font-semibold text-slate-800"
-                          >
-                            {ATTEMPT_OPTIONS.map(att => (
-                              <option key={att} value={att}>{att}</option>
-                            ))}
-                          </select>
-                        </div>
+                      {/* CA Inter Attempt */}
+                      <div>
+                        <label htmlFor={`${formId}-group1-no`} className="block text-xs font-semibold text-slate-700 mb-1">
+                          CA Inter Attempt <span className="text-rose-500">*</span>
+                        </label>
+                        <select
+                          id={`${formId}-group1-no`}
+                          name="group1"
+                          value={formData.group1}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFormData(prev => ({
+                              ...prev,
+                              group1: val,
+                              group2: val,
+                            }));
+                          }}
+                          className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600 font-semibold text-slate-800"
+                        >
+                          {ATTEMPT_OPTIONS.map(att => (
+                            <option key={att} value={att}>{att}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* CA Inter Rank */}
+                      <div>
+                        <label htmlFor={`${formId}-caInterRank-no`} className="block text-xs font-semibold text-slate-700 mb-1">
+                          CA Inter Rank
+                        </label>
+                        <select
+                          id={`${formId}-caInterRank-no`}
+                          name="caInterRank"
+                          value={formData.caInterRank || 'No Rank'}
+                          onChange={handleChange}
+                          className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600 font-medium text-slate-800"
+                        >
+                          {CA_INTER_RANK_OPTIONS.map(r => (
+                            <option key={r} value={r}>{r}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                   </div>
