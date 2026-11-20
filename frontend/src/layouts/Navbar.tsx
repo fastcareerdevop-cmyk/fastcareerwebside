@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, LayoutDashboard, LogOut, LogIn, GraduationCap, Sparkles, Building2, UserPlus } from 'lucide-react';
+import { Menu, X, LayoutDashboard, LogOut, LogIn, UserPlus } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
+import toast from 'react-hot-toast';
 import { logout, reset } from '../store/authSlice';
 import type { RootState, AppDispatch } from '../store';
 import { IndustrialTrainingModal } from '../components/IndustrialTrainingModal';
+import { SignUpChoiceModal } from '../components/SignUpChoiceModal';
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [industrialModalOpen, setIndustrialModalOpen] = useState(false);
-  const [showIndustrialPopup, setShowIndustrialPopup] = useState(true);
+  const [signUpModalOpen, setSignUpModalOpen] = useState(false);
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -30,6 +32,17 @@ export const Navbar = () => {
     dispatch(reset());
     navigate('/');
     setMobileMenuOpen(false);
+  };
+
+  const handleDashboardClick = (e: React.MouseEvent) => {
+    if (!user) {
+      e.preventDefault();
+      toast('Please sign in to access your dashboard', {
+        icon: '🔒',
+        duration: 4000,
+      });
+      navigate('/login?redirect=dashboard');
+    }
   };
 
   const navLinks = [
@@ -78,122 +91,73 @@ export const Navbar = () => {
             })}
           </nav>
 
-          {/* Desktop Auth/Actions & Industrial Training Pop-up */}
+          {/* Desktop Auth/Actions: Dashboard, Sign In, Sign Up */}
           <div className="hidden lg:flex items-center space-x-3">
-            
-            {/* Industrial Training Logo & Button with Floating Pop-up Message near Login */}
-            <div className="relative flex items-center gap-2">
-              {showIndustrialPopup && (
-                <div className="absolute -top-12 right-0 z-30 flex items-center">
-                  <div 
-                    onClick={() => setIndustrialModalOpen(true)}
-                    className="cursor-pointer group flex items-center gap-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white text-[11px] font-extrabold px-3.5 py-1.5 rounded-full border border-amber-300 shadow-lg hover:shadow-xl hover:scale-105 transition-all whitespace-nowrap animate-bounce"
-                    title="Click to open CA Industrial Training Form"
-                  >
-                    <span className="flex h-2 w-2 relative">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-80"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                    </span>
-                    <span>If you have or want Industrial Training, please fill this form!</span>
-                    <span className="group-hover:translate-x-0.5 transition-transform">→</span>
-                  </div>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowIndustrialPopup(false);
-                    }}
-                    className="ml-1 text-white/80 hover:text-white bg-slate-900/50 hover:bg-slate-900/80 rounded-full p-1 cursor-pointer transition-colors"
-                    title="Dismiss"
-                    aria-label="Dismiss message"
-                  >
-                    <X size={10} />
-                  </button>
-                  {/* Speech bubble pointer arrow */}
-                  <div className="absolute -bottom-1 right-12 w-2 h-2 bg-amber-600 rotate-45 transform origin-center"></div>
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={() => setIndustrialModalOpen(true)}
-                className="flex items-center gap-1.5 text-slate-800 bg-gradient-to-r from-blue-50 to-indigo-50/80 hover:from-blue-100 hover:to-indigo-100 px-2 py-1 rounded-lg border border-blue-200/90 hover:border-blue-400 transition-all shadow-2xs hover:shadow-xs cursor-pointer group"
-                title="CA Industrial Training Registration Form"
-              >
-                {/* Logo emblem */}
-                <div className="w-5 h-5 rounded-md bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform shrink-0">
-                  <Building2 size={11} className="text-amber-300" />
-                </div>
-                <div className="flex flex-col text-left leading-tight">
-                  <span className="text-[10.5px] font-extrabold text-blue-950 whitespace-nowrap">Industrial Training</span>
-                  <span className="text-[8px] font-bold text-blue-600 flex items-center gap-1">
-                    Fill Form <span className="text-[7px] bg-amber-500 text-white font-black px-1 rounded">HOT</span>
-                  </span>
-                </div>
-              </button>
-
-              <Link
-                to="/login"
-                className="flex items-center gap-1.5 text-slate-800 bg-gradient-to-r from-emerald-50 to-teal-50/80 hover:from-emerald-100 hover:to-teal-100 px-2 py-1 rounded-lg border border-emerald-200/90 hover:border-emerald-400 transition-all shadow-2xs hover:shadow-xs cursor-pointer group"
-                title="Register Candidate - CA Candidates & Students"
-              >
-                <div className="w-5 h-5 rounded-md bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform shrink-0">
-                  <UserPlus size={11} className="text-white" />
-                </div>
-                <div className="flex flex-col text-left leading-tight">
-                  <span className="text-[10.5px] font-extrabold text-emerald-950 whitespace-nowrap">Register Candidate</span>
-                  <span className="text-[8px] font-bold text-emerald-600 flex items-center gap-1">
-                    Fill Form <span className="text-[7px] bg-emerald-600 text-white font-black px-1 rounded">HOT</span>
-                  </span>
-                </div>
-              </Link>
-            </div>
-
             {user ? (
-              <>
+              <div className="flex items-center gap-3">
                 <Link 
-                  to={user.role === 'candidate' ? '/candidate/openings' : `/${user.role}/dashboard`} 
-                  className="flex items-center gap-1.5 text-sm font-bold text-slate-800 hover:text-blue-600 transition-colors px-2 py-1.5"
+                  to={user.role === 'candidate' ? '/candidate/dashboard' : `/${user.role}/dashboard`} 
+                  className="flex items-center gap-1.5 text-sm font-bold text-slate-800 hover:text-blue-600 transition-colors px-3 py-1.5 rounded-xl hover:bg-slate-50"
                 >
                   <LayoutDashboard size={17} className="text-blue-600" />
                   <span>Dashboard</span>
                 </Link>
                 <button 
                   onClick={onLogout}
-                  className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-rose-600 px-3.5 py-1.5 rounded-lg border border-slate-300 hover:border-rose-300 hover:bg-rose-50 transition-all shadow-2xs cursor-pointer"
+                  className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-rose-600 px-3.5 py-1.5 rounded-xl border border-slate-300 hover:border-rose-300 hover:bg-rose-50 transition-all shadow-2xs cursor-pointer"
                 >
                   <LogOut size={14} />
                   <span>Logout</span>
                 </button>
-              </>
+              </div>
             ) : (
-              <>
-                <Link 
-                  to="/login" 
-                  className="flex items-center gap-1.5 text-sm font-bold text-slate-800 hover:text-blue-600 transition-colors px-2 py-1.5"
+              <div className="flex items-center gap-2.5">
+                {/* Dashboard: If logged in opens directly, if not prompts sign in */}
+                <button 
+                  type="button"
+                  onClick={handleDashboardClick}
+                  className="flex items-center gap-1.5 text-sm font-bold text-slate-800 hover:text-blue-600 transition-colors px-3 py-1.5 rounded-xl hover:bg-slate-50 cursor-pointer"
+                  title="Access your dashboard"
                 >
                   <LayoutDashboard size={17} className="text-blue-600" />
                   <span>Dashboard</span>
-                </Link>
+                </button>
+
+                {/* Sign In */}
                 <Link 
                   to="/login"
-                  className="flex items-center gap-1.5 text-xs font-bold text-slate-800 hover:text-blue-700 px-4 py-1.5 rounded-lg border border-slate-300 hover:border-blue-600 hover:bg-slate-50 transition-all shadow-2xs"
+                  className="flex items-center gap-1.5 text-xs font-bold text-slate-800 hover:text-blue-700 px-4 py-2 rounded-xl border border-slate-300 hover:border-blue-500 hover:bg-blue-50/40 transition-all shadow-2xs"
                 >
                   <LogIn size={14} className="text-blue-600" />
-                  <span>Login</span>
+                  <span>Sign In</span>
                 </Link>
-              </>
+
+                {/* Sign Up: Opens choice between Industrial Training & Candidate Registration */}
+                <button
+                  type="button"
+                  onClick={() => setSignUpModalOpen(true)}
+                  className="flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-4 py-2 rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer group"
+                >
+                  <UserPlus size={14} className="text-white" />
+                  <span>Sign Up</span>
+                  <span className="text-[10px] text-blue-200 group-hover:translate-x-0.5 transition-transform">→</span>
+                </button>
+              </div>
             )}
           </div>
 
           {/* Mobile Menu Button */}
           <div className="lg:hidden flex items-center gap-2">
-            <button
-              onClick={() => setIndustrialModalOpen(true)}
-              className="flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200"
-            >
-              <GraduationCap size={13} />
-              <span>Training Form</span>
-            </button>
+            {!user && (
+              <button
+                type="button"
+                onClick={() => setSignUpModalOpen(true)}
+                className="flex items-center gap-1 text-[11px] font-bold text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg shadow-xs cursor-pointer"
+              >
+                <UserPlus size={13} />
+                <span>Sign Up</span>
+              </button>
+            )}
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="text-slate-800 p-1.5 rounded-lg hover:bg-slate-100 transition-colors focus:outline-none"
@@ -210,47 +174,6 @@ export const Navbar = () => {
       {mobileMenuOpen && (
         <div className="lg:hidden bg-white border-t border-slate-200 shadow-xl absolute w-full left-0 top-full flex flex-col px-5 py-5 space-y-3 z-50">
           
-          {/* Mobile Industrial Training Highlight Box */}
-          <button
-            onClick={() => {
-              setMobileMenuOpen(false);
-              setIndustrialModalOpen(true);
-            }}
-            className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 text-blue-900 rounded-xl text-xs font-bold shadow-xs cursor-pointer"
-          >
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center">
-                <GraduationCap size={16} />
-              </div>
-              <div className="text-left">
-                <p className="font-extrabold text-blue-950">Industrial Training Form</p>
-                <p className="text-[10px] text-blue-600 font-medium">Verified Registration for CA Students</p>
-              </div>
-            </div>
-            <span className="bg-amber-400 text-blue-950 font-extrabold text-[10px] px-2 py-0.5 rounded-full uppercase shadow-2xs">
-              Fill Form →
-            </span>
-          </button>
-
-          <Link
-            to="/login"
-            onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center justify-between p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 text-emerald-950 rounded-xl text-xs font-bold shadow-xs cursor-pointer"
-          >
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center">
-                <UserPlus size={16} />
-              </div>
-              <div className="text-left">
-                <p className="font-extrabold text-emerald-950">Register Candidate Form</p>
-                <p className="text-[10px] text-emerald-700 font-medium">Create CA Candidate Profile & Get Hired</p>
-              </div>
-            </div>
-            <span className="bg-emerald-600 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full uppercase shadow-2xs">
-              Fill Form →
-            </span>
-          </Link>
-
           {navLinks.map((link) => {
             const isActive = location.pathname === link.path;
             return (
@@ -266,11 +189,12 @@ export const Navbar = () => {
               </Link>
             );
           })}
+
           <div className="border-t border-slate-200 pt-3 flex flex-col space-y-2">
             {user ? (
               <>
                 <Link 
-                  to={user.role === 'candidate' ? '/candidate/openings' : `/${user.role}/dashboard`} 
+                  to={user.role === 'candidate' ? '/candidate/dashboard' : `/${user.role}/dashboard`} 
                   onClick={() => setMobileMenuOpen(false)} 
                   className="flex items-center justify-center gap-2 text-sm font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl py-2.5"
                 >
@@ -287,19 +211,52 @@ export const Navbar = () => {
               </>
             ) : (
               <>
-                <Link 
-                  to="/login" 
-                  onClick={() => setMobileMenuOpen(false)} 
-                  className="flex items-center justify-center gap-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl py-2.5 shadow-sm"
+                <button 
+                  type="button"
+                  onClick={(e) => {
+                    setMobileMenuOpen(false);
+                    handleDashboardClick(e);
+                  }}
+                  className="flex items-center justify-center gap-2 text-sm font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl py-2.5 cursor-pointer"
                 >
-                  <LogIn size={16} />
-                  <span>Login / Dashboard</span>
-                </Link>
+                  <LayoutDashboard size={16} className="text-blue-600" />
+                  <span>Dashboard</span>
+                </button>
+
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <Link 
+                    to="/login" 
+                    onClick={() => setMobileMenuOpen(false)} 
+                    className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-800 bg-white border border-slate-300 hover:border-blue-500 rounded-xl py-2.5 shadow-2xs"
+                  >
+                    <LogIn size={15} className="text-blue-600" />
+                    <span>Sign In</span>
+                  </Link>
+
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setSignUpModalOpen(true);
+                    }}
+                    className="flex items-center justify-center gap-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl py-2.5 shadow-sm cursor-pointer"
+                  >
+                    <UserPlus size={15} />
+                    <span>Sign Up</span>
+                  </button>
+                </div>
               </>
             )}
           </div>
         </div>
       )}
+
+      {/* Sign Up Choice Modal (Industrial Training vs Register Candidate) */}
+      <SignUpChoiceModal
+        isOpen={signUpModalOpen}
+        onClose={() => setSignUpModalOpen(false)}
+        onSelectIndustrial={() => setIndustrialModalOpen(true)}
+      />
 
       {/* Industrial Training Form Modal */}
       <IndustrialTrainingModal 

@@ -54,6 +54,7 @@ import {
 } from '../../utils/constants';
 import { parseResumeFile } from '../../utils/resumeParser';
 import { CityDropdownInput } from '../../components/CityDropdownInput';
+import { IndustrialTrainingModal } from '../../components/IndustrialTrainingModal';
 
 const GRADUATION_DEGREES = ['B.Com', 'B.Com (Hons)', 'BBA', 'BMS', 'BA', 'B.Sc', 'Other'];
 
@@ -90,6 +91,7 @@ export const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [industrialModalOpen, setIndustrialModalOpen] = useState(false);
 
   // Candidate Specific Fields
   const [phone, setPhone] = useState('');
@@ -1187,6 +1189,33 @@ export const Register = () => {
 
           {/* Role Switcher Tabs */}
           
+              {/* Option to switch to CA Industrial Training */}
+              {role === 'candidate' && (
+                <div className="mb-5 p-3.5 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-300/80 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <GraduationCap size={18} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-900">Looking for CA Industrial Training?</span>
+                        <span className="text-[9px] font-black bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.5 rounded-full uppercase">ICAI Norms</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 mt-0.5">
+                        For CA Inter students wanting 9–18 months training at Big 4s & Top Corporates
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIndustrialModalOpen(true)}
+                    className="shrink-0 px-3.5 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Fill Industrial Training Form</span>
+                    <ArrowRight size={13} />
+                  </button>
+                </div>
+              )}
 
               {/* Resume 1-Click Auto-Fill Scanner Box (Candidate Mode) */}
               {role === 'candidate' && (
@@ -3817,6 +3846,11 @@ export const Register = () => {
           © {new Date().getFullYear()} Fast Careers Inc. Premier Chartered Accountant & Financial Leadership Network. All rights reserved.
         </p>
       </footer>
+      {/* Industrial Training Application Modal */}
+      <IndustrialTrainingModal
+        isOpen={industrialModalOpen}
+        onClose={() => setIndustrialModalOpen(false)}
+      />
     </div>
   );
 };

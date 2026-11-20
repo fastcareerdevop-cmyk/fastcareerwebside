@@ -21,6 +21,7 @@ import {
 import { login, reset } from '../../store/authSlice';
 import type { AppDispatch, RootState } from '../../store';
 import { IndustrialTrainingModal } from '../../components/IndustrialTrainingModal';
+import { SignUpChoiceModal } from '../../components/SignUpChoiceModal';
 import authService from '../../services/authService';
 
 export const Login = () => {
@@ -29,6 +30,7 @@ export const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [industrialModalOpen, setIndustrialModalOpen] = useState(false);
+  const [signUpModalOpen, setSignUpModalOpen] = useState(false);
   const [activeRole, setActiveRole] = useState<'candidate' | 'employer'>('candidate');
   const [formError, setFormError] = useState<string>('');
   const [forgotOpen, setForgotOpen] = useState(false);
@@ -69,7 +71,7 @@ export const Login = () => {
 
     if (isSuccess || user) {
       if (user?.role === 'candidate') {
-        navigate('/candidate/openings');
+        navigate('/candidate/dashboard');
       } else if (user?.role === 'employer') {
         navigate('/employer/dashboard');
       } else if (user?.role === 'admin' || user?.role === 'employee') {
@@ -350,10 +352,14 @@ export const Login = () => {
                   Sign in to your account
                 </h2>
                 <p className="mt-1.5 text-xs sm:text-sm text-slate-500">
-                  Welcome back! Or{' '}
-                  <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-700 hover:underline">
-                    create a new account
-                  </Link>
+                  Welcome back! Don't have an account?{' '}
+                  <button 
+                    type="button" 
+                    onClick={() => setSignUpModalOpen(true)}
+                    className="font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+                  >
+                    Sign Up (Choose Path)
+                  </button>
                 </p>
               </div>
 
@@ -566,6 +572,13 @@ export const Login = () => {
           © {new Date().getFullYear()} Fast Careers Inc. Premier Chartered Accountant & Financial Leadership Network. All rights reserved.
         </p>
       </footer>
+
+      {/* Sign Up Choice Modal */}
+      <SignUpChoiceModal
+        isOpen={signUpModalOpen}
+        onClose={() => setSignUpModalOpen(false)}
+        onSelectIndustrial={() => setIndustrialModalOpen(true)}
+      />
 
       {/* Industrial Training Application Modal */}
       <IndustrialTrainingModal
