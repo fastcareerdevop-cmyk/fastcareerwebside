@@ -1171,13 +1171,13 @@ export const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/25 to-slate-100 flex flex-col justify-between pt-24 pb-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/25 to-slate-100 flex flex-col justify-between pt-20 sm:pt-24 pb-10 px-2 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto w-full pt-2 pb-6">
-        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 p-6 sm:p-9">
+        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 p-3.5 sm:p-9">
           
           {/* Header */}
-          <div className="text-center mb-6">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <div className="text-center mb-5 sm:mb-6">
+            <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               {role === 'candidate' ? 'CA Professional Registration Form' : 'Create Employer Account'}
             </h1>
             <p className="mt-1.5 text-xs sm:text-sm text-slate-500">
@@ -1191,17 +1191,17 @@ export const Register = () => {
           
               {/* Option to switch to CA Industrial Training */}
               {role === 'candidate' && (
-                <div className="mb-5 p-3.5 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-300/80 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                      <GraduationCap size={18} />
+                <div className="mb-4 sm:mb-5 p-3 sm:p-3.5 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-300/80 rounded-xl sm:rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3 shadow-2xs">
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <GraduationCap size={16} />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                         <span className="text-xs font-bold text-slate-900">Looking for CA Industrial Training?</span>
                         <span className="text-[9px] font-black bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.5 rounded-full uppercase">ICAI Norms</span>
                       </div>
-                      <p className="text-[11px] text-slate-600 mt-0.5">
+                      <p className="text-[10.5px] sm:text-[11px] text-slate-600 mt-0.5">
                         For CA Inter students wanting 9–18 months training at Big 4s & Top Corporates
                       </p>
                     </div>
@@ -1209,7 +1209,7 @@ export const Register = () => {
                   <button
                     type="button"
                     onClick={() => setIndustrialModalOpen(true)}
-                    className="shrink-0 px-3.5 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                    className="w-full sm:w-auto justify-center shrink-0 px-3.5 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                   >
                     <span>Fill Industrial Training Form</span>
                     <ArrowRight size={13} />
@@ -1219,13 +1219,13 @@ export const Register = () => {
 
               {/* Resume 1-Click Auto-Fill Scanner Box (Candidate Mode) */}
               {role === 'candidate' && (
-                <div className="mb-5">
+                <div className="mb-4 sm:mb-5">
                   <div
                     onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
                     onDragLeave={() => setIsDragOver(false)}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`relative border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all ${
+                    className={`relative border-2 border-dashed rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center cursor-pointer transition-all ${
                       isScanningResume
                         ? 'border-blue-500 bg-blue-50/60 ring-2 ring-blue-500/20'
                         : isDragOver
@@ -1936,33 +1936,33 @@ export const Register = () => {
                 {role === 'candidate' && (
                   <>
                     {/* Academic Qualifications Card (10th, 12th & Graduation) - Now ABOVE Career Stage */}
-                    <div id="academicQualifications" className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4">
+                    <div id="academicQualifications" className="bg-slate-50/80 border border-slate-200/90 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-3.5 sm:space-y-4">
                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200/80 pb-3 gap-2">
                         <div>
                           <div className="flex items-center gap-2">
-                            <BookOpen className="w-5 h-5 text-blue-600" />
+                            <BookOpen className="w-5 h-5 text-blue-600 shrink-0" />
                             <h3 className="text-sm sm:text-base font-bold text-slate-900">
                               Academic Qualifications (10th, 12th & Graduation) <span className="text-red-500">*</span>
                             </h3>
                           </div>
-                          <p className="text-[11px] text-slate-500 mt-0.5">
+                          <p className="text-[10.5px] sm:text-[11px] text-slate-500 mt-0.5">
                             Auto-filled from resume if present, or enter manually (10th, 12th & Graduation)
                           </p>
                         </div>
                       </div>
 
                       {/* Graduation Card */}
-                      <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-3">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                      <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-100 pb-2.5">
                           <div>
                             <label className="block text-xs font-bold text-slate-800">
                               Graduation Status <span className="text-red-500">*</span>
                             </label>
-                            <p className="text-[11px] text-slate-500">Select whether you have completed, are pursuing, or not pursuing graduation</p>
+                            <p className="text-[10.5px] sm:text-[11px] text-slate-500">Select whether you have completed, are pursuing, or not pursuing graduation</p>
                           </div>
 
                           {/* Graduation Status Toggle Buttons: Completed | Pursuing | Not Pursuing */}
-                          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0">
+                          <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 w-full sm:w-auto mt-1 sm:mt-0">
                             {(['Completed', 'Pursuing', 'Not Pursuing'] as const).map((status) => (
                               <button
                                 key={status}
@@ -1980,7 +1980,7 @@ export const Register = () => {
                                     });
                                   }
                                 }}
-                                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                                className={`px-1.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-bold rounded-lg transition-all cursor-pointer text-center flex items-center justify-center whitespace-nowrap ${
                                   graduationStatus === status
                                     ? status === 'Not Pursuing'
                                       ? 'bg-amber-600 text-white shadow-xs'
@@ -2379,24 +2379,24 @@ export const Register = () => {
                               return copy;
                             });
                           }}
-                          className={`border rounded-2xl p-3.5 cursor-pointer flex items-center justify-between transition-all ${
+                          className={`border rounded-xl sm:rounded-2xl p-3 sm:p-3.5 cursor-pointer flex items-center justify-between transition-all ${
                             workStatus === 'fresher'
                               ? 'border-blue-600 bg-blue-50/40 ring-1 ring-blue-600/30 shadow-xs'
                               : 'border-slate-200 hover:border-slate-300 bg-white'
                           }`}
                         >
-                          <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                            <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 ${
                               workStatus === 'fresher' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'
                             }`}>
-                              <GraduationCap size={18} />
+                              <GraduationCap size={16} />
                             </div>
-                            <div>
-                              <div className="text-xs font-bold text-slate-900">Fresher / Semi-CA</div>
-                              <div className="text-[11px] text-slate-500">Recent pass / Articleship</div>
+                            <div className="min-w-0">
+                              <div className="text-xs font-bold text-slate-900 truncate">Fresher / Semi-CA</div>
+                              <div className="text-[10.5px] sm:text-[11px] text-slate-500 truncate">Recent pass / Articleship</div>
                             </div>
                           </div>
-                          <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-colors ${
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center border shrink-0 transition-colors ${
                             workStatus === 'fresher'
                               ? 'border-blue-600 bg-blue-600 text-white'
                               : 'border-slate-300'
@@ -2428,29 +2428,29 @@ export const Register = () => {
                               return copy;
                             });
                           }}
-                          className={`border rounded-2xl p-3.5 cursor-pointer flex items-center justify-between transition-all ${
+                          className={`border rounded-xl sm:rounded-2xl p-3 sm:p-3.5 cursor-pointer flex items-center justify-between transition-all ${
                             workStatus === 'experienced'
                               ? 'border-blue-600 bg-blue-50/40 ring-1 ring-blue-600/30 shadow-xs'
                               : 'border-slate-200 hover:border-slate-300 bg-white'
                           }`}
                         >
-                          <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                            <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 ${
                               workStatus === 'experienced' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'
                             }`}>
-                              <Briefcase size={18} />
+                              <Briefcase size={16} />
                             </div>
-                            <div>
-                              <div className="flex items-center gap-1.5 flex-wrap">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
                                 <span className="text-xs font-bold text-slate-900">Experienced CA</span>
-                                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
-                                  2+ Years Exp. Required
+                                <span className="text-[9px] sm:text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded shrink-0">
+                                  2+ Years Exp.
                                 </span>
                               </div>
-                              <div className="text-[11px] text-slate-500 mt-0.5">Post-qualification exp.</div>
+                              <div className="text-[10.5px] sm:text-[11px] text-slate-500 mt-0.5 truncate">Post-qualification exp.</div>
                             </div>
                           </div>
-                          <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-colors ${
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center border shrink-0 transition-colors ${
                             workStatus === 'experienced'
                               ? 'border-blue-600 bg-blue-600 text-white'
                               : 'border-slate-300'
@@ -2462,7 +2462,7 @@ export const Register = () => {
 
                       {/* Fresher Articleship Details Form */}
                       {workStatus === 'fresher' && (
-                        <div className="mt-3.5 bg-blue-50/80 border border-blue-200/90 rounded-2xl p-4 sm:p-5 space-y-4 animate-in fade-in duration-200">
+                        <div className="mt-3.5 bg-blue-50/80 border border-blue-200/90 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-3.5 sm:space-y-4 animate-in fade-in duration-200">
                           <div className="flex items-center gap-2 border-b border-blue-200/80 pb-3">
                             <GraduationCap className="w-5 h-5 text-blue-600" />
                             <div>
@@ -2940,7 +2940,7 @@ export const Register = () => {
 
                       {/* Experienced Candidate Mandatory Details */}
                       {workStatus === 'experienced' && (
-                        <div className="mt-3.5 bg-blue-50/80 border border-blue-200/90 rounded-2xl p-4 sm:p-5 space-y-4 animate-in fade-in duration-200">
+                        <div className="mt-3.5 bg-blue-50/80 border border-blue-200/90 rounded-xl sm:rounded-2xl p-3 sm:p-5 space-y-3.5 sm:space-y-4 animate-in fade-in duration-200">
                           <div className="flex items-center gap-2 border-b border-blue-200/80 pb-3">
                             <Briefcase className="w-5 h-5 text-blue-600 shrink-0" />
                             <div className="flex-1">

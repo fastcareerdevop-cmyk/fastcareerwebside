@@ -596,8 +596,8 @@ export const IndustrialTrainingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-50 py-6 sm:py-10 px-2.5 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
 
         {/* Breadcrumb Navigation */}
         <div className="flex items-center gap-2 text-xs text-slate-500">
@@ -607,26 +607,26 @@ export const IndustrialTrainingPage: React.FC = () => {
         </div>
 
         {/* Page Hero Header */}
-        <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 rounded-2xl sm:rounded-3xl p-4 sm:p-8 text-white shadow-xl relative overflow-hidden">
           <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 flex items-center justify-center pointer-events-none">
             <Building2 size={240} />
           </div>
-          <div className="relative z-10 max-w-2xl space-y-3">
-            <div className="inline-flex items-center gap-2 bg-amber-400 text-blue-950 font-extrabold text-[11px] tracking-wide px-3 py-1 rounded-full uppercase shadow-xs">
+          <div className="relative z-10 max-w-2xl space-y-2 sm:space-y-3">
+            <div className="inline-flex items-center gap-2 bg-amber-400 text-blue-950 font-extrabold text-[10px] sm:text-[11px] tracking-wide px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase shadow-xs">
               <ShieldCheck size={14} />
               <span>ICAI Industrial Training Norms</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight">
               CA Industrial Training Application
             </h1>
-            <p className="text-sm text-blue-100 leading-relaxed">
+            <p className="text-xs sm:text-sm text-blue-100 leading-relaxed">
               Fast-track your career with direct interview shortlisting at leading Investment Banks, Big 4s, Management Consultancies & Fortune 500 MNCs.
             </p>
           </div>
         </div>
 
         {/* Main Card */}
-        <div className="bg-white rounded-3xl shadow-md border border-slate-200/80 p-6 sm:p-8">
+        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-md border border-slate-200/80 p-3.5 sm:p-8">
           {submitted ? (
             /* Success State Screen */
             <div className="py-12 text-center space-y-5">

@@ -608,25 +608,25 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2.5 sm:p-4 animate-in fade-in duration-200">
       <div 
-        className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden relative"
+        className="my-auto bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white flex items-center justify-between shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/20">
-              <Building2 className="text-amber-300" size={22} />
+        <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white flex items-center justify-between shadow-xs shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/20 shrink-0">
+              <Building2 className="text-amber-300" size={18} />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg sm:text-xl font-bold tracking-tight">CA Industrial Training Form</h2>
-                <span className="bg-amber-400 text-blue-950 font-extrabold text-[10px] tracking-wide px-2 py-0.5 rounded-full uppercase shadow-2xs">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h2 className="text-base sm:text-xl font-bold tracking-tight">CA Industrial Training Form</h2>
+                <span className="bg-amber-400 text-blue-950 font-extrabold text-[9px] sm:text-[10px] tracking-wide px-1.5 sm:px-2 py-0.5 rounded-full uppercase shadow-2xs">
                   ICAI NORMS
                 </span>
               </div>
-              <p className="text-xs text-blue-100 font-medium">
+              <p className="hidden sm:block text-xs text-blue-100 font-medium">
                 Verified candidate registration for top MNCs, Investment Banks & Big 4s
               </p>
             </div>
@@ -634,14 +634,14 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer border border-white/10"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer border border-white/10 shrink-0"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="overflow-y-auto p-5 sm:p-6 space-y-6">
+        <div className="overflow-y-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6 flex-1">
           {submitted ? (
             /* Success State Screen */
             <div className="py-10 text-center space-y-4">
