@@ -58,8 +58,12 @@ export const Navbar = () => {
         <div className="flex justify-between items-center h-12">
           
           {/* Logo */}
-          <Link to="/" className="flex items-center">
-            <img src="/logo.png" alt="FAST CAREERS" className="h-10 sm:h-12 w-auto object-contain" />
+          <Link to="/" className="flex items-center gap-2.5">
+            <img src="/fast_logo_new.png" alt="FAST CAREERS" className="h-10 sm:h-11 w-auto object-contain" />
+            <div className="flex flex-col leading-tight">
+              <span className="text-[17px] sm:text-[19px] font-black text-[#1a3a5c] tracking-tight">FAST <span className="text-blue-600">CAREERS</span></span>
+              <span className="text-[9px] sm:text-[10px] font-semibold text-slate-500 tracking-widest uppercase">Since 2008</span>
+            </div>
           </Link>
 
           {/* Desktop Navigation Links */}
