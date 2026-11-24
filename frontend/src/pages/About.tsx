@@ -112,11 +112,11 @@ export const About = () => {
               </div>
               <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-xs">
                 <div className="text-2xl font-black text-blue-700">60+</div>
-                <div className="text-xs text-slate-600 font-bold">Top Corporates</div>
+                <div className="text-xs text-slate-600 font-bold">Recruiting Corporates</div>
               </div>
               <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-xs">
-                <div className="text-2xl font-black text-blue-700">10+</div>
-                <div className="text-xs text-slate-600 font-bold">Campus Cities</div>
+                <div className="text-2xl font-black text-blue-700">9 Cities</div>
+                <div className="text-xs text-slate-600 font-bold">Presence</div>
               </div>
             </div>
           </div>

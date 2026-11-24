@@ -90,7 +90,7 @@ export const TrustStats = () => {
             index={0}
           />
           <StatItem 
-            label="Top Corporates" 
+            label="Recruiting Corporates" 
             subtext="India's premier recruiters" 
             value={60} 
             suffix="+" 
@@ -104,8 +104,8 @@ export const TrustStats = () => {
             index={2}
           />
           <StatItem 
-            label="Campus Cities" 
-            subtext="Physical Drives & Virtual" 
+            label="Presence" 
+            subtext="Face 2 Face Drives" 
             value={9} 
             suffix=" Cities" 
             index={3}
