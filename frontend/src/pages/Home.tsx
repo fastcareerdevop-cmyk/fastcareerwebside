@@ -2,7 +2,6 @@ import React from 'react';
 import { Hero } from './home/Hero';
 import { TrustStats } from './home/TrustStats';
 import { ServicesSection } from './home/ServicesSection';
-import { JourneyTimelineSection } from './home/JourneyTimelineSection';
 import { ExpertiseSection } from './home/ExpertiseSection';
 import { ProcessSection } from './home/ProcessSection';
 import { CandidateSection } from './home/CandidateSection';
@@ -21,7 +20,6 @@ export const Home = () => {
       <TrustStats />
 
       {/* 3. In-Depth Service Offerings */}
-      <JourneyTimelineSection />
       <ServicesSection />
       <ExpertiseSection />
       <ProcessSection />

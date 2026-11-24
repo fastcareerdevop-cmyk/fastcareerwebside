@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Target, Eye, Shield, Users, Download, FileText, Sparkles, Building2, CheckCircle2, ArrowRight, Award, MapPin } from 'lucide-react';
 import { RecruiterMarquee } from '../components/RecruiterMarquee';
+import { JourneyTimelineSection } from './home/JourneyTimelineSection';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
 
@@ -164,6 +165,9 @@ export const About = () => {
           </div>
         </div>
       </section>
+
+      {/* Our Journey & Pan-India Footprint Timeline */}
+      <JourneyTimelineSection />
 
       {/* Core Values */}
       <section className="py-20 px-4 bg-slate-50">
