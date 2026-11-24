@@ -118,7 +118,7 @@ export const Hero = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [itModalOpen, setItModalOpen] = useState(false);
 
-  const SLIDE_COUNT = 3;
+  const SLIDE_COUNT = 4;
   const AUTO_INTERVAL = 4500; // 4.5 seconds per slide
 
   const goTo = (idx: number) => {
@@ -462,13 +462,110 @@ export const Hero = () => {
     </div>
   );
 
-  const slides = [<Slide1 key="s1" />, <Slide2 key="s2" />, <Slide3 key="s3" />];
+  // ─── SLIDE 4: Bridging the Gap Between CA Talent & Top Opportunities ───────
+  const Slide4 = () => (
+    <div className="grid lg:grid-cols-12 gap-6 lg:gap-4 items-center">
+      {/* Left: Text & CTAs */}
+      <div className="lg:col-span-5 text-left z-10 py-4 pl-4 sm:pl-6 lg:pl-2">
+        <motion.div
+          initial={{ opacity: 0, y: -15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="inline-flex items-center gap-2 bg-[#e0f2fe] border border-[#bae6fd] px-3.5 py-1.5 rounded-full mb-3.5 shadow-2xs w-fit hover:scale-105 transition-transform"
+        >
+          <Briefcase size={14} className="text-[#0284c7] shrink-0" />
+          <span className="text-[11px] font-black text-[#0369a1] tracking-wider uppercase">
+            BRIDGING THE GAP • SINCE 2008
+          </span>
+        </motion.div>
+
+        <motion.h1
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="text-3xl sm:text-4xl lg:text-[38px] xl:text-[42px] font-black text-[#0b192c] leading-[1.14] tracking-tight mb-3.5"
+        >
+          Bridging the Gap <br />
+          Between <span className="text-blue-700">CA Talent</span> &amp; <br />
+          Top Opportunities
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="text-xs sm:text-sm text-slate-600 mb-5 max-w-md leading-relaxed font-medium"
+        >
+          Connecting ambitious Chartered Accountants, fresh qualifieds, and finance leaders directly with India's leading 60+ corporates, Big 4 advisory firms, and global multinationals.
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
+        >
+          <Link to="/register" className="shrink-0">
+            <motion.button
+              whileHover={{ scale: 1.03, y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              className="w-full sm:w-auto px-5 py-3.5 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-xs sm:text-sm whitespace-nowrap hover:shadow-lg"
+            >
+              <User size={16} className="shrink-0" />
+              <span>Register as Candidate</span>
+              <ArrowRight size={15} className="shrink-0" />
+            </motion.button>
+          </Link>
+
+          <Link to="/placement-drive" className="shrink-0">
+            <motion.button
+              whileHover={{ scale: 1.03, y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              className="w-full sm:w-auto px-5 py-3.5 bg-white hover:bg-slate-50 text-[#0b192c] border-2 border-[#bae6fd] hover:border-blue-600 font-bold rounded-xl shadow-2xs transition-all flex items-center justify-center gap-2 text-xs sm:text-sm whitespace-nowrap hover:shadow-md"
+            >
+              <Building2 size={16} className="text-blue-700 shrink-0" />
+              <span>Hire Top CAs</span>
+            </motion.button>
+          </Link>
+        </motion.div>
+      </div>
+
+      {/* Center: Bridging the Gap Image */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ opacity: { duration: 0.5, delay: 0.15 }, scale: { duration: 0.5, delay: 0.15 } }}
+        className="lg:col-span-4 flex items-center justify-center relative py-1"
+      >
+        <div className="w-full max-w-[360px] h-[340px] sm:h-[370px] lg:h-[390px] rounded-2xl overflow-hidden shadow-lg border border-slate-200/80 bg-slate-950 flex items-center justify-center">
+          <img
+            src="/bridging_the_gap.jpg"
+            alt="Bridging the Gap Between CA Talent & Top Opportunities - Fast Careers"
+            className="w-full h-full object-cover object-center pointer-events-none select-none rounded-2xl"
+          />
+        </div>
+      </motion.div>
+
+      {/* Right: Milestone Card */}
+      <motion.div
+        initial={{ opacity: 0, x: 30 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6, delay: 0.25 }}
+        className="lg:col-span-3 z-10 py-2"
+      >
+        <MilestoneCard />
+      </motion.div>
+    </div>
+  );
+
+  const slides = [<Slide1 key="s1" />, <Slide2 key="s2" />, <Slide3 key="s3" />, <Slide4 key="s4" />];
 
   // Background glow colors per slide
   const glowColors = [
     'bg-blue-100/40',    // Slide 1 – blue
     'bg-orange-100/40',  // Slide 2 – orange
     'bg-green-100/40',   // Slide 3 – green
+    'bg-sky-100/40',     // Slide 4 – sky blue
   ];
 
   return (
