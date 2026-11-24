@@ -153,7 +153,7 @@ export const ExpertiseSection = () => {
         </div>
       </section>
 
-      {/* 2. Major Physical Campus Venues across 8+ Cities */}
+      {/* 2. Major Physical Campus Venues across 9 Cities */}
       <section className="py-8 sm:py-10 bg-gradient-to-b from-[#EDF5FF]/70 via-[#F8FAFC] to-white relative overflow-hidden">
         
         {/* Subtle background ambient glow */}
@@ -182,7 +182,7 @@ export const ExpertiseSection = () => {
               {/* Title */}
               <h2 className="text-2xl sm:text-3xl lg:text-[36px] font-extrabold text-[#0F172A] tracking-tight leading-[1.2] mb-3">
                 Conducted at the Best Venues <br className="hidden sm:inline" />
-                across <span className="text-[#2563EB]">8+ Cities</span>
+                across <span className="text-[#2563EB]">9 Cities</span>
               </h2>
 
               {/* Subtitle */}
@@ -206,7 +206,7 @@ export const ExpertiseSection = () => {
                   <div className="bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-full border border-blue-200/80 shadow-xs flex items-center gap-1.5 pointer-events-auto">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
                     <span className="w-2 h-2 rounded-full bg-emerald-500 -ml-3.5" />
-                    <span className="text-[10px] font-black text-slate-900">8+ Active Venues</span>
+                    <span className="text-[10px] font-black text-slate-900">9 Active Venues</span>
                   </div>
 
                   <a
@@ -223,7 +223,7 @@ export const ExpertiseSection = () => {
                 {/* Real Interactive Google Map Container */}
                 <div className="relative w-full h-full rounded-xl overflow-hidden border border-slate-200/80 bg-[#E8F0F8]">
                   <iframe
-                    title="FAST Careers 8+ Campus Cities Map"
+                    title="FAST Careers 9 Campus Cities Map"
                     src="https://maps.google.com/maps?q=India&t=&z=5&ie=UTF8&iwloc=&output=embed"
                     className="w-full h-full border-0 filter saturate-[0.9] contrast-[1.05]"
                     loading="lazy"
@@ -332,7 +332,7 @@ export const ExpertiseSection = () => {
                 </div>
                 <div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-lg sm:text-xl font-extrabold text-[#0F172A]">8+</span>
+                    <span className="text-lg sm:text-xl font-extrabold text-[#0F172A]">9</span>
                     <span className="text-xs sm:text-sm font-bold text-[#0F172A]">Cities</span>
                   </div>
                   <p className="text-[11px] text-slate-500 font-normal">

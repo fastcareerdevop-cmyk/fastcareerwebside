@@ -146,7 +146,7 @@ export const Contact = () => {
                   <div>
                     <h4 className="text-sm font-bold text-slate-900 mb-0.5">Support Timings</h4>
                     <p className="text-gray-700 font-medium text-xs sm:text-sm">Monday to Saturday: 9:30 AM - 7:00 PM (IST)</p>
-                    <p className="text-slate-500 text-xs mt-0.5">FAST CA Campus Drives across 8+ Major Metro Venues & Virtual</p>
+                    <p className="text-slate-500 text-xs mt-0.5">FAST CA Campus Drives across 9 Major Metro Venues & Virtual</p>
                   </div>
                 </div>
               </div>
