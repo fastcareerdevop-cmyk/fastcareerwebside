@@ -233,38 +233,6 @@ export const Contact = () => {
           </div>
         </div>
 
-        {/* Interactive Google Map Section */}
-        <div className="mt-12 sm:mt-16 bg-white rounded-3xl p-5 sm:p-7 border-2 border-slate-200/90 shadow-md">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-slate-100">
-            <div>
-              <div className="flex items-center gap-2">
-                <MapPin className="text-blue-600 animate-bounce" size={20} />
-                <h3 className="text-lg sm:text-xl font-black text-slate-900">
-                  FAST Careers Corporate Headquarters & Pan-India Venues
-                </h3>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-                Headquartered in Indore with physical campus recruitment centers in 9+ major metro hubs.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-blue-700 bg-blue-50 px-3.5 py-1 rounded-full border border-blue-200">
-                10+ Physical Hubs & Virtual
-              </span>
-            </div>
-          </div>
-
-          <div className="w-full h-80 sm:h-96 rounded-2xl overflow-hidden border border-slate-200 shadow-inner relative">
-            <iframe
-              title="FAST Careers Office Location Map"
-              src="https://maps.google.com/maps?q=Indore,Madhya%20Pradesh,India&t=&z=13&ie=UTF8&iwloc=&output=embed"
-              className="w-full h-full border-0"
-              loading="lazy"
-              allowFullScreen
-            />
-          </div>
-        </div>
-
       </div>
       </section>
 

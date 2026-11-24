@@ -126,66 +126,7 @@ export const CTASection = () => {
         {/* 2. Middle Section: Two Executive Leadership Cards */}
         <ExecutiveLeadershipCards className="mb-8 sm:mb-10" />
 
-        {/* 3. Bottom Section: Interactive Map Card (FAST Careers Head Office - Indore) */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] mb-8 sm:mb-10"
-        >
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-4">
-            <div className="flex items-center gap-2">
-              <MapPin size={18} className="text-[#2563EB] fill-[#2563EB]" />
-              <div>
-                <h4 className="text-sm sm:text-base font-extrabold text-[#0F172A]">
-                  FAST Careers Corporate Headquarters
-                </h4>
-                <p className="text-xs text-slate-500 font-normal">
-                  Opposite Jain Mandir, Geeta Bhawan Square, Indore, Madhya Pradesh
-                </p>
-              </div>
-            </div>
-
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#EBF3FE] text-[#1E40AF] text-xs font-bold self-start sm:self-auto border border-blue-100 shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Head Office • Indore (M.P.)</span>
-            </div>
-          </div>
-
-          {/* Interactive Map Visual with Exact Location */}
-          <div className="relative w-full h-64 sm:h-72 rounded-2xl overflow-hidden border border-slate-200/80 bg-[#E8F0F8]">
-            
-            {/* Embedded Responsive Google Map Centered on Geeta Bhawan, Indore */}
-            <iframe
-              title="FAST Careers Head Office - Opposite Jain Mandir Geeta Bhawan Indore"
-              src="https://maps.google.com/maps?q=FAST+Education+Opposite+Jain+Mandir+Geeta+Bhawan+Indore&t=&z=16&ie=UTF8&iwloc=&output=embed"
-              className="w-full h-full border-0 filter saturate-[0.95] contrast-[1.05]"
-              loading="lazy"
-              allowFullScreen
-            />
-
-            {/* Floating Top-Left: "Open in Maps ↗" Floating Button */}
-            <a 
-              href="https://www.google.com/maps/search/?api=1&query=FAST+Education+Opposite+Jain+Mandir+Geeta+Bhawan+Indore" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="absolute top-3.5 left-3.5 z-20 px-3.5 py-1.5 bg-white/95 backdrop-blur-md hover:bg-blue-600 hover:text-white text-[#0F172A] border border-slate-200/90 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all hover:scale-105 group"
-            >
-              <span>Open in Google Maps</span>
-              <ExternalLink size={13} className="text-[#2563EB] group-hover:text-white transition-colors" />
-            </a>
-
-            {/* Exact Location Tag Overlay in Map */}
-            <div className="absolute bottom-3 left-3 z-20 pointer-events-none hidden sm:flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-200/90 shadow-sm text-xs font-bold text-slate-800">
-              <MapPin size={13} className="text-red-600 fill-red-600" />
-              <span>FAST Careers, Opp. Jain Mandir, Geeta Bhawan, Indore</span>
-            </div>
-
-          </div>
-        </motion.div>
-
-        {/* 4. Bottom Centered CTA Buttons */}
+        {/* 3. Bottom Centered CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 text-center">
           <Link to="/register">
             <motion.button 

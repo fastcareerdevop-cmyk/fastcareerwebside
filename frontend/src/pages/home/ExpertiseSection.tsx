@@ -162,16 +162,13 @@ export const ExpertiseSection = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           
-          {/* Top Split Section: Left Info & Right India Map Graphic */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center mb-6 sm:mb-8">
-            
-            {/* Left Header Content */}
+          {/* Top Section: Header Content */}
+          <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-8">
             <motion.div 
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="lg:col-span-6 text-left"
             >
               {/* Badge */}
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EBF3FE] text-[#1E40AF] text-xs font-bold mb-3 shadow-xs border border-blue-200/60">
@@ -181,138 +178,14 @@ export const ExpertiseSection = () => {
 
               {/* Title */}
               <h2 className="text-2xl sm:text-3xl lg:text-[36px] font-extrabold text-[#0F172A] tracking-tight leading-[1.2] mb-3">
-                Conducted at the Best Venues <br className="hidden sm:inline" />
-                across <span className="text-[#2563EB]">9 Cities</span>
+                Conducted at the Best Venues across <span className="text-[#2563EB]">9 Cities</span>
               </h2>
 
               {/* Subtitle */}
-              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-xl font-normal">
+              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-xl mx-auto font-normal">
                 FAST Careers conducts physical and virtual recruitment drives for leading corporates of India, packed with premier talent.
               </p>
             </motion.div>
-
-            {/* Right India Map: Interactive Real Map with Highlighted Campus Cities */}
-            <motion.div 
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              className="lg:col-span-6 w-full relative"
-            >
-              <div className="relative w-full h-[280px] sm:h-[310px] bg-white rounded-2xl p-2.5 border border-blue-100/90 shadow-[0_4px_20px_rgba(37,99,235,0.06)] overflow-hidden flex flex-col justify-between">
-                
-                {/* Map Header Overlay */}
-                <div className="absolute top-3 right-3 z-20 flex items-center gap-2 pointer-events-none">
-                  <div className="bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-full border border-blue-200/80 shadow-xs flex items-center gap-1.5 pointer-events-auto">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 -ml-3.5" />
-                    <span className="text-[10px] font-black text-slate-900">9 Active Venues</span>
-                  </div>
-
-                  <a
-                    href="https://maps.google.com/?q=India"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-white/95 backdrop-blur-md hover:bg-blue-600 hover:text-white px-2.5 py-1 rounded-full border border-blue-200 text-[#2563EB] text-[10px] font-bold shadow-xs transition-colors pointer-events-auto flex items-center gap-1"
-                  >
-                    <span>Open Map</span>
-                    <Navigation size={9} className="rotate-45" />
-                  </a>
-                </div>
-
-                {/* Real Interactive Google Map Container */}
-                <div className="relative w-full h-full rounded-xl overflow-hidden border border-slate-200/80 bg-[#E8F0F8]">
-                  <iframe
-                    title="FAST Careers 9 Campus Cities Map"
-                    src="https://maps.google.com/maps?q=India&t=&z=5&ie=UTF8&iwloc=&output=embed"
-                    className="w-full h-full border-0 filter saturate-[0.9] contrast-[1.05]"
-                    loading="lazy"
-                    allowFullScreen
-                  />
-
-                  {/* Highlighted Campus Drive City Pins Overlay */}
-                  <div className="absolute inset-0 pointer-events-none">
-                    
-                    {/* Delhi NCR */}
-                    <div className="absolute top-[24%] left-[45%] flex flex-col items-center group pointer-events-auto cursor-pointer">
-                      <div className="px-1.5 py-0.5 bg-blue-600 text-white rounded text-[8px] font-black shadow-md border border-white whitespace-nowrap animate-bounce">
-                        Delhi NCR
-                      </div>
-                      <div className="w-2 h-2 bg-blue-600 rounded-full border-2 border-white shadow-xs -mt-0.5" />
-                    </div>
-
-                    {/* Ahmedabad */}
-                    <div className="absolute top-[44%] left-[26%] flex flex-col items-center group pointer-events-auto cursor-pointer">
-                      <div className="px-1 py-0.5 bg-indigo-700 text-white rounded text-[7.5px] font-bold shadow-md border border-white whitespace-nowrap">
-                        Ahmedabad
-                      </div>
-                      <div className="w-1.5 h-1.5 bg-indigo-700 rounded-full border border-white shadow-xs" />
-                    </div>
-
-                    {/* Mumbai */}
-                    <div className="absolute top-[56%] left-[30%] flex flex-col items-center group pointer-events-auto cursor-pointer">
-                      <div className="px-1.5 py-0.5 bg-blue-600 text-white rounded text-[8px] font-black shadow-md border border-white whitespace-nowrap animate-pulse">
-                        Mumbai ★
-                      </div>
-                      <div className="w-2 h-2 bg-blue-600 rounded-full border-2 border-white shadow-xs -mt-0.5" />
-                    </div>
-
-                    {/* Pune */}
-                    <div className="absolute top-[63%] left-[36%] flex flex-col items-center group pointer-events-auto cursor-pointer">
-                      <div className="px-1 py-0.5 bg-slate-900 text-white rounded text-[7.5px] font-bold shadow-md border border-white whitespace-nowrap">
-                        Pune
-                      </div>
-                      <div className="w-1.5 h-1.5 bg-slate-900 rounded-full border border-white shadow-xs" />
-                    </div>
-
-                    {/* Kolkata */}
-                    <div className="absolute top-[43%] left-[76%] flex flex-col items-center group pointer-events-auto cursor-pointer">
-                      <div className="px-1.5 py-0.5 bg-blue-600 text-white rounded text-[8px] font-black shadow-md border border-white whitespace-nowrap animate-bounce">
-                        Kolkata
-                      </div>
-                      <div className="w-2 h-2 bg-blue-600 rounded-full border-2 border-white shadow-xs -mt-0.5" />
-                    </div>
-
-                    {/* Hyderabad */}
-                    <div className="absolute top-[59%] left-[48%] flex flex-col items-center group pointer-events-auto cursor-pointer">
-                      <div className="px-1 py-0.5 bg-indigo-700 text-white rounded text-[7.5px] font-bold shadow-md border border-white whitespace-nowrap">
-                        Hyderabad
-                      </div>
-                      <div className="w-1.5 h-1.5 bg-indigo-700 rounded-full border border-white shadow-xs" />
-                    </div>
-
-                    {/* Bengaluru */}
-                    <div className="absolute top-[74%] left-[43%] flex flex-col items-center group pointer-events-auto cursor-pointer">
-                      <div className="px-1.5 py-0.5 bg-blue-600 text-white rounded text-[8px] font-black shadow-md border border-white whitespace-nowrap animate-pulse">
-                        Bengaluru ⚡
-                      </div>
-                      <div className="w-2 h-2 bg-blue-600 rounded-full border-2 border-white shadow-xs -mt-0.5" />
-                    </div>
-
-                    {/* Chennai */}
-                    <div className="absolute top-[78%] left-[54%] flex flex-col items-center group pointer-events-auto cursor-pointer">
-                      <div className="px-1 py-0.5 bg-indigo-700 text-white rounded text-[7.5px] font-bold shadow-md border border-white whitespace-nowrap">
-                        Chennai
-                      </div>
-                      <div className="w-1.5 h-1.5 bg-indigo-700 rounded-full border border-white shadow-xs" />
-                    </div>
-
-                  </div>
-
-                </div>
-
-                {/* Bottom Bar: Quick Cities Ticker */}
-                <div className="mt-1.5 px-0.5 flex items-center justify-between text-[9.5px] font-bold text-slate-500">
-                  <span className="flex items-center gap-1 text-[#2563EB]">
-                    <MapPin size={10} className="fill-current" />
-                    <span>Physical Drives: Mumbai • Delhi • Bengaluru • Kolkata • Pune • Hyderabad</span>
-                  </span>
-                  <span className="text-slate-400 hidden sm:inline">+2 more</span>
-                </div>
-
-              </div>
-            </motion.div>
-
           </div>
 
           {/* Unified Metrics Bar Card */}
