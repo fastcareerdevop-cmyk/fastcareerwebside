@@ -2,20 +2,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { 
-  Phone, 
-  Mail, 
-  Globe, 
-  MapPin, 
   ArrowRight, 
   Building2, 
-  UserPlus, 
-  MessageCircle, 
-  Briefcase,
-  ExternalLink,
-  Plus,
-  Minus,
-  Crosshair,
-  TrendingUp
+  UserPlus
 } from 'lucide-react';
 import { ExecutiveLeadershipCards } from '../../components/ExecutiveLeadershipCards';
 
@@ -29,104 +18,10 @@ export const CTASection = () => {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* 1. Top Section: Split Layout (Left Content & Right Corporate Team Graphic) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center mb-10 sm:mb-12">
-          
-          {/* Left Column: Heading, Subtitle & Fast Registration Buttons */}
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4 }}
-            className="lg:col-span-7 text-left"
-          >
-            {/* Pill Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#EBF3FE] text-[#1E40AF] text-xs sm:text-sm font-bold mb-4 border border-blue-200/70 shadow-xs">
-              <Phone size={13} className="text-[#2563EB] fill-[#2563EB]" />
-              <span>We Are Just A Call Away</span>
-            </div>
-
-            {/* Main Headline */}
-            <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-black text-[#0F172A] tracking-tight leading-[1.18] mb-4">
-              Ready to Partner with <br />
-              <span className="text-[#2563EB]">India’s Largest CA Placement <br className="hidden sm:inline" />Company?</span>
-            </h2>
-
-            {/* Description Subtitle */}
-            <p className="text-slate-600 text-sm sm:text-base leading-relaxed max-w-xl font-normal mb-6">
-              Whether you want to recruit premium CA talent for your organization or register for the upcoming FAST CA Campus Drive — get in touch with our leadership directly.
-            </p>
-
-            {/* Top Quick Action Buttons */}
-            <div className="flex flex-wrap items-center gap-3">
-              <Link to="/register">
-                <motion.button 
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="px-5 py-2.5 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded-full shadow-md shadow-blue-600/20 text-xs sm:text-sm flex items-center gap-2 transition-all"
-                >
-                  <UserPlus size={15} />
-                  <span>Register as CA Candidate</span>
-                  <ArrowRight size={14} />
-                </motion.button>
-              </Link>
-              <Link to="/placement-drive">
-                <motion.button 
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="px-5 py-2.5 bg-white hover:bg-slate-50 text-[#2563EB] border border-[#2563EB] font-bold rounded-full shadow-xs text-xs sm:text-sm flex items-center gap-2 transition-all"
-                >
-                  <Building2 size={15} className="text-[#2563EB]" />
-                  <span>Corporate Recruitment Registration</span>
-                </motion.button>
-              </Link>
-            </div>
-          </motion.div>
-
-          {/* Right Column: Corporate Professionals Graphic & Skyline */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.45 }}
-            className="lg:col-span-5 flex justify-center lg:justify-end relative"
-          >
-            <div className="relative w-full max-w-[480px] sm:max-w-[520px] h-[320px] sm:h-[360px] flex items-center justify-center p-2">
-              
-              {/* Background Skyline Silhouette & Gradient Orb */}
-              <div className="absolute inset-0 bg-gradient-to-t from-blue-100/80 via-sky-50/60 to-transparent rounded-3xl" />
-              
-              {/* Abstract Skyline Buildings Outline */}
-              <svg viewBox="0 0 300 200" className="absolute bottom-0 w-full text-blue-200/60 fill-current opacity-60">
-                <rect x="20" y="70" width="35" height="130" rx="3" />
-                <rect x="60" y="40" width="45" height="160" rx="3" />
-                <rect x="110" y="80" width="30" height="120" rx="3" />
-                <rect x="145" y="20" width="55" height="180" rx="4" />
-                <rect x="205" y="60" width="40" height="140" rx="3" />
-                <rect x="250" y="90" width="35" height="110" rx="3" />
-              </svg>
-
-              {/* Upward Growth Arrow in background */}
-              <div className="absolute top-4 right-6 text-blue-400/40 rotate-12">
-                <TrendingUp size={90} strokeWidth={2.5} />
-              </div>
-
-              {/* Real FAST Careers Team Photo Cutout */}
-              <img 
-                src="/team_photos/team_photo_9.jpg" 
-                alt="FAST Careers Executive Team" 
-                className="relative z-10 w-full max-w-[440px] sm:max-w-[480px] h-60 sm:h-72 object-cover rounded-2xl shadow-xl border-4 border-white transition-all hover:scale-[1.01]"
-              />
-
-            </div>
-          </motion.div>
-
-        </div>
-
-        {/* 2. Middle Section: Two Executive Leadership Cards */}
+        {/* Executive Leadership Cards */}
         <ExecutiveLeadershipCards className="mb-8 sm:mb-10" />
 
-        {/* 3. Bottom Centered CTA Buttons */}
+        {/* Bottom Centered CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 text-center">
           <Link to="/register">
             <motion.button 
@@ -151,9 +46,7 @@ export const CTASection = () => {
           </Link>
         </div>
 
-
       </div>
     </section>
   );
 };
-
