@@ -1,30 +1,27 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Building2, CheckCircle2, ArrowRight, ShieldCheck, Users, Sparkles, PhoneCall, Award, FileCheck2 } from 'lucide-react';
+import { Building2, CheckCircle2, ArrowRight, ShieldCheck, Users, PhoneCall, Award } from 'lucide-react';
 
-const employerBenefits = [
+const corporateReasons = [
   {
-    title: 'Pre-Screened Talent Only',
-    desc: 'Candidates verified by experienced HR recruiters on audit exposure, attempts & technical fitment.',
-    icon: ShieldCheck,
-    tag: 'Verified CAs'
+    step: '01',
+    title: 'Largest CA Pool in India',
+    desc: 'Access 125,000+ registered Chartered Accountants, including All India Rankers (AIRs) and 5,000+ fresh candidates enrolling post-ICAI results.',
+    icon: Users,
+    tag: '125K+ CAs'
   },
   {
-    title: 'Shortlisting & Campus Day Support',
-    desc: 'Excel shortlists and complete resume dossiers prepared according to your precise corporate criteria.',
-    icon: FileCheck2,
+    step: '02',
+    title: 'Pre-Screened Talent & Shortlisting Support',
+    desc: 'Candidates verified on attempt count, articleship exposure, and technical fitment. Custom Excel shortlists and dossiers delivered for your exact JD.',
+    icon: ShieldCheck,
     tag: 'Zero Hassle'
   },
   {
-    title: 'Pan-India 10+ City Infrastructure',
-    desc: 'Conducted at premium hotel venues or seamlessly coordinated virtually & blended mode.',
-    icon: Building2,
-    tag: 'Pan-India'
-  },
-  {
-    title: 'Competitive Commercials',
-    desc: 'Cost-effective campus & lateral models with complete operational clarity and dedicated account managers.',
+    step: '03',
+    title: '100% Finance Focus & Best ROI Commercials',
+    desc: 'Exclusively dedicated to CA & finance recruitments with cost-effective campus & lateral models, transparent terms, and dedicated account support.',
     icon: Award,
     tag: 'Best ROI'
   }
@@ -32,34 +29,36 @@ const employerBenefits = [
 
 export const EmployerSection = () => {
   return (
-    <section className="py-10 sm:py-12 bg-white border-b border-slate-200 relative overflow-hidden" id="employers">
+    <section className="py-10 sm:py-14 bg-white border-b border-slate-200 relative overflow-hidden" id="employers">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid lg:grid-cols-12 gap-12 items-center">
+        <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           
-          {/* Left Cards Grid */}
-          <div className="lg:col-span-6 grid sm:grid-cols-2 gap-4 sm:gap-5 order-2 lg:order-1">
-            {employerBenefits.map((item, i) => {
+          {/* Left: 3 Reasons Cards */}
+          <div className="lg:col-span-6 space-y-4 order-2 lg:order-1">
+            {corporateReasons.map((item, i) => {
               return (
                 <motion.div 
                   key={i} 
-                  initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-20px" }}
-                  transition={{ duration: 0.28, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
-                  whileHover={{ y: -5, scale: 1.02 }}
-                  className="bg-slate-50 hover:bg-white border-2 border-slate-200/80 hover:border-blue-400 p-6 rounded-2xl sm:rounded-3xl shadow-xs hover:shadow-xl transition-all duration-200 flex flex-col justify-between group cursor-pointer relative overflow-hidden"
+                  transition={{ duration: 0.28, delay: i * 0.08, ease: "easeOut" }}
+                  whileHover={{ y: -3, scale: 1.01 }}
+                  className="bg-slate-50 hover:bg-white border-2 border-slate-200/80 hover:border-blue-400 p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xs hover:shadow-lg transition-all duration-200 flex items-start gap-4 group cursor-pointer relative overflow-hidden"
                 >
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 group-hover:bg-blue-700 group-hover:text-white flex items-center justify-center transition-all shadow-xs group-hover:scale-110">
-                        <item.icon size={24} />
-                      </div>
-                      <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-slate-200/80 text-slate-700 group-hover:bg-blue-50 group-hover:text-blue-800 transition-colors">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 group-hover:bg-blue-700 group-hover:text-white flex items-center justify-center shrink-0 transition-all shadow-xs group-hover:scale-105">
+                    <item.icon size={22} />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[11px] font-black text-blue-700 uppercase tracking-wider">
+                        Reason {item.step}
+                      </span>
+                      <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-slate-200/80 text-slate-700 group-hover:bg-blue-50 group-hover:text-blue-800 transition-colors">
                         {item.tag}
                       </span>
                     </div>
-                    <h4 className="font-extrabold text-base text-slate-900 mb-2 group-hover:text-blue-700 transition-colors">
+                    <h4 className="font-extrabold text-base sm:text-lg text-slate-900 mb-1.5 group-hover:text-blue-700 transition-colors">
                       {item.title}
                     </h4>
                     <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
@@ -79,19 +78,36 @@ export const EmployerSection = () => {
             transition={{ duration: 0.35, ease: "easeOut" }}
             className="lg:col-span-6 order-1 lg:order-2"
           >
+            {/* Badge: Are You a Corporate? */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-xs sm:text-sm font-bold mb-4">
               <Building2 size={16} className="text-blue-700" />
-              <span>For Corporate Recruiters & HR Leaders</span>
+              <span>Are You a Corporate?</span>
             </div>
 
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 mb-6 leading-tight tracking-tight">
-              Recruit Top CAs for <br />
-              <span className="text-blue-700">Your Organization</span>
+            {/* Heading: Why FAST Careers? */}
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 mb-4 leading-tight tracking-tight">
+              Why <span className="text-blue-700">FAST Careers?</span>
             </h2>
 
-            <p className="text-slate-600 text-base sm:text-lg mb-8 leading-relaxed font-normal">
-              Join <strong className="text-slate-900">60+ leading corporate employers</strong> who trust FAST Careers for their CA talent requirements. Whether participating in our bi-annual FAST CA Campus, lining up candidates for lateral hiring, or hosting a dedicated corporate drive — we make CA recruitment seamless.
+            <p className="text-slate-600 text-base sm:text-lg mb-6 leading-relaxed font-normal">
+              Join <strong className="text-slate-900">60+ leading corporate employers</strong> who trust FAST Careers for their CA talent requirements. Whether participating in our bi-annual FAST CA Campus, lateral hiring, or hosting a dedicated corporate drive — we make CA recruitment seamless.
             </p>
+
+            {/* 3 Key Highlights Checklist */}
+            <div className="space-y-2.5 mb-8 text-xs sm:text-sm font-semibold text-slate-700">
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 size={17} className="text-emerald-600 shrink-0" />
+                <span><strong>125,000+ Registered CAs:</strong> Direct access to All India Rankers & Freshers.</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 size={17} className="text-emerald-600 shrink-0" />
+                <span><strong>100% Pre-Screened:</strong> Verified attempts & custom shortlists for your JD.</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 size={17} className="text-emerald-600 shrink-0" />
+                <span><strong>Full Campus Day Support:</strong> Zero hassle logistics with industry-best ROI.</span>
+              </div>
+            </div>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
               <Link to="/placement-drive">
