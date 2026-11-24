@@ -19,7 +19,7 @@ const allCorporateRecruiters = [
     industry: 'Healthcare',
     logoColor: 'text-[#d50000]',
     symbol: (
-      <div className="w-8 h-8 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center text-red-600 font-serif font-black text-xs italic shadow-2xs">
+      <div className="w-8 h-8 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center text-red-600 font-black text-xs italic shadow-2xs">
         J&J
       </div>
     )

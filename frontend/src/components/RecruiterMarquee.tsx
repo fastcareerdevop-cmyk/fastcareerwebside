@@ -136,7 +136,7 @@ export const COMPANY_TILES: CompanyLogoTile[] = [
     category: 'Healthcare & Pharma Giant',
     badge: 'Healthcare',
     logo: (
-      <span className="font-serif font-black text-xs sm:text-sm text-[#D51900] tracking-tight">
+      <span className="font-black text-xs sm:text-sm text-[#D51900] tracking-tight">
         J&amp;J
       </span>
     )
