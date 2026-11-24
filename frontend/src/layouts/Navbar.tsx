@@ -131,9 +131,6 @@ export const Navbar = () => {
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
                   </span>
                   <span>Sign Up</span>
-                  <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider shadow-2xs">
-                    CA Jobs
-                  </span>
                   <span className="text-white text-xs group-hover:translate-x-0.5 transition-transform">→</span>
                 </button>
               </div>
@@ -153,9 +150,6 @@ export const Navbar = () => {
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
                 </span>
                 <span>Sign Up</span>
-                <span className="bg-amber-400 text-slate-950 text-[9px] font-black px-1 rounded uppercase">
-                  CA Jobs
-                </span>
               </button>
             )}
             <button 
