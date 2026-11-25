@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Link } from 'react-router-dom';
+import { ProcessSection } from './home/ProcessSection';
 
 interface EventItem {
   id: number;
@@ -468,8 +469,13 @@ export const OurTeam: React.FC = () => {
           </div>
         )}
 
+        {/* How Does FAST CA CAMPUS Work? */}
+        <div className="mt-14 mb-6">
+          <ProcessSection />
+        </div>
+
         {/* Join FAST Careers CTA */}
-        <div className="mt-16 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 rounded-3xl p-8 sm:p-12 text-white shadow-xl text-center relative overflow-hidden">
+        <div className="mt-12 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 rounded-3xl p-8 sm:p-12 text-white shadow-xl text-center relative overflow-hidden">
           <div className="max-w-2xl mx-auto relative z-10 space-y-4">
             <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-extrabold uppercase tracking-wider text-amber-300">
               National Placement Drives
