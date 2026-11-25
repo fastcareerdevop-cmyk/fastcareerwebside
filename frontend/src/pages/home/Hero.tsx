@@ -470,18 +470,26 @@ export const Hero = () => {
         initial={{ opacity: 0, scale: 1.01 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="relative w-full h-[380px] sm:h-[480px] lg:h-[calc(100vh-115px)] min-h-[460px] bg-gradient-to-r from-[#022059] via-[#01122c] to-[#013b82] overflow-hidden flex items-center justify-center"
+        className="relative w-full h-[380px] sm:h-[480px] lg:h-[calc(100vh-115px)] min-h-[460px] bg-[#01122c] overflow-hidden flex items-center justify-center"
       >
-        {/* Seamless side fade masks so 16:9 image blends into any ultrawide screen */}
-        <div className="relative h-full w-full max-w-[1280px] mx-auto flex items-center justify-center">
-          <img
-            src="/bridging_the_gap.jpg"
-            alt="Bridging the Gap Between CA Talent & Top Opportunities - Fast Careers"
-            className="w-full h-full object-contain object-center pointer-events-none select-none"
-          />
-          <div className="hidden xl:block absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[#022059] to-transparent pointer-events-none" />
-          <div className="hidden xl:block absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-[#013b82] to-transparent pointer-events-none" />
-        </div>
+        {/* Full-bleed blurred backdrop so side edges blend naturally at any screen width */}
+        <img
+          src="/bridging_the_gap.jpg"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover object-center blur-2xl scale-110 opacity-85 pointer-events-none select-none"
+        />
+
+        {/* Crisp uncropped foreground image with feathered left/right edges */}
+        <img
+          src="/bridging_the_gap.jpg"
+          alt="Bridging the Gap Between CA Talent & Top Opportunities - Fast Careers"
+          className="relative z-10 h-full w-auto max-w-full object-contain object-center pointer-events-none select-none"
+          style={{
+            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+            maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+          }}
+        />
 
         {/* Subtle bottom gradient for CTA readability */}
         <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#040814]/90 via-[#040814]/40 to-transparent pointer-events-none" />
