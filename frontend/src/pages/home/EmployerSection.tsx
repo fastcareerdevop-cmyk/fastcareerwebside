@@ -94,9 +94,9 @@ export const EmployerSection = () => {
                 <motion.button 
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto px-6 py-3 bg-blue-700 hover:bg-blue-800 text-white font-medium rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-3 bg-[#191C1F] hover:bg-slate-800 text-white font-medium rounded-full shadow-sm transition-all flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
                 >
-                  <Building2 size={17} />
+                  <Building2 size={16} />
                   <span>Enlist for Campus Drive</span>
                   <ArrowRight size={15} />
                 </motion.button>
@@ -105,9 +105,9 @@ export const EmployerSection = () => {
                 <motion.button 
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto px-6 py-3 bg-white hover:bg-slate-50 text-slate-900 border border-slate-300 font-medium rounded-xl transition-all flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-3 bg-white hover:bg-slate-50 text-[#191C1F] border border-slate-300 font-medium rounded-full transition-all flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
                 >
-                  <PhoneCall size={17} className="text-blue-700" />
+                  <PhoneCall size={16} className="text-blue-700" />
                   <span>Talk to Our Directors</span>
                 </motion.button>
               </Link>

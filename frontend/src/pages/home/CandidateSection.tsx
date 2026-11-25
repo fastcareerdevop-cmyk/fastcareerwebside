@@ -56,10 +56,10 @@ export const CandidateSection = () => {
                 <motion.button 
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-3 bg-[#191C1F] hover:bg-slate-800 text-white font-medium rounded-full shadow-sm transition-all flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
                 >
-                  <UserPlus size={17} />
-                  <span>Register Free on Portal</span>
+                  <UserPlus size={16} />
+                  <span>Register Free</span>
                   <ArrowRight size={15} />
                 </motion.button>
               </Link>
@@ -67,10 +67,10 @@ export const CandidateSection = () => {
                 <motion.button 
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-900 font-medium rounded-xl transition-all flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-3 bg-[#F3F4F6] hover:bg-slate-200 text-[#191C1F] font-medium rounded-full transition-all flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
                 >
-                  <Briefcase size={17} />
-                  <span>View Current Openings</span>
+                  <Briefcase size={16} />
+                  <span>Current Openings</span>
                 </motion.button>
               </Link>
             </div>

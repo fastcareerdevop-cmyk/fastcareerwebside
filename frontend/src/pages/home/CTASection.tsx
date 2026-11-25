@@ -28,11 +28,11 @@ export const CampusGalleryGrid = () => {
           <Sparkles size={14} className="text-blue-600" />
           <span>FAST Campus Moments & Drives</span>
         </div>
-        <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight mb-2">
+        <h2 className="text-2xl sm:text-4xl font-bold text-slate-900 tracking-[-0.03em] mb-2">
           Glimpses of Our <span className="text-blue-600">Pan-India Campuses</span>
         </h2>
-        <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto font-normal">
-          Real memories, corporate recruitment drives, and celebrations across our physical campus venues in 9+ cities.
+        <p className="text-sm sm:text-base text-slate-600 max-w-xl mx-auto font-normal">
+          Campus drives and corporate moments across 9 cities.
         </p>
       </motion.div>
 

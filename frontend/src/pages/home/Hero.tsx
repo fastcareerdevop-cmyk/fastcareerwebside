@@ -206,28 +206,24 @@ export const Hero = () => {
         >
           <Link to="/register" className="shrink-0">
             <motion.button
-              whileHover={{ scale: 1.03, y: -2 }}
-              whileTap={{ scale: 0.97 }}
-              className="relative w-full sm:w-auto px-5 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm whitespace-nowrap hover:shadow-xl ring-2 ring-blue-400/50"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full sm:w-auto px-6 py-3 bg-[#191C1F] hover:bg-slate-800 text-white font-medium rounded-full shadow-sm transition-all flex items-center justify-center gap-2 text-sm whitespace-nowrap cursor-pointer"
             >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-90"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
-              </span>
-              <User size={16} className="shrink-0" />
+              <User size={15} className="shrink-0" />
               <span>Register as CA Candidate</span>
-              <ArrowRight size={15} className="shrink-0" />
+              <ArrowRight size={14} className="shrink-0" />
             </motion.button>
           </Link>
 
           <Link to="/placement-drive" className="shrink-0">
             <motion.button
-              whileHover={{ scale: 1.03, y: -2 }}
-              whileTap={{ scale: 0.97 }}
-              className="w-full sm:w-auto px-5 py-3.5 bg-white hover:bg-slate-50 text-[#0b192c] border-2 border-[#cfdff5] hover:border-[#1d64f2] font-bold rounded-xl shadow-2xs transition-all flex items-center justify-center gap-2 text-xs sm:text-sm whitespace-nowrap hover:shadow-md"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full sm:w-auto px-6 py-3 bg-white hover:bg-slate-50 text-[#191C1F] border border-slate-300 font-medium rounded-full transition-all flex items-center justify-center gap-2 text-sm whitespace-nowrap cursor-pointer"
             >
-              <Building2 size={16} className="text-[#1d64f2] shrink-0" />
-              <span>Hire CAs / Corporate Drive</span>
+              <Building2 size={15} className="text-blue-700 shrink-0" />
+              <span>Hire CAs</span>
             </motion.button>
           </Link>
         </motion.div>
