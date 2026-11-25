@@ -708,14 +708,14 @@ export const Register = () => {
       if (extracted.length > 0) {
         toast.success(
           `Resume scanned! Auto-filled: ${extracted.join(', ')}. Please set a password to register.`,
-          { duration: 6000, icon: '⚡' }
+          { duration: 6000, icon: '' }
         );
       } else {
-        toast.success('Resume attached successfully! Please fill in the details below.', { icon: '📄' });
+        toast.success('Resume attached successfully! Please fill in the details below.', { icon: '' });
       }
     } catch (error) {
       console.error('Failed to parse resume:', error);
-      toast.success('Resume attached! Please complete your details below.', { icon: '📄' });
+      toast.success('Resume attached! Please complete your details below.', { icon: '' });
     } finally {
       setIsScanningResume(false);
     }
@@ -2684,12 +2684,12 @@ export const Register = () => {
                                         ? 'bg-emerald-200/80 text-emerald-900' 
                                         : 'bg-amber-200 text-amber-900'
                                     }`}>
-                                      {totalMonths === 24 ? '✓ 24 Months (2-Year New Scheme)' : totalMonths === 36 ? '✓ 36 Months (3-Year Old Scheme)' : '⚠️ Warning: Duration must be 24 or 36'}
+                                      {totalMonths === 24 ? '✓ 24 Months (2-Year New Scheme)' : totalMonths === 36 ? '✓ 36 Months (3-Year Old Scheme)' : 'Warning: Duration must be 24 or 36'}
                                     </span>
                                   </div>
                                   {!isValid && (
                                     <p className="text-[11.5px] leading-relaxed text-amber-800 mt-2 font-medium">
-                                      ⚠️ <strong>Required Rule:</strong> Articleship ka total duration (chahe aap 1 firm dalein ya multiple firms) ya to exactly <strong>24 Months</strong> (New Scheme) hona chahiye ya <strong>36 Months</strong> (Old Scheme). Na 24 se kam, na 36 se zyada. Current total: <strong>{totalMonths} Months</strong>. Please firm durations check karein.
+                                      <strong>Required Rule:</strong> Articleship ka total duration (chahe aap 1 firm dalein ya multiple firms) ya to exactly <strong>24 Months</strong> (New Scheme) hona chahiye ya <strong>36 Months</strong> (Old Scheme). Na 24 se kam, na 36 se zyada. Current total: <strong>{totalMonths} Months</strong>. Please firm durations check karein.
                                     </p>
                                   )}
                                   {fieldErrors.articleshipMonths && (
@@ -3217,7 +3217,7 @@ export const Register = () => {
                                         {opt}
                                       </option>
                                     ))}
-                                    <option value="__custom__">✏️ Other / Custom Notice Period</option>
+                                    <option value="__custom__">Other / Custom Notice Period</option>
                                   </select>
                                 )}
                                 {fieldErrors.noticePeriod && (

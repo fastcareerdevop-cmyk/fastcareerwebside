@@ -594,7 +594,7 @@ export const IndustrialTrainingAdmin: React.FC = () => {
                         rel="noreferrer"
                         className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-semibold underline bg-blue-50/60 px-2.5 py-1.5 rounded-lg border border-blue-200"
                       >
-                        <span>📄 View / Download Candidate Resume</span>
+                        <span>View / Download Candidate Resume</span>
                       </a>
                     </div>
                   )}

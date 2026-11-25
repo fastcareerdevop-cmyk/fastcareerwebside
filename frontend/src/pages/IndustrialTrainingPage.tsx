@@ -429,7 +429,7 @@ export const IndustrialTrainingPage: React.FC = () => {
       setOtpSent(true);
       toast.success(`Verification code sent! Code: ${otp}`, {
         duration: 8000,
-        icon: '📱'
+        icon: ''
       });
     } catch {
       const demoOtp = '8821';
@@ -437,7 +437,7 @@ export const IndustrialTrainingPage: React.FC = () => {
       setOtpSent(true);
       toast.success(`Verification code: ${demoOtp}`, {
         duration: 8000,
-        icon: '📱'
+        icon: ''
       });
     } finally {
       setSendingOtp(false);
@@ -462,12 +462,12 @@ export const IndustrialTrainingPage: React.FC = () => {
 
       if (res.data.verified) {
         setIsPhoneVerified(true);
-        toast.success('Phone verified successfully!', { icon: '✅' });
+        toast.success('Phone verified successfully!', { icon: '' });
       }
     } catch {
       if (otpCode.trim() === generatedOtp || otpCode.trim() === '1234' || otpCode.trim() === '8821') {
         setIsPhoneVerified(true);
-        toast.success('Phone verified successfully!', { icon: '✅' });
+        toast.success('Phone verified successfully!', { icon: '' });
       } else {
         toast.error('Verification failed. Use the code shown above.');
       }

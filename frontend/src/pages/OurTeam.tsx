@@ -40,7 +40,7 @@ const eventsData: EventItem[] = [
     id: 100,
     title: 'Bridging the Gap Between CA Talent & Top Opportunities',
     category: 'Placement Drives & Summits',
-    categoryIcon: '🏛️',
+    categoryIcon: '',
     date: 'National Campus Season',
     location: 'Pan-India Corporate Drives & Physical Campuses',
     imageUrl: '/bridging_the_gap.jpg',
@@ -53,7 +53,7 @@ const eventsData: EventItem[] = [
     id: 101,
     title: 'PHD Chamber Executive Leadership & Secretariat Conclave',
     category: 'Placement Drives & Summits',
-    categoryIcon: '🏛️',
+    categoryIcon: '',
     date: 'August 2026',
     location: 'PHD Chamber of Commerce & Industry, New Delhi',
     imageUrl: '/team_photos/team_photo_2.jpg',
@@ -66,7 +66,7 @@ const eventsData: EventItem[] = [
     id: 102,
     title: 'PHD Chamber National Recruitment & Career Presentation',
     category: 'Placement Drives & Summits',
-    categoryIcon: '🏛️',
+    categoryIcon: '',
     date: 'July 2026',
     location: 'PHD Chamber Main Auditorium, New Delhi',
     imageUrl: '/team_photos/team_photo_4.jpg',
@@ -79,7 +79,7 @@ const eventsData: EventItem[] = [
     id: 103,
     title: 'Candidate Orientation & Technical Grooming Assembly',
     category: 'Learning & Masterclasses',
-    categoryIcon: '🎓',
+    categoryIcon: '',
     date: 'June 2026',
     location: 'FAST Careers Training Hall, New Delhi',
     imageUrl: '/team_photos/team_photo_5.jpg',
@@ -92,7 +92,7 @@ const eventsData: EventItem[] = [
     id: 104,
     title: 'National Executive Boardroom & Circular Summit Hall',
     category: 'Strategy & Innovation',
-    categoryIcon: '💡',
+    categoryIcon: '',
     date: 'May 2026',
     location: 'Executive Council Hall, New Delhi',
     imageUrl: '/team_photos/team_photo_3.jpg',
@@ -105,7 +105,7 @@ const eventsData: EventItem[] = [
     id: 105,
     title: 'FAST Careers Corporate Event Hall & Reception Venue',
     category: 'Placement Drives & Summits',
-    categoryIcon: '🏛️',
+    categoryIcon: '',
     date: 'April 2026',
     location: 'Corporate Convention Center, New Delhi',
     imageUrl: '/team_photos/team_photo_1.jpg',
@@ -118,7 +118,7 @@ const eventsData: EventItem[] = [
     id: 106,
     title: 'FAST Careers Recruitment Team & Celebration Assembly',
     category: 'Annual Milestones & Awards',
-    categoryIcon: '🏆',
+    categoryIcon: '',
     date: 'September 2026',
     location: 'FAST Careers Headquarters, New Delhi',
     imageUrl: '/team_photos/team_photo_9.jpg',
@@ -131,7 +131,7 @@ const eventsData: EventItem[] = [
     id: 107,
     title: 'Tiered Executive Auditorium Masterclass & Case Study Session',
     category: 'Learning & Masterclasses',
-    categoryIcon: '🎓',
+    categoryIcon: '',
     date: 'August 2026',
     location: 'Management Institute Hall, New Delhi',
     imageUrl: '/team_photos/team_photo_6.jpg',
@@ -144,7 +144,7 @@ const eventsData: EventItem[] = [
     id: 108,
     title: 'National Finance Candidates Interactive Seminar & Q&A',
     category: 'Learning & Masterclasses',
-    categoryIcon: '🎓',
+    categoryIcon: '',
     date: 'July 2026',
     location: 'Corporate Learning Center, New Delhi',
     imageUrl: '/team_photos/team_photo_7.jpg',
@@ -157,7 +157,7 @@ const eventsData: EventItem[] = [
     id: 109,
     title: 'Delegate Registration & Executive Networking Corridor',
     category: 'Placement Drives & Summits',
-    categoryIcon: '🏛️',
+    categoryIcon: '',
     date: 'June 2026',
     location: 'Grand Convention Corridor, New Delhi',
     imageUrl: '/team_photos/team_photo_8.jpg',
@@ -170,7 +170,7 @@ const eventsData: EventItem[] = [
     id: 110,
     title: 'Grand 5-Star Hotel Atrium CA Placement Drive',
     category: 'Placement Drives & Summits',
-    categoryIcon: '🏛️',
+    categoryIcon: '',
     date: 'October 2026',
     location: '5-Star Hotel Atrium, New Delhi',
     imageUrl: '/team_photos/team_photo_10.jpg',
@@ -183,7 +183,7 @@ const eventsData: EventItem[] = [
     id: 111,
     title: 'Corporate Candidate Interview Queue & Networking Hall',
     category: 'Placement Drives & Summits',
-    categoryIcon: '🏛️',
+    categoryIcon: '',
     date: 'September 2026',
     location: 'Convention Hall Corridor, New Delhi',
     imageUrl: '/team_photos/team_photo_11.jpg',
@@ -196,7 +196,7 @@ const eventsData: EventItem[] = [
     id: 112,
     title: 'Grand Ballroom CA Finalist Masterclass Assembly',
     category: 'Learning & Masterclasses',
-    categoryIcon: '🎓',
+    categoryIcon: '',
     date: 'August 2026',
     location: 'Grand Ballroom, New Delhi',
     imageUrl: '/team_photos/team_photo_12.jpg',
@@ -214,11 +214,11 @@ export const OurTeam: React.FC = () => {
   const [likedPhotos, setLikedPhotos] = useState<Record<number, boolean>>({});
 
   const categories = [
-    { id: 'All', label: `All Campus Glimpses (${eventsData.length})`, icon: '🌟' },
-    { id: 'Placement Drives & Summits', label: 'Placement Drives & Summits', icon: '🏛️' },
-    { id: 'Learning & Masterclasses', label: 'Learning & Masterclasses', icon: '🎓' },
-    { id: 'Strategy & Innovation', label: 'Strategy & Boardrooms', icon: '💡' },
-    { id: 'Annual Milestones & Awards', label: 'Team Milestones', icon: '🏆' },
+    { id: 'All', label: `All Campus Glimpses (${eventsData.length})`, icon: '' },
+    { id: 'Placement Drives & Summits', label: 'Placement Drives & Summits', icon: '' },
+    { id: 'Learning & Masterclasses', label: 'Learning & Masterclasses', icon: '' },
+    { id: 'Strategy & Innovation', label: 'Strategy & Boardrooms', icon: '' },
+    { id: 'Annual Milestones & Awards', label: 'Team Milestones', icon: '' },
   ];
 
   const filteredEvents = eventsData.filter(item => {
@@ -353,7 +353,7 @@ export const OurTeam: React.FC = () => {
         {/* Real Campus Photos Grid */}
         {filteredEvents.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-3xl border border-gray-200 p-8 shadow-xs">
-            <div className="text-5xl mb-4">🔍</div>
+            <div className="text-5xl mb-4"></div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">No moments matched your search</h3>
             <p className="text-gray-500 text-sm max-w-md mx-auto mb-6">
               Try searching for different terms like &quot;PHD Chamber&quot;, &quot;Atrium&quot;, or &quot;Masterclass&quot;.

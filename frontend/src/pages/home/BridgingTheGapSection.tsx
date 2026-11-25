@@ -60,10 +60,10 @@ export const BridgingTheGapSection = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Centered Heading (Sheryians Style) */}
         <div className="text-center max-w-4xl mx-auto mb-4 sm:mb-8">
-          <h2 className="text-3xl sm:text-5xl lg:text-[54px] font-black tracking-tight text-white leading-[1.12]">
+          <h2 className="text-3xl sm:text-5xl font-bold tracking-[-0.03em] text-white leading-[1.12]">
             Bridging the Gap Between{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-400">
-              CA Talent &amp; Top Opportunities.
+              CA Talent &amp; Top Opportunities
             </span>
           </h2>
         </div>

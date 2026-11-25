@@ -299,13 +299,13 @@ export const EmployerDashboard = () => {
                         }`}
                       >
                         <option value="Pending Review">-- Pending Review --</option>
-                        <option value="CV View">👁️ CV View</option>
-                        <option value="CV Rejected">❌ CV Rejected</option>
+                        <option value="CV View">CV View</option>
+                        <option value="CV Rejected">CV Rejected</option>
                         <option value="Shortlisted for Round 1">⭐ Shortlisted for Round 1</option>
                         <option value="Shortlisted for Round 2">⭐⭐ Shortlisted for Round 2</option>
-                        <option value="Shortlisted for Round 3">🌟 Shortlisted for Round 3</option>
-                        <option value="Selected">🎉 Selected</option>
-                        <option value="Rejected">🚫 Rejected</option>
+                        <option value="Shortlisted for Round 3">Shortlisted for Round 3</option>
+                        <option value="Selected">Selected</option>
+                        <option value="Rejected">Rejected</option>
                       </select>
                     </td>
                     <td className="px-6 py-4 text-right">

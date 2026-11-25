@@ -31,7 +31,7 @@ export const Step1Personal = ({ personal, setPersonal, user, resumeUrl, handleFi
               Resume Upload <span className="text-red-500">*</span>
             </label>
             <span className="text-xs font-semibold text-blue-700 bg-blue-100/90 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-              ⚡ Auto-Fill Enabled
+              Auto-Fill Enabled
             </span>
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -66,7 +66,7 @@ export const Step1Personal = ({ personal, setPersonal, user, resumeUrl, handleFi
                         </>
                       ) : (
                         <>
-                          <span>⚡ Auto-Fill from Resume</span>
+                          <span>Auto-Fill from Resume</span>
                         </>
                       )}
                     </button>
@@ -76,7 +76,7 @@ export const Step1Personal = ({ personal, setPersonal, user, resumeUrl, handleFi
             </div>
           </div>
           <p className="text-xs text-blue-700/80 mt-2.5">
-            💡 Uploading your resume automatically scans and fills your Personal Details, Education, Articleship & Experience across all steps.
+            Uploading your resume automatically scans and fills your Personal Details, Education, Articleship & Experience across all steps.
           </p>
         </div>
 

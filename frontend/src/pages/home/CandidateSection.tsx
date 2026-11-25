@@ -1,36 +1,36 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Award, CheckCircle2, FileText, UserPlus, Briefcase, Sparkles } from 'lucide-react';
+import { ArrowRight, Award, FileText, UserPlus, Briefcase, CheckCircle2 } from 'lucide-react';
 
 const candidateHighlights = [
   {
     title: '100% Free for CAs',
-    desc: 'Zero registration fee or placement commission for candidates at any stage.',
-    icon: Sparkles
+    desc: 'Zero registration or placement fee at any stage.',
+    icon: CheckCircle2
   },
   {
-    title: 'All India Rankers & Freshers',
-    desc: '5000+ candidates enroll after every ICAI result for top corporate roles.',
+    title: 'Rankers & Freshers',
+    desc: '5,000+ candidates enroll after every ICAI result.',
     icon: Award
   },
   {
-    title: 'Direct Campus & Lateral Access',
-    desc: 'Interview with 60+ top-tier corporates across 9 major cities & virtually.',
+    title: 'Direct Campus Access',
+    desc: 'Interview with 60+ corporates across 9 cities & online.',
     icon: Briefcase
   },
   {
     title: 'Pre-Screened Shortlists',
-    desc: 'Profile verified by HR recruiters to ensure direct interview calls.',
+    desc: 'HR-verified profiles for faster interview calls.',
     icon: FileText
   }
 ];
 
 export const CandidateSection = () => {
   return (
-    <section className="py-10 sm:py-12 bg-white overflow-hidden relative border-b border-slate-200" id="candidates">
+    <section className="py-10 sm:py-14 bg-white overflow-hidden relative border-b border-slate-200" id="candidates">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-12 gap-12 items-center">
+        <div className="grid lg:grid-cols-12 gap-10 items-center">
           
           {/* Left Text */}
           <motion.div
@@ -40,77 +40,69 @@ export const CandidateSection = () => {
             transition={{ duration: 0.35, ease: "easeOut" }}
             className="lg:col-span-7"
           >
-            <span className="text-blue-600 font-bold tracking-wider uppercase text-xs sm:text-sm mb-3 block">
-              For CA Candidates (Freshers & Experienced)
+            <span className="text-blue-600 font-semibold tracking-wider uppercase text-xs mb-2.5 block">
+              For CA Candidates (Freshers &amp; Experienced)
             </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 mb-6 leading-tight tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4 leading-tight tracking-[-0.03em]">
               Start Your Finance Career with <br />
               <span className="text-blue-700">India’s Top Corporates</span>
             </h2>
-            <p className="text-gray-600 text-base sm:text-lg mb-8 leading-relaxed">
-              Join <strong>125,000+ Chartered Accountants</strong> registered on FAST Careers. Whether you just qualified in the recent ICAI exams or are an experienced CA seeking lateral growth, FAST Careers connects you directly with premier enterprises.
+            <p className="text-slate-600 text-base mb-7 leading-relaxed font-normal max-w-xl">
+              Join <strong className="font-semibold text-slate-900">125,000+ Chartered Accountants</strong> on FAST Careers for campus placements and lateral opportunities.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row gap-3.5 mb-6">
               <Link to="/register">
                 <motion.button 
-                  whileHover={{ scale: 1.03, y: -2 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="w-full sm:w-auto px-7 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
                 >
-                  <UserPlus size={18} />
+                  <UserPlus size={17} />
                   <span>Register Free on Portal</span>
-                  <ArrowRight size={16} />
+                  <ArrowRight size={15} />
                 </motion.button>
               </Link>
               <Link to="/candidate/current-openings">
                 <motion.button 
-                  whileHover={{ scale: 1.03, y: -2 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="w-full sm:w-auto px-7 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full sm:w-auto px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-900 font-medium rounded-xl transition-all flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
                 >
-                  <Briefcase size={18} />
+                  <Briefcase size={17} />
                   <span>View Current Openings</span>
                 </motion.button>
               </Link>
             </div>
 
-            <div className="space-y-2 text-xs sm:text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-                <span>Next FAST CA Campus Drive happening in <strong>Jan–Feb</strong> and <strong>Aug–Sep</strong></span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-                <span>Dedicated openings for First-Attempt Rankers & Multiple-Attempt CAs</span>
-              </div>
-            </div>
+            <p className="text-xs sm:text-sm text-slate-500">
+              Next FAST CA Campus Drive: <strong className="text-slate-700 font-semibold">Jan–Feb</strong> &amp; <strong className="text-slate-700 font-semibold">Aug–Sep</strong>
+            </p>
           </motion.div>
 
           {/* Right Cards */}
           <div className="lg:col-span-5 grid sm:grid-cols-2 gap-4">
-            {candidateHighlights.map((feat, i) => {
-              return (
-                <motion.div 
-                  key={i} 
-                  initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                  viewport={{ once: true, margin: "-20px" }}
-                  transition={{ duration: 0.28, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
-                  whileHover={{ y: -5, scale: 1.02 }}
-                  className="bg-slate-50 hover:bg-white p-6 rounded-2xl border-2 border-slate-200/80 hover:border-blue-400 shadow-xs hover:shadow-xl transition-all duration-200 flex flex-col justify-between group cursor-pointer relative overflow-hidden"
-                >
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                  <div>
-                    <div className="w-12 h-12 bg-blue-100/70 text-blue-700 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-all group-hover:scale-110">
-                      <feat.icon size={24} />
-                    </div>
-                    <h4 className="font-bold text-slate-900 text-sm mb-2 group-hover:text-blue-700 transition-colors">{feat.title}</h4>
-                    <p className="text-xs text-gray-600 leading-relaxed font-normal">{feat.desc}</p>
-                  </div>
-                </motion.div>
-              );
-            })}
+            {candidateHighlights.map((feat, i) => (
+              <motion.div 
+                key={i} 
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-20px" }}
+                transition={{ duration: 0.28, delay: i * 0.05 }}
+                whileHover={{ y: -4 }}
+                className="bg-slate-50 hover:bg-white p-5 rounded-2xl border border-slate-200 hover:border-blue-400 shadow-xs hover:shadow-md transition-all duration-200 group cursor-pointer"
+              >
+                <div className="w-10 h-10 bg-blue-100/70 text-blue-700 rounded-xl flex items-center justify-center mb-3 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                  <feat.icon size={20} />
+                </div>
+                <h4 className="font-bold text-slate-900 text-sm sm:text-base mb-1 group-hover:text-blue-700 transition-colors">
+                  {feat.title}
+                </h4>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
+                  {feat.desc}
+                </p>
+              </motion.div>
+            ))}
           </div>
 
         </div>

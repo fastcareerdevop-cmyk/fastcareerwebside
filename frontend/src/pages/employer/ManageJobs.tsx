@@ -357,7 +357,7 @@ export const ManageJobs = () => {
                     <span className="font-semibold text-slate-500">Shared with HR Portal:</span>
                     {job.targetEmployers.map((emp: any) => (
                       <span key={emp._id || emp} className="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100 font-medium">
-                        🏢 {emp.companyName || `${emp.firstName || ''} ${emp.lastName || ''}`} ({emp.email || 'HR Email'})
+                        {emp.companyName || `${emp.firstName || ''} ${emp.lastName || ''}`} ({emp.email || 'HR Email'})
                       </span>
                     ))}
                   </div>
@@ -501,7 +501,7 @@ export const ManageJobs = () => {
                         <p className="text-[11px] text-slate-500 font-normal mt-0.5">
                           {formData.shareShortlistedCandidates
                             ? '✓ Enabled: Shortlisted candidates for this job will be visible to target companies.'
-                            : '❌ Disabled: Candidate details for this job will NOT be shared with target companies.'}
+                            : 'Disabled: Candidate details for this job will NOT be shared with target companies.'}
                         </p>
                       </div>
                     </div>
@@ -587,7 +587,7 @@ export const ManageJobs = () => {
                                 key={empId}
                                 className="inline-flex items-center gap-1.5 px-3 py-1 bg-white text-indigo-900 border border-indigo-200 rounded-lg text-xs font-semibold shadow-2xs"
                               >
-                                🏢 {emp.companyName || emp.firstName} ({emp.email})
+                                {emp.companyName || emp.firstName} ({emp.email})
                                 <button
                                   type="button"
                                   onClick={() => toggleEmployerSelection(empId)}

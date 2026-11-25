@@ -44,11 +44,11 @@ export const TestimonialSection = () => {
             <Award size={16} className="text-blue-600 animate-pulse" />
             <span>Success Stories</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">
-            Trusted by Recruiters & Candidates Alike
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3 tracking-[-0.03em]">
+            Trusted by Recruiters &amp; Candidates
           </h2>
-          <p className="text-gray-600 text-base sm:text-lg font-normal">
-            Over a decade of enabling premier corporate placements across India’s CA community.
+          <p className="text-slate-600 text-sm sm:text-base font-normal">
+            18+ years of CA placements across India.
           </p>
         </motion.div>
 

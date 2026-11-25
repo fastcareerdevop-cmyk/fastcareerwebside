@@ -64,13 +64,13 @@ const StatItem = ({
       className="text-center p-5 sm:p-6 bg-white rounded-2xl shadow-xs border-2 border-slate-200/90 transition-all duration-200 hover:shadow-xl hover:border-blue-400 relative overflow-hidden group cursor-pointer"
     >
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-200" />
-      <div className="text-3xl sm:text-4xl lg:text-5xl font-black text-blue-700 mb-1 tracking-tight group-hover:scale-105 transition-transform duration-200">
+      <div className="text-3xl sm:text-4xl font-bold text-blue-700 mb-1 tracking-[-0.03em] group-hover:scale-105 transition-transform duration-200">
         {value === 0 && suffix !== '' ? suffix : <>{count.toLocaleString('en-IN')}{suffix}</>}
       </div>
-      <div className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight mb-1 group-hover:text-blue-700 transition-colors">
+      <div className="text-sm sm:text-base font-bold text-slate-900 tracking-tight mb-1 group-hover:text-blue-700 transition-colors">
         {label}
       </div>
-      <div className="text-xs text-slate-500 font-medium">
+      <div className="text-xs sm:text-sm text-slate-500 font-normal">
         {subtext}
       </div>
     </motion.div>

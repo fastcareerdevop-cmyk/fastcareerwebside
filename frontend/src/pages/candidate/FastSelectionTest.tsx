@@ -573,7 +573,7 @@ export const FastSelectionTest = () => {
                 </span>
               </div>
               <h3 className="text-base font-extrabold text-white mt-0.5 flex items-center gap-2">
-                {formType === 'fresher' ? '🎓 Fresher CA Assessment Form' : '💼 Experienced CA Assessment Form'}
+                {formType === 'fresher' ? 'Fresher CA Assessment Form' : '💼 Experienced CA Assessment Form'}
               </h3>
             </div>
           </div>
@@ -591,7 +591,7 @@ export const FastSelectionTest = () => {
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              🎓 Fresher Form
+              Fresher Form
             </button>
             <button
               type="button"

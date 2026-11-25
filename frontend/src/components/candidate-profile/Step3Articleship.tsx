@@ -159,13 +159,13 @@ export const Step3Articleship = ({ caPortfolio, setCaPortfolio, isOptional = fal
                   <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ml-1 ${
                     isValidDuration ? 'bg-emerald-200/80 text-emerald-900' : 'bg-amber-200 text-amber-900'
                   }`}>
-                    {totalMonths === 24 ? '✓ 24 Mos (New Scheme)' : totalMonths === 36 ? '✓ 36 Mos (Old Scheme)' : '⚠️ Warning: Must be 24 or 36'}
+                    {totalMonths === 24 ? '✓ 24 Mos (New Scheme)' : totalMonths === 36 ? '✓ 36 Mos (Old Scheme)' : 'Warning: Must be 24 or 36'}
                   </span>
                 </div>
               </div>
               {!isValidDuration && (
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 font-medium leading-relaxed">
-                  ⚠️ <strong>Notice:</strong> Articleship ka total duration sabhi firms ko milakar ya to exactly <strong>24 Months</strong> (New Scheme) hona chahiye ya <strong>36 Months</strong> (Old Scheme). Current total: <strong>{totalMonths} Months</strong>.
+                  <strong>Notice:</strong> Articleship ka total duration sabhi firms ko milakar ya to exactly <strong>24 Months</strong> (New Scheme) hona chahiye ya <strong>36 Months</strong> (Old Scheme). Current total: <strong>{totalMonths} Months</strong>.
                 </div>
               )}
             </div>

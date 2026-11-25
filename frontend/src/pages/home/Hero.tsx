@@ -163,7 +163,7 @@ export const Hero = () => {
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-3xl sm:text-4xl lg:text-[38px] xl:text-[42px] font-black text-[#0b192c] leading-[1.14] tracking-tight mb-3.5"
+          className="text-3xl sm:text-4xl lg:text-[40px] font-bold text-[#0b192c] leading-[1.15] tracking-[-0.03em] mb-3.5"
         >
           Recruit CAs <br />
           <span className="text-[#1d64f2]">(Experienced &amp; Freshers)</span> <br />
@@ -175,15 +175,12 @@ export const Hero = () => {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-xs sm:text-sm text-slate-600 mb-5 max-w-md leading-relaxed font-medium"
+          className="text-sm sm:text-base text-slate-600 mb-5 max-w-md leading-relaxed font-normal"
         >
-          <strong className="text-slate-900 font-bold">Fast Career Consultants Private Limited</strong> connects{' '}
-          <strong className="text-[#1d64f2] font-bold">60+</strong> top-notch corporates with India's largest talent
-          pool of <strong className="text-[#1d64f2] font-bold">125,000+</strong> registered Chartered Accountants, All
-          India Rankers (AIRs), and seasoned finance leaders.
+          Connecting <strong className="text-[#1d64f2] font-semibold">60+</strong> top corporates with <strong className="text-[#1d64f2] font-semibold">125,000+</strong> Chartered Accountants and All India Rankers.
         </motion.p>
 
-        {/* Blinking Live CA Job Registration Badge */}
+        {/* Live CA Job Registration Badge */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -194,10 +191,10 @@ export const Hero = () => {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-90"></span>
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
           </span>
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-full shadow-2xs">
-            <span>🔥 CA Job Registration Live</span>
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-full shadow-2xs">
+            <span>CA Job Registration Live</span>
             <span className="text-slate-400">•</span>
-            <span className="text-emerald-700 font-bold normal-case">Freshers &amp; Experienced • Free</span>
+            <span className="text-emerald-700 font-medium normal-case">Freshers &amp; Experienced • Free</span>
           </span>
         </motion.div>
 
@@ -283,7 +280,7 @@ export const Hero = () => {
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-3xl sm:text-4xl lg:text-[38px] xl:text-[42px] font-black text-[#0b192c] leading-[1.14] tracking-tight mb-3.5"
+          className="text-3xl sm:text-4xl lg:text-[40px] font-bold text-[#0b192c] leading-[1.15] tracking-[-0.03em] mb-3.5"
         >
           Recruiters of <br />
           <span className="text-blue-700">Non-IT for India</span> <br />
@@ -295,12 +292,9 @@ export const Hero = () => {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-xs sm:text-sm text-slate-600 mb-5 max-w-md leading-relaxed font-medium"
+          className="text-sm sm:text-base text-slate-600 mb-5 max-w-md leading-relaxed font-normal"
         >
-          <strong className="text-slate-900 font-bold">Fast Career Consultants Private Limited</strong> bridges
-          India's top <strong className="text-blue-700 font-bold">Non-IT talent</strong> — Finance, Accounts,
-          Banking &amp; Commerce professionals — with{' '}
-          <strong className="text-blue-700 font-bold">300+</strong> corporates across all major industries Pan-India.
+          Connecting Finance, Accounts, Banking &amp; Commerce professionals with <strong className="text-blue-700 font-semibold">300+</strong> corporates Pan-India.
         </motion.p>
 
         <motion.div
@@ -383,7 +377,7 @@ export const Hero = () => {
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-3xl sm:text-4xl lg:text-[38px] xl:text-[42px] font-black text-[#0b192c] leading-[1.14] tracking-tight mb-3.5"
+          className="text-3xl sm:text-4xl lg:text-[40px] font-bold text-[#0b192c] leading-[1.15] tracking-[-0.03em] mb-3.5"
         >
           CA – IT Recruitment <br />
           <span className="text-[#16a34a]">&amp; Placement</span> <br />
@@ -395,12 +389,9 @@ export const Hero = () => {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-xs sm:text-sm text-slate-600 mb-5 max-w-md leading-relaxed font-medium"
+          className="text-sm sm:text-base text-slate-600 mb-5 max-w-md leading-relaxed font-normal"
         >
-          India's most trusted platform for{' '}
-          <strong className="text-[#16a34a] font-bold">CA Industrial Training (IT)</strong> placements. We connect
-          CA articleship students with top firms &amp; corporates for meaningful 9–15 month industrial training
-          experiences across India.
+          Connecting CA articleship students with top firms and corporates for 9–15 month <strong className="text-[#16a34a] font-semibold">Industrial Training</strong> across India.
         </motion.p>
 
         <motion.div

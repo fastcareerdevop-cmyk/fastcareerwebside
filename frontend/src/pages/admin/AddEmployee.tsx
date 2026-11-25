@@ -297,7 +297,7 @@ export const AddEmployee = () => {
               </div>
 
               <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100 text-xs text-indigo-700">
-                💡 <strong>Permissions:</strong> This employee will be able to view candidate databases, download resumes, view placement/test results, manage jobs, and view shared applications. They will <strong>NOT</strong> have access to register new companies or employees.
+                <strong>Permissions:</strong> This employee will be able to view candidate databases, download resumes, view placement/test results, manage jobs, and view shared applications. They will <strong>NOT</strong> have access to register new companies or employees.
               </div>
 
               <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">

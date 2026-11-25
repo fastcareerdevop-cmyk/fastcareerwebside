@@ -470,7 +470,7 @@ export const CandidateTestResults = () => {
                         <option value="submitted">Submitted</option>
                         <option value="under_review">Under Review</option>
                         <option value="shortlisted">⭐ Shortlisted for Interview</option>
-                        <option value="rejected">❌ Rejected</option>
+                        <option value="rejected">Rejected</option>
                       </select>
                     </div>
 

@@ -7,32 +7,32 @@ const steps = [
   {
     num: '01',
     icon: FileText,
-    title: 'Share JD & Mail Confirmation',
-    desc: 'Give us a Mail Confirmation to participate by filling a prescribed form & share your Job Description.'
+    title: 'Share JD & Confirmation',
+    desc: 'Send confirmation and your Job Description.'
   },
   {
     num: '02',
     icon: Globe2,
     title: 'Corporate Enlistment',
-    desc: 'We enlist your company as an official participating corporate on our portal (www.fast-india.com).'
+    desc: 'Your company is listed on fast-india.com.'
   },
   {
     num: '03',
     icon: PhoneCall,
-    title: 'Applications & HR Call Screening',
-    desc: 'Candidates apply online and are rigorously screened by our expert HR recruiters over phone calls.'
+    title: 'HR Screening',
+    desc: 'Candidates apply and are screened by our HR team.'
   },
   {
     num: '04',
     icon: FileSpreadsheet,
-    title: 'Resumes & Excel Shortlist Shared',
-    desc: 'Resumes & structured Excel list of applicants meeting your specified criteria are shared with your team.'
+    title: 'Excel Shortlist Shared',
+    desc: 'Resumes and structured shortlists shared with your team.'
   },
   {
     num: '05',
     icon: Users,
-    title: 'Shortlisting & Campus Day Interviews',
-    desc: 'Your company shortlists candidates and shortlisted applicants are invited for interviews on Campus Day.'
+    title: 'Campus Day Interviews',
+    desc: 'Shortlisted candidates appear for final interviews.'
   }
 ];
 

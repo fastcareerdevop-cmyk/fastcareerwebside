@@ -298,7 +298,7 @@ export const CandidateDashboard = () => {
         setPopup({
           show: true,
           type: 'success',
-          title: 'Resume Uploaded & Profile Auto-Filled! ⚡',
+          title: 'Resume Uploaded & Profile Auto-Filled!',
           message: `Resume scanned! Auto-filled fields: ${updated.join(', ')}. Please review each section.`
         });
       } else {
@@ -331,7 +331,7 @@ export const CandidateDashboard = () => {
         setPopup({
           show: true,
           type: 'success',
-          title: 'Profile Auto-Filled from Resume! ✨',
+          title: 'Profile Auto-Filled from Resume!',
           message: `Extracted ${updated.length} fields: ${updated.join(', ')}. Please review each step.`
         });
       } else {
