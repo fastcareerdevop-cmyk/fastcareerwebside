@@ -40,98 +40,102 @@ export const Navbar = () => {
   };
 
   const navLinks = [
-    { name: 'Home', path: '/' },
-    { name: 'About', path: '/about' },
     { name: 'CA Placements', path: '/placement-results' },
     { name: 'CA Campus', path: '/ca-campus' },
-    { name: 'Services', path: '/services' },
-    { name: 'Contact', path: '/contact' },
+    { name: 'Why FAST', path: '/#why-fast' },
+    { name: 'Reviews', path: '/#reviews' },
+    { name: 'FAQs', path: '/#faq' },
   ];
 
   return (
     <header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 bg-white border-b border-slate-200/90 ${
-        isScrolled ? 'shadow-sm py-2.5' : 'py-3.5'
+      className={`fixed top-0 left-0 right-0 z-50 h-20 flex items-center transition-all duration-200 bg-white border-b border-[#E5E5E5] ${
+        isScrolled ? 'shadow-sm' : ''
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-12">
+      <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center">
           
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5">
-            <img src="/fast_logo_new.png" alt="FAST CAREERS" className="h-10 sm:h-11 w-auto object-contain" />
+          <Link to="/" className="flex items-center gap-2.5 shrink-0">
+            <img src="/fast_logo_new.png" alt="FAST CAREERS" className="h-10 w-auto object-contain" />
             <div className="flex flex-col leading-tight">
-              <span className="text-[17px] sm:text-[19px] font-black text-[#1a3a5c] tracking-tight">FAST <span className="text-blue-600">CAREERS</span></span>
-              <span className="text-[9px] sm:text-[10px] font-semibold text-slate-500 tracking-widest uppercase">Since 2008</span>
+              <span className="text-[18px] font-bold text-[#171717] tracking-tight">FAST <span className="text-[#1D64F2]">CAREERS</span></span>
+              <span className="text-[10px] font-medium text-[#525252] tracking-widest uppercase">Since 2008</span>
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
+          {/* Desktop Navigation Links (16px) */}
           <nav className="hidden lg:flex items-center space-x-7">
             {navLinks.map((link) => {
-              const isActive = location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path));
+              const isHash = link.path.startsWith('/#');
+              const isActive = !isHash && (location.pathname === link.path || location.pathname.startsWith(link.path));
+              if (isHash) {
+                return (
+                  <a
+                    key={link.name}
+                    href={link.path}
+                    className="text-[16px] font-medium text-[#525252] hover:text-[#1D64F2] transition-colors py-1"
+                  >
+                    {link.name}
+                  </a>
+                );
+              }
               return (
                 <Link 
                   key={link.name} 
                   to={link.path}
-                  className={`text-sm font-semibold transition-all relative py-1 ${
+                  className={`text-[16px] transition-colors relative py-1 ${
                     isActive 
-                      ? 'text-blue-600 font-bold' 
-                      : 'text-slate-700 hover:text-blue-600'
+                      ? 'text-[#1D64F2] font-semibold' 
+                      : 'text-[#525252] font-medium hover:text-[#1D64F2]'
                   }`}
                 >
                   {link.name}
                   {isActive && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1D64F2] rounded-full" />
                   )}
                 </Link>
               );
             })}
           </nav>
 
-          {/* Desktop Auth/Actions: Dashboard, Sign In, Sign Up */}
+          {/* Desktop Auth/Actions */}
           <div className="hidden lg:flex items-center space-x-3">
             {user ? (
               <div className="flex items-center gap-3">
                 <Link 
                   to={user.role === 'candidate' ? '/candidate/dashboard' : `/${user.role}/dashboard`} 
-                  className="flex items-center gap-1.5 text-sm font-bold text-slate-800 hover:text-blue-600 transition-colors px-3 py-1.5 rounded-xl hover:bg-slate-50"
+                  className="flex items-center gap-1.5 text-[15px] font-semibold text-[#171717] hover:text-[#1D64F2] transition-colors px-3 py-2 rounded-lg hover:bg-[#EAF3FF]"
                 >
-                  <LayoutDashboard size={17} className="text-blue-600" />
+                  <LayoutDashboard size={17} className="text-[#1D64F2]" />
                   <span>Dashboard</span>
                 </Link>
                 <button 
                   onClick={onLogout}
-                  className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-rose-600 px-3.5 py-1.5 rounded-xl border border-slate-300 hover:border-rose-300 hover:bg-rose-50 transition-all shadow-2xs cursor-pointer"
+                  className="flex items-center gap-1.5 text-sm font-medium text-[#525252] hover:text-rose-600 px-3.5 py-2 rounded-lg border border-[#E5E5E5] hover:border-rose-300 hover:bg-rose-50 transition-all cursor-pointer"
                 >
-                  <LogOut size={14} />
+                  <LogOut size={15} />
                   <span>Logout</span>
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-3">
                 {/* Sign In */}
                 <Link 
                   to="/login"
-                  className="flex items-center gap-1.5 text-xs font-bold text-slate-800 hover:text-blue-700 px-4 py-2 rounded-xl border border-slate-300 hover:border-blue-500 hover:bg-blue-50/40 transition-all shadow-2xs"
+                  className="text-[15px] font-medium text-[#171717] hover:text-[#1D64F2] px-4 py-2 rounded-lg border border-[#E5E5E5] hover:border-[#1D64F2] transition-all"
                 >
-                  <LogIn size={14} className="text-blue-600" />
-                  <span>Sign In</span>
+                  Sign In
                 </Link>
 
-                {/* Sign Up: Prominent with Blinking Live Indicator and CA Jobs Badge */}
+                {/* Register */}
                 <button
                   type="button"
                   onClick={() => setSignUpModalOpen(true)}
-                  className="relative flex items-center gap-2 text-xs font-bold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 px-3.5 py-2 rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer group ring-2 ring-blue-400/50 hover:ring-blue-500"
-                  title="Register for CA Jobs & Industrial Training"
+                  className="text-[15px] font-semibold text-white bg-[#1D64F2] hover:bg-[#2563EB] px-5 py-2.5 rounded-lg transition-colors cursor-pointer"
                 >
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-90"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
-                  </span>
-                  <span>Sign Up</span>
-                  <span className="text-white text-xs group-hover:translate-x-0.5 transition-transform">→</span>
+                  Register
                 </button>
               </div>
             )}
@@ -143,13 +147,9 @@ export const Navbar = () => {
               <button
                 type="button"
                 onClick={() => setSignUpModalOpen(true)}
-                className="flex items-center gap-1.5 text-[11px] font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 px-3 py-1.5 rounded-lg shadow-xs cursor-pointer ring-1 ring-blue-300"
+                className="text-xs font-semibold text-white bg-[#1D64F2] hover:bg-[#2563EB] px-3.5 py-2 rounded-lg cursor-pointer"
               >
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-90"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
-                </span>
-                <span>Sign Up</span>
+                Register
               </button>
             )}
             <button 
@@ -169,14 +169,27 @@ export const Navbar = () => {
         <div className="lg:hidden bg-white border-t border-slate-200 shadow-xl absolute w-full left-0 top-full flex flex-col px-5 py-5 space-y-3 z-50">
           
           {navLinks.map((link) => {
-            const isActive = location.pathname === link.path;
+            const isHash = link.path.startsWith('/#');
+            const isActive = !isHash && location.pathname === link.path;
+            if (isHash) {
+              return (
+                <a
+                  key={link.name}
+                  href={link.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-base font-medium px-3 py-2 rounded-lg text-[#525252] hover:bg-[#EAF3FF] hover:text-[#1D64F2] transition-colors"
+                >
+                  {link.name}
+                </a>
+              );
+            }
             return (
               <Link 
                 key={link.name} 
                 to={link.path}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`text-sm font-semibold px-3 py-2 rounded-lg transition-colors ${
-                  isActive ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-700 hover:bg-slate-50'
+                className={`text-base px-3 py-2 rounded-lg transition-colors ${
+                  isActive ? 'bg-[#EAF3FF] text-[#1D64F2] font-semibold' : 'font-medium text-[#525252] hover:bg-[#EAF3FF]'
                 }`}
               >
                 {link.name}

@@ -1,47 +1,34 @@
 import React from 'react';
 import { Hero } from './home/Hero';
-import { TrustStats } from './home/TrustStats';
-import { EmployerSection } from './home/EmployerSection';
-import { CandidateSection } from './home/CandidateSection';
-import { BridgingTheGapSection } from './home/BridgingTheGapSection';
-import { CoreExpertiseSection, CampusVenuesSection } from './home/ExpertiseSection';
-import { ServicesSection } from './home/ServicesSection';
-import { ProcessSection } from './home/ProcessSection';
+import { ImpactBandSection } from './home/ImpactBandSection';
+import { TrendingDrivesSection } from './home/TrendingDrivesSection';
+import { ComparisonSection } from './home/ComparisonSection';
 import { TestimonialSection } from './home/TestimonialSection';
 import { FAQSection } from './home/FAQSection';
 import { CTASection } from './home/CTASection';
 
 export const Home = () => {
   return (
-    <div className="w-full bg-white">
-      {/* 1. Hero Section */}
+    <div className="w-full bg-white text-[#171717]">
+      {/* 1. Punchy Hero Section */}
       <Hero />
 
-      {/* 2. Trust Stats & Placement Metrics */}
-      <TrustStats />
+      {/* 2. Deep Navy (#0F172A) Impact Band */}
+      <ImpactBandSection />
 
-      {/* 3. Image 2: Are You a Corporate? / Why FAST Careers? */}
-      <EmployerSection />
+      {/* 3. FAST Education Style Trending Drives Grid */}
+      <TrendingDrivesSection />
 
-      {/* 4. Image 1: Start Your Finance Career with India's Top Corporates (For CA Candidates) */}
-      <CandidateSection />
+      {/* 4. Sheryians Style Comparison Section */}
+      <ComparisonSection />
 
-      {/* 5. Sheryians Bootcamp Style Full-Width Scroll Animation Section: Bridging the Gap */}
-      <BridgingTheGapSection />
-
-      {/* 6. Image 3: Our Core Expertise (Dark Section) */}
-      <CoreExpertiseSection />
-
-      {/* 7. Image 4: End-to-End Talent Solutions & 3 Specialized Delivery Frameworks */}
-      <ServicesSection />
-
-      {/* 8. Image 5: Venues across 9 Cities & How Does FAST CA CAMPUS Work? */}
-      <CampusVenuesSection />
-      <ProcessSection />
-
-      {/* 9. Image 6: Testimonials, FAQ & Leadership CTA */}
+      {/* 5. 3-Column Recruiter & CA Reviews */}
       <TestimonialSection />
+
+      {/* 6. Compact Collapsible FAQ Accordion */}
       <FAQSection />
+
+      {/* 7. Bold Closing Royal Blue (#1D64F2) CTA Banner */}
       <CTASection />
     </div>
   );

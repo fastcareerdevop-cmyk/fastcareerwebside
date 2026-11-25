@@ -1,127 +1,82 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Quote, ChevronLeft, ChevronRight, Award, Building, CheckCircle2 } from 'lucide-react';
+import React from 'react';
+import { Star } from 'lucide-react';
 
-const testimonials = [
+const reviews = [
   {
-    quote: "FAST CA CAMPUS provided us with an outstanding pool of pre-screened CA freshers and rankers. The event was seamlessly coordinated across multiple interview panels, saving our recruitment team weeks of operational effort.",
-    name: "Head of Talent Acquisition",
-    designation: "Leading Indian FMCG Conglomerate",
-    company: "Campus Recruiter Partner"
+    quote:
+      'FAST CA Campus gave us pre-screened freshers and rankers across multiple panels, saving weeks of hiring effort.',
+    author: 'Head of Talent Acquisition',
+    role: 'Leading Indian FMCG Conglomerate',
+    tag: 'Corporate Recruiter',
   },
   {
-    quote: "Registering on FAST Careers right after my CA Final results was the best decision. I got shortlisted and interviewed by premier corporate recruiters during the Mumbai CA Campus drive and secured an offer in Corporate Finance.",
-    name: "Chartered Accountant (AIR Ranker)",
-    designation: "Placed at Leading Advisory Firm",
-    company: "FAST CA Campus Alum"
+    quote:
+      'Zero fees and direct Big 4 interviews. FAST Careers helped me land my statutory audit role in Mumbai.',
+    author: 'CA Ananya Sharma',
+    role: 'Placed at Big 4 Assurance',
+    tag: 'CA Freshers',
   },
   {
-    quote: "For lateral finance mandates requiring specific audit exposure or industry experience, FAST Careers' candidate shortlisting is remarkably precise. Their trained HR team truly understands CA profiles.",
-    name: "VP - Human Resources",
-    designation: "Premier Private Banking & Financial Services",
-    company: "Lateral Hiring Partner"
-  }
+    quote:
+      'Their structured Excel shortlists and verified attempt screening make lateral finance hiring effortless and fast.',
+    author: 'VP Finance & HR',
+    role: 'Fortune 500 Manufacturing Group',
+    tag: 'Lateral Partner',
+  },
 ];
 
 export const TestimonialSection = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  const next = () => setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-  const prev = () => setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
-
   return (
-    <section className="py-10 sm:py-12 bg-slate-50 border-b border-slate-200 overflow-hidden">
+    <section className="bg-white py-20 sm:py-24 border-b border-[#E5E5E5]" id="reviews">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center max-w-3xl mx-auto mb-8 sm:mb-10"
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-100 text-blue-800 text-xs sm:text-sm font-bold mb-3 hover:scale-105 transition-transform">
-            <Award size={16} className="text-blue-600 animate-pulse" />
-            <span>Success Stories</span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">
-            Trusted by Recruiters & Candidates Alike
+        {/* Header */}
+        <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
+          <span className="inline-block px-3.5 py-1 rounded-full bg-[#EAF3FF] text-[#1E40AF] text-xs font-semibold tracking-wider uppercase mb-4">
+            Testimonials
+          </span>
+          <h2 className="text-[28px] sm:text-[48px] font-bold text-[#171717] leading-[1.1] tracking-tight mb-4">
+            Trusted Across India
           </h2>
-          <p className="text-gray-600 text-base sm:text-lg font-normal">
-            Over a decade of enabling premier corporate placements across India’s CA community.
+          <p className="text-[16px] sm:text-[18px] text-[#525252] font-normal leading-[1.5]">
+            Hear from corporate hiring leaders and placed Chartered Accountants.
           </p>
-        </motion.div>
-
-        <div className="relative max-w-4xl mx-auto">
-          <div className="absolute top-1/2 -left-4 md:-left-12 transform -translate-y-1/2 z-10">
-            <motion.button 
-              whileHover={{ scale: 1.15 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={prev} 
-              aria-label="Previous testimonial"
-              className="w-10 h-10 rounded-full bg-white shadow-md border border-gray-200 flex items-center justify-center text-gray-700 hover:text-blue-600 hover:border-blue-400 transition-colors focus:outline-none"
-            >
-              <ChevronLeft size={22} />
-            </motion.button>
-          </div>
-          
-          <div className="absolute top-1/2 -right-4 md:-right-12 transform -translate-y-1/2 z-10">
-            <motion.button 
-              whileHover={{ scale: 1.15 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={next} 
-              aria-label="Next testimonial"
-              className="w-10 h-10 rounded-full bg-white shadow-md border border-gray-200 flex items-center justify-center text-gray-700 hover:text-blue-600 hover:border-blue-400 transition-colors focus:outline-none"
-            >
-              <ChevronRight size={22} />
-            </motion.button>
-          </div>
-
-          <motion.div 
-            whileHover={{ y: -4 }}
-            className="bg-white rounded-3xl p-8 md:p-12 shadow-xl hover:shadow-2xl transition-all border border-slate-100 relative min-h-[280px] flex items-center"
-          >
-            <motion.div 
-              animate={{ rotate: [0, 5, 0], scale: [1, 1.05, 1] }}
-              transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-              className="absolute top-6 left-6 text-blue-100/70 -z-10 pointer-events-none"
-            >
-              <Quote size={80} />
-            </motion.div>
-            
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentIndex}
-                initial={{ opacity: 0, x: 25 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -25 }}
-                transition={{ duration: 0.35, ease: "easeInOut" }}
-                className="w-full text-center"
-              >
-                <p className="text-lg md:text-xl text-slate-700 italic mb-6 leading-relaxed font-normal">
-                  "{testimonials[currentIndex].quote}"
-                </p>
-                <div className="flex flex-col items-center">
-                  <h4 className="font-extrabold text-slate-900 text-base">{testimonials[currentIndex].name}</h4>
-                  <p className="text-xs sm:text-sm text-blue-600 font-bold">{testimonials[currentIndex].designation}</p>
-                  <p className="text-xs text-gray-500 font-medium">{testimonials[currentIndex].company}</p>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </motion.div>
-          
-          <div className="flex justify-center mt-6 space-x-2">
-            {testimonials.map((_, idx) => (
-              <button 
-                key={idx} 
-                onClick={() => setCurrentIndex(idx)}
-                aria-label={`Go to slide ${idx + 1}`}
-                className={`h-2 rounded-full transition-all duration-300 ${idx === currentIndex ? 'w-7 bg-blue-600 shadow-xs' : 'w-2 bg-gray-300 hover:bg-gray-400'}`}
-              />
-            ))}
-          </div>
         </div>
 
+        {/* 3-Column Review Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+          {reviews.map((item, idx) => (
+            <div
+              key={idx}
+              className="bg-white border border-[#E5E5E5] rounded-2xl p-7 sm:p-8 flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-1 text-amber-400">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} size={16} className="fill-amber-400" />
+                    ))}
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-[#EAF3FF] text-[#1E40AF] text-xs font-semibold">
+                    {item.tag}
+                  </span>
+                </div>
+
+                <p className="text-[16px] text-[#171717] font-normal leading-[1.6] mb-6">
+                  &ldquo;{item.quote}&rdquo;
+                </p>
+              </div>
+
+              <div className="pt-5 border-t border-[#E5E5E5]">
+                <h3 className="text-[18px] font-semibold text-[#171717]">
+                  {item.author}
+                </h3>
+                <p className="text-sm text-[#525252] font-normal mt-0.5">
+                  {item.role}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
