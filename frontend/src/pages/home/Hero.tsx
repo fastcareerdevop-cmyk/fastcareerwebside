@@ -467,16 +467,21 @@ export const Hero = () => {
   const Slide4 = () => (
     <div className="w-full relative">
       <motion.div
-        initial={{ opacity: 0, scale: 1.03 }}
+        initial={{ opacity: 0, scale: 1.01 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="relative w-full h-[420px] sm:h-[500px] lg:h-[calc(100vh-125px)] min-h-[460px] bg-[#040814] overflow-hidden flex items-center justify-center"
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="relative w-full h-[380px] sm:h-[480px] lg:h-[calc(100vh-115px)] min-h-[460px] bg-gradient-to-r from-[#022059] via-[#01122c] to-[#013b82] overflow-hidden flex items-center justify-center"
       >
-        <img
-          src="/bridging_the_gap.jpg"
-          alt="Bridging the Gap Between CA Talent & Top Opportunities - Fast Careers"
-          className="w-full h-full object-cover object-center pointer-events-none select-none"
-        />
+        {/* Seamless side fade masks so 16:9 image blends into any ultrawide screen */}
+        <div className="relative h-full w-full max-w-[1280px] mx-auto flex items-center justify-center">
+          <img
+            src="/bridging_the_gap.jpg"
+            alt="Bridging the Gap Between CA Talent & Top Opportunities - Fast Careers"
+            className="w-full h-full object-contain object-center pointer-events-none select-none"
+          />
+          <div className="hidden xl:block absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[#022059] to-transparent pointer-events-none" />
+          <div className="hidden xl:block absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-[#013b82] to-transparent pointer-events-none" />
+        </div>
 
         {/* Subtle bottom gradient for CTA readability */}
         <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#040814]/90 via-[#040814]/40 to-transparent pointer-events-none" />
@@ -528,7 +533,11 @@ export const Hero = () => {
   return (
     <>
       <section
-        className="relative bg-gradient-to-b from-[#eaf3fd] via-[#f5f9fe] to-white pt-[74px] pb-2 sm:pt-[80px] sm:pb-3 lg:pt-[84px] lg:pb-3 border-b border-slate-200/80 overflow-hidden"
+        className={`relative transition-colors duration-300 border-b overflow-hidden ${
+          currentSlide === 3
+            ? 'bg-[#01122c] pt-[66px] pb-2 sm:pt-[70px] sm:pb-3 border-slate-800'
+            : 'bg-gradient-to-b from-[#eaf3fd] via-[#f5f9fe] to-white pt-[74px] pb-2 sm:pt-[80px] sm:pb-3 lg:pt-[84px] lg:pb-3 border-slate-200/80'
+        }`}
       >
         {/* Background Soft Glow — changes per slide */}
         <motion.div
