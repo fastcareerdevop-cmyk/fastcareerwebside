@@ -1,77 +1,67 @@
 import React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import { Link, Globe, MessageCircle } from 'lucide-react';
+import { Link, Globe, MessageCircle, Camera } from 'lucide-react';
 
 export const Footer = () => {
   return (
-    <footer className="bg-[#0F172A] text-white pt-16 pb-10 border-t border-slate-800">
+    <footer className="bg-secondary text-white pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12 mb-12">
-          {/* Column 1: Brand */}
-          <div>
-            <RouterLink to="/" className="flex items-center gap-2.5 mb-4">
-              <img src="/fast_logo_new.png" alt="FAST CAREERS" className="h-10 w-auto object-contain bg-white rounded-lg p-1" />
-              <div className="flex flex-col leading-tight">
-                <span className="text-[18px] font-bold text-white tracking-tight">FAST <span className="text-[#2563EB]">CAREERS</span></span>
-                <span className="text-[10px] font-medium text-slate-400 tracking-widest uppercase">Since 2008</span>
-              </div>
-            </RouterLink>
-            <p className="text-slate-400 text-sm leading-relaxed mb-5 max-w-xs">
-              India's premier CA placement gateway connecting qualified finance talent with top corporates.
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+          <div className="col-span-1 md:col-span-1">
+            <img src="/logo.png" alt="FAST CAREERS" className="h-14 mb-4" />
+            <p className="text-gray-400 text-sm leading-relaxed mb-6">
+              Since 2008, connecting exceptional professionals with organizations across finance, accounting, compliance, and specialized domains.
             </p>
             <div className="flex space-x-4">
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" title="LinkedIn" className="text-slate-400 hover:text-white transition-colors">
-                <Link size={18} />
-              </a>
-              <a href="https://wa.me/919229113040" target="_blank" rel="noopener noreferrer" title="WhatsApp (+91 92291 13040)" className="text-slate-400 hover:text-emerald-400 transition-colors">
-                <MessageCircle size={18} />
-              </a>
-              <a href="mailto:info@fastcareers.com" title="Email Us" className="text-slate-400 hover:text-white transition-colors">
-                <Globe size={18} />
-              </a>
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" title="LinkedIn" className="text-gray-400 hover:text-white transition-colors"><Link size={20} /></a>
+              <a href="https://wa.me/919229113040" target="_blank" rel="noopener noreferrer" title="WhatsApp (+91 92291 13040)" className="text-gray-400 hover:text-emerald-400 transition-colors"><MessageCircle size={20} /></a>
+              <a href="mailto:info@fastcareers.com" title="Email Us" className="text-gray-400 hover:text-white transition-colors"><Globe size={20} /></a>
             </div>
           </div>
 
           {/* Column 2: Company */}
           <div>
-            <h4 className="text-base font-semibold text-white mb-4">Company</h4>
-            <ul className="space-y-2.5 text-sm text-slate-400">
-              <li><RouterLink to="/about" className="hover:text-white transition-colors">About Us</RouterLink></li>
-              <li><RouterLink to="/placement-results" className="hover:text-white transition-colors">CA Placements</RouterLink></li>
-              <li><RouterLink to="/ca-campus" className="hover:text-white transition-colors">CA Campus</RouterLink></li>
-              <li><RouterLink to="/services" className="hover:text-white transition-colors">Services</RouterLink></li>
-              <li><RouterLink to="/contact" className="hover:text-white transition-colors">Contact</RouterLink></li>
+            <h4 className="text-lg font-semibold mb-4">Company</h4>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li><RouterLink to="/about" className="hover:text-primary transition-colors">About Us</RouterLink></li>
+              <li><RouterLink to="/placement-results" className="hover:text-primary text-blue-300 font-semibold transition-colors">CA Placements</RouterLink></li>
+              <li><RouterLink to="/ca-campus" className="hover:text-primary transition-colors">CA Campus</RouterLink></li>
+              <li><RouterLink to="/services" className="hover:text-primary transition-colors">Services</RouterLink></li>
+              <li><RouterLink to="/expertise" className="hover:text-primary transition-colors">Expertise</RouterLink></li>
+              <li><a href="/#faq" className="hover:text-primary transition-colors">FAQs</a></li>
+              <li><RouterLink to="/contact" className="hover:text-primary transition-colors">Contact</RouterLink></li>
             </ul>
           </div>
 
           {/* Column 3: Candidates */}
           <div>
-            <h4 className="text-base font-semibold text-white mb-4">Candidates</h4>
-            <ul className="space-y-2.5 text-sm text-slate-400">
-              <li><RouterLink to="/jobs" className="hover:text-white transition-colors">Current Openings</RouterLink></li>
-              <li><RouterLink to="/register" className="hover:text-white transition-colors">Register Free</RouterLink></li>
-              <li><RouterLink to="/login" className="hover:text-white transition-colors">Candidate Sign In</RouterLink></li>
-              <li><a href="/#faq" className="hover:text-white transition-colors">FAQs</a></li>
+            <h4 className="text-lg font-semibold mb-4">Candidates</h4>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li><RouterLink to="/jobs" className="hover:text-primary transition-colors">Search Jobs</RouterLink></li>
+              <li><RouterLink to="/register" className="hover:text-primary transition-colors">Register</RouterLink></li>
+              <li><RouterLink to="/login" className="hover:text-primary transition-colors">Login</RouterLink></li>
+              <li><RouterLink to="/dashboard/job-alerts" className="hover:text-primary transition-colors">Job Alerts</RouterLink></li>
             </ul>
           </div>
 
-          {/* Column 4: Corporates */}
+          {/* Column 4: Employers */}
           <div>
-            <h4 className="text-base font-semibold text-white mb-4">Corporates</h4>
-            <ul className="space-y-2.5 text-sm text-slate-400">
-              <li><RouterLink to="/placement-drive" className="hover:text-white transition-colors">Enlist for Drive</RouterLink></li>
-              <li><RouterLink to="/employers/solutions" className="hover:text-white transition-colors">Hiring Solutions</RouterLink></li>
-              <li><RouterLink to="/employers/campus" className="hover:text-white transition-colors">Campus Hiring</RouterLink></li>
-              <li><RouterLink to="/login" className="hover:text-white transition-colors">Employer Sign In</RouterLink></li>
+            <h4 className="text-lg font-semibold mb-4">Employers</h4>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li><RouterLink to="/employers/post" className="hover:text-primary transition-colors">Post Requirement</RouterLink></li>
+              <li><RouterLink to="/employers/solutions" className="hover:text-primary transition-colors">Recruitment Solutions</RouterLink></li>
+              <li><RouterLink to="/employers/campus" className="hover:text-primary transition-colors">Campus Hiring</RouterLink></li>
+              <li><RouterLink to="/employers/login" className="hover:text-primary transition-colors">Employer Login</RouterLink></li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-slate-400 gap-4">
+        <div className="border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
           <p>&copy; {new Date().getFullYear()} FAST CAREERS. All rights reserved.</p>
-          <div className="flex space-x-6">
+          <div className="flex space-x-4 mt-4 md:mt-0">
             <RouterLink to="/privacy" className="hover:text-white transition-colors">Privacy Policy</RouterLink>
-            <RouterLink to="/terms" className="hover:text-white transition-colors">Terms &amp; Conditions</RouterLink>
+            <RouterLink to="/terms" className="hover:text-white transition-colors">Terms & Conditions</RouterLink>
+            <RouterLink to="/cookie" className="hover:text-white transition-colors">Cookie Policy</RouterLink>
           </div>
         </div>
       </div>
