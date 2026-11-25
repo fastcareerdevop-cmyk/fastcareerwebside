@@ -118,7 +118,7 @@ export const Hero = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [itModalOpen, setItModalOpen] = useState(false);
 
-  const SLIDE_COUNT = 4;
+  const SLIDE_COUNT = 3;
   const AUTO_INTERVAL = 4500; // 4.5 seconds per slide
 
   const goTo = (idx: number) => {
@@ -462,90 +462,19 @@ export const Hero = () => {
     </div>
   );
 
-  // ─── SLIDE 4: Bridging the Gap Between CA Talent & Top Opportunities ───────
-  // Full-screen widescreen visual without duplicate header text
-  const Slide4 = () => (
-    <div className="w-full relative">
-      <motion.div
-        initial={{ opacity: 0, scale: 1.01 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="relative w-full h-[380px] sm:h-[480px] lg:h-[calc(100vh-115px)] min-h-[460px] bg-[#01122c] overflow-hidden flex items-center justify-center"
-      >
-        {/* Full-bleed blurred backdrop so side edges blend naturally at any screen width */}
-        <img
-          src="/bridging_the_gap.jpg"
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover object-center blur-2xl scale-110 opacity-85 pointer-events-none select-none"
-        />
-
-        {/* Crisp uncropped foreground image with feathered left/right edges */}
-        <img
-          src="/bridging_the_gap.jpg"
-          alt="Bridging the Gap Between CA Talent & Top Opportunities - Fast Careers"
-          className="relative z-10 h-full w-auto max-w-full object-contain object-center pointer-events-none select-none"
-          style={{
-            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
-            maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
-          }}
-        />
-
-        {/* Subtle bottom gradient for CTA readability */}
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#040814]/90 via-[#040814]/40 to-transparent pointer-events-none" />
-
-        {/* Bottom Centered CTA Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.25 }}
-          className="absolute bottom-4 sm:bottom-6 inset-x-0 flex flex-col sm:flex-row items-center justify-center gap-3 px-4 z-20"
-        >
-          <Link to="/register">
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="w-full sm:w-auto px-6 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm whitespace-nowrap cursor-pointer"
-            >
-              <User size={15} />
-              <span>Register as Candidate</span>
-              <ArrowRight size={14} />
-            </motion.button>
-          </Link>
-
-          <Link to="/placement-drive">
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="w-full sm:w-auto px-6 py-2.5 sm:py-3 bg-white/95 hover:bg-white text-[#0b192c] border border-white/60 font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm whitespace-nowrap cursor-pointer"
-            >
-              <Building2 size={15} className="text-blue-700" />
-              <span>Hire Top CAs / Corporate Drive</span>
-            </motion.button>
-          </Link>
-        </motion.div>
-      </motion.div>
-    </div>
-  );
-
-  const slides = [<Slide1 key="s1" />, <Slide2 key="s2" />, <Slide3 key="s3" />, <Slide4 key="s4" />];
+  const slides = [<Slide1 key="s1" />, <Slide2 key="s2" />, <Slide3 key="s3" />];
 
   // Background glow colors per slide
   const glowColors = [
     'bg-blue-100/40',    // Slide 1 – blue
     'bg-orange-100/40',  // Slide 2 – orange
     'bg-green-100/40',   // Slide 3 – green
-    'bg-sky-100/40',     // Slide 4 – sky blue
   ];
 
   return (
     <>
       <section
-        className={`relative transition-colors duration-300 border-b overflow-hidden ${
-          currentSlide === 3
-            ? 'bg-[#01122c] pt-[66px] pb-2 sm:pt-[70px] sm:pb-3 border-slate-800'
-            : 'bg-gradient-to-b from-[#eaf3fd] via-[#f5f9fe] to-white pt-[74px] pb-2 sm:pt-[80px] sm:pb-3 lg:pt-[84px] lg:pb-3 border-slate-200/80'
-        }`}
+        className="relative bg-gradient-to-b from-[#eaf3fd] via-[#f5f9fe] to-white pt-[74px] pb-2 sm:pt-[80px] sm:pb-3 lg:pt-[84px] lg:pb-3 border-b border-slate-200/80 overflow-hidden"
       >
         {/* Background Soft Glow — changes per slide */}
         <motion.div
@@ -556,7 +485,7 @@ export const Hero = () => {
         />
 
         {/* Slide Container */}
-        <div className={currentSlide === 3 ? 'w-full relative min-h-[420px]' : 'max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative min-h-[420px]'}>
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative min-h-[420px]">
           <AnimatePresence initial={false} mode="wait">
             <motion.div
               key={currentSlide}
