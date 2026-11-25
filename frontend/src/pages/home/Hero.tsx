@@ -537,11 +537,11 @@ export const Hero = () => {
         transition={{ opacity: { duration: 0.5, delay: 0.15 }, scale: { duration: 0.5, delay: 0.15 } }}
         className="lg:col-span-4 flex items-center justify-center relative py-1"
       >
-        <div className="w-full max-w-[360px] h-[340px] sm:h-[370px] lg:h-[390px] rounded-2xl overflow-hidden shadow-lg border border-slate-200/80 bg-slate-950 flex items-center justify-center">
+        <div className="w-full max-w-[390px] h-[340px] sm:h-[370px] lg:h-[390px] rounded-2xl overflow-hidden shadow-lg border border-slate-200/80 bg-[#040814] flex items-center justify-center p-2">
           <img
             src="/bridging_the_gap.jpg"
             alt="Bridging the Gap Between CA Talent & Top Opportunities - Fast Careers"
-            className="w-full h-full object-cover object-center pointer-events-none select-none rounded-2xl"
+            className="w-full h-full object-contain object-center pointer-events-none select-none rounded-xl"
           />
         </div>
       </motion.div>

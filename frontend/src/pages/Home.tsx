@@ -3,6 +3,7 @@ import { Hero } from './home/Hero';
 import { TrustStats } from './home/TrustStats';
 import { EmployerSection } from './home/EmployerSection';
 import { CandidateSection } from './home/CandidateSection';
+import { BridgingTheGapSection } from './home/BridgingTheGapSection';
 import { CoreExpertiseSection, CampusVenuesSection } from './home/ExpertiseSection';
 import { ServicesSection } from './home/ServicesSection';
 import { ProcessSection } from './home/ProcessSection';
@@ -25,17 +26,20 @@ export const Home = () => {
       {/* 4. Image 1: Start Your Finance Career with India's Top Corporates (For CA Candidates) */}
       <CandidateSection />
 
-      {/* 5. Image 3: Our Core Expertise (Dark Section) */}
+      {/* 5. Sheryians Bootcamp Style Full-Width Scroll Animation Section: Bridging the Gap */}
+      <BridgingTheGapSection />
+
+      {/* 6. Image 3: Our Core Expertise (Dark Section) */}
       <CoreExpertiseSection />
 
-      {/* 6. Image 4: End-to-End Talent Solutions & 3 Specialized Delivery Frameworks */}
+      {/* 7. Image 4: End-to-End Talent Solutions & 3 Specialized Delivery Frameworks */}
       <ServicesSection />
 
-      {/* 7. Image 5: Venues across 9 Cities & How Does FAST CA CAMPUS Work? */}
+      {/* 8. Image 5: Venues across 9 Cities & How Does FAST CA CAMPUS Work? */}
       <CampusVenuesSection />
       <ProcessSection />
 
-      {/* 8. Image 6: Testimonials, FAQ & Leadership CTA */}
+      {/* 9. Image 6: Testimonials, FAQ & Leadership CTA */}
       <TestimonialSection />
       <FAQSection />
       <CTASection />
