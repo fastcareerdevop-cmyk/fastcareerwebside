@@ -463,134 +463,54 @@ export const Hero = () => {
   );
 
   // ─── SLIDE 4: Bridging the Gap Between CA Talent & Top Opportunities ───────
-  // Sheryians Bootcamp style full-width centered layout with animated hands
+  // Full-screen widescreen visual without duplicate header text
   const Slide4 = () => (
-    <div className="w-full text-center py-2 sm:py-3 px-2 sm:px-4">
-      {/* Centered Header */}
+    <div className="w-full relative">
       <motion.div
-        initial={{ opacity: 0, y: -15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="max-w-3xl mx-auto mb-3"
+        initial={{ opacity: 0, scale: 1.03 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className="relative w-full h-[420px] sm:h-[500px] lg:h-[calc(100vh-125px)] min-h-[460px] bg-[#040814] overflow-hidden flex items-center justify-center"
       >
-        <div className="inline-flex items-center gap-2 bg-[#e0f2fe] border border-[#bae6fd] px-3.5 py-1 rounded-full mb-2 shadow-2xs">
-          <Briefcase size={13} className="text-[#0284c7] shrink-0" />
-          <span className="text-[10px] sm:text-[11px] font-black text-[#0369a1] tracking-wider uppercase">
-            BRIDGING THE GAP • SINCE 2008
-          </span>
-        </div>
+        <img
+          src="/bridging_the_gap.jpg"
+          alt="Bridging the Gap Between CA Talent & Top Opportunities - Fast Careers"
+          className="w-full h-full object-cover object-center pointer-events-none select-none"
+        />
 
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#0b192c] leading-tight tracking-tight mb-2">
-          Bridging the Gap Between{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-cyan-600 to-indigo-600">
-            CA Talent &amp; Top Opportunities
-          </span>
-        </h1>
+        {/* Subtle bottom gradient for CTA readability */}
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#040814]/90 via-[#040814]/40 to-transparent pointer-events-none" />
 
-        <p className="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto leading-relaxed font-medium">
-          Connecting 125,000+ ambitious Chartered Accountants directly with 60+ premier corporate employers across India.
-        </p>
-      </motion.div>
-
-      {/* Full-Width Hands Animated Stage (Sheryians Bootcamp Style) */}
-      <div className="relative max-w-4xl mx-auto h-[230px] sm:h-[280px] md:h-[320px] rounded-3xl overflow-hidden bg-gradient-to-b from-[#050B14] via-[#071326] to-[#050B14] border border-cyan-500/30 shadow-xl flex items-center justify-center my-3">
-        {/* Subtle Background Glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-500/15 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_#22d3ee] pointer-events-none" />
-
-        {/* Left Hand: Student / CA Graduate in Gown — Slides in from Left */}
+        {/* Bottom Centered CTA Actions */}
         <motion.div
-          initial={{ x: -140, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute left-0 sm:left-4 md:left-8 bottom-0 top-0 flex items-center z-10 pointer-events-none select-none"
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.25 }}
+          className="absolute bottom-4 sm:bottom-6 inset-x-0 flex flex-col sm:flex-row items-center justify-center gap-3 px-4 z-20"
         >
-          <div className="relative">
-            <img 
-              src="/hand_student_feathered.png" 
-              alt="CA Student Candidate Hand" 
-              className="h-36 sm:h-52 md:h-64 w-auto object-contain drop-shadow-[0_0_20px_rgba(59,130,246,0.6)]"
-            />
-            <span className="absolute bottom-2 left-2 bg-slate-900/85 border border-blue-400/50 text-cyan-300 text-[10px] font-bold px-2.5 py-0.5 rounded-lg hidden sm:inline-block">
-              🎓 CA Talent &amp; Rankers
-            </span>
-          </div>
+          <Link to="/register">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="w-full sm:w-auto px-6 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm whitespace-nowrap cursor-pointer"
+            >
+              <User size={15} />
+              <span>Register as Candidate</span>
+              <ArrowRight size={14} />
+            </motion.button>
+          </Link>
+
+          <Link to="/placement-drive">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="w-full sm:w-auto px-6 py-2.5 sm:py-3 bg-white/95 hover:bg-white text-[#0b192c] border border-white/60 font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm whitespace-nowrap cursor-pointer"
+            >
+              <Building2 size={15} className="text-blue-700" />
+              <span>Hire Top CAs / Corporate Drive</span>
+            </motion.button>
+          </Link>
         </motion.div>
-
-        {/* Center: Glowing JOB Neon Briefcase with Pulsing Rings */}
-        <motion.div
-          initial={{ scale: 0.6, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="relative z-20 flex flex-col items-center justify-center"
-        >
-          {/* Rotating Orbital Rings */}
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="absolute w-36 h-36 sm:w-48 sm:h-48 rounded-full border border-cyan-400/30 border-dashed pointer-events-none"
-          />
-          <motion.div
-            animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.8, 0.5] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute w-24 h-24 sm:w-32 sm:h-32 bg-cyan-400/25 rounded-full blur-xl pointer-events-none"
-          />
-          <img 
-            src="/center_job_glowing.png" 
-            alt="Job Opportunity" 
-            className="h-24 sm:h-32 md:h-36 w-auto object-contain relative z-10 drop-shadow-[0_0_25px_rgba(6,182,212,0.9)]"
-          />
-        </motion.div>
-
-        {/* Right Hand: Corporate Recruiter in Business Suit — Slides in from Right */}
-        <motion.div
-          initial={{ x: 140, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute right-0 sm:right-4 md:right-8 bottom-0 top-0 flex items-center z-10 pointer-events-none select-none"
-        >
-          <div className="relative">
-            <img 
-              src="/hand_corporate_feathered.png" 
-              alt="Corporate Recruiter Hand" 
-              className="h-36 sm:h-52 md:h-64 w-auto object-contain drop-shadow-[0_0_20px_rgba(6,182,212,0.6)]"
-            />
-            <span className="absolute bottom-2 right-2 bg-slate-900/85 border border-cyan-400/50 text-cyan-300 text-[10px] font-bold px-2.5 py-0.5 rounded-lg hidden sm:inline-block">
-              🏢 60+ Elite Corporates
-            </span>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Bottom CTA Actions */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-        className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2"
-      >
-        <Link to="/register">
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            className="w-full sm:w-auto px-6 py-2.5 sm:py-3 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-xs sm:text-sm whitespace-nowrap"
-          >
-            <User size={15} />
-            <span>Register as Candidate</span>
-            <ArrowRight size={14} />
-          </motion.button>
-        </Link>
-
-        <Link to="/placement-drive">
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            className="w-full sm:w-auto px-6 py-2.5 sm:py-3 bg-white hover:bg-slate-50 text-[#0b192c] border-2 border-slate-300 hover:border-blue-600 font-bold rounded-xl shadow-2xs transition-all flex items-center justify-center gap-2 text-xs sm:text-sm whitespace-nowrap"
-          >
-            <Building2 size={15} className="text-blue-700" />
-            <span>Hire Top CAs / Corporate Drive</span>
-          </motion.button>
-        </Link>
       </motion.div>
     </div>
   );
@@ -619,7 +539,7 @@ export const Hero = () => {
         />
 
         {/* Slide Container */}
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative min-h-[420px]">
+        <div className={currentSlide === 3 ? 'w-full relative min-h-[420px]' : 'max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative min-h-[420px]'}>
           <AnimatePresence initial={false} mode="wait">
             <motion.div
               key={currentSlide}

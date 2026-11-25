@@ -95,12 +95,8 @@ export const BridgingTheGapSection = () => {
           {/* Main Visual Stage */}
           <div className="relative min-h-[300px] sm:min-h-[380px] md:min-h-[420px] flex items-center justify-center overflow-hidden rounded-3xl bg-gradient-to-b from-blue-950/20 via-slate-950/40 to-blue-950/20 border border-cyan-500/20 shadow-[0_0_50px_rgba(8,145,178,0.1)]">
             
-            {/* Background Graphic Composite with soft overlay */}
-            <img 
-              src="/bridging_the_gap.jpg" 
-              alt="Bridging the Gap Between CA Talent & Top Opportunities"
-              className="absolute inset-0 w-full h-full object-cover object-center opacity-30 sm:opacity-40 filter blur-[1px] pointer-events-none select-none scale-105"
-            />
+            {/* Soft Ambient Radial Glow */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-500/15 via-blue-950/20 to-transparent pointer-events-none" />
 
             {/* Cyan Energy Beam across center */}
             <div className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_20px_#22d3ee] pointer-events-none" />
