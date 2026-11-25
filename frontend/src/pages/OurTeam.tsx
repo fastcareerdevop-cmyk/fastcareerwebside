@@ -37,19 +37,6 @@ interface EventItem {
 // 100% Real Campus & Event Photos Only (Zero AI / Stock Images)
 const eventsData: EventItem[] = [
   {
-    id: 100,
-    title: 'Bridging the Gap Between CA Talent & Top Opportunities',
-    category: 'Placement Drives & Summits',
-    categoryIcon: '',
-    date: 'National Campus Season',
-    location: 'Pan-India Corporate Drives & Physical Campuses',
-    imageUrl: '/bridging_the_gap.jpg',
-    shortDesc: 'Connecting newly qualified Chartered Accountants, rankers, and experienced finance talent directly with leading corporate employers.',
-    fullDesc: 'FAST Careers serves as India’s premier bridge connecting newly qualified Chartered Accountants, rankers, and experienced finance talent with Fortune 500 corporations and Big 4 advisory firms.',
-    participants: '125,000+ Registered CAs & 60+ Corporates',
-    highlights: ['Premier CA Gateway', 'Pan-India Corporate Networks', 'Direct Career Linkages']
-  },
-  {
     id: 101,
     title: 'PHD Chamber Executive Leadership & Secretariat Conclave',
     category: 'Placement Drives & Summits',
@@ -286,19 +273,8 @@ export const OurTeam: React.FC = () => {
         </div>
       </div>
 
-      {/* Featured Banner: Bridging the Gap */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 mb-10">
-        <div className="relative rounded-3xl overflow-hidden shadow-xl border border-blue-100 bg-slate-950">
-          <img 
-            src="/bridging_the_gap.jpg" 
-            alt="Bridging the Gap Between CA Talent & Top Opportunities" 
-            className="w-full h-56 sm:h-72 md:h-88 lg:h-96 object-cover object-center"
-          />
-        </div>
-      </div>
-
       {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
         {/* Search & Category Filter Bar */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-5 sm:p-7 mb-10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
