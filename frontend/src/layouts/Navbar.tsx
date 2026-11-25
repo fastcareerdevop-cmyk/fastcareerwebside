@@ -197,12 +197,13 @@ export const Navbar = () => {
             </div>
           </Link>
 
-          {/* Desktop Navigation Links with Revolut / FAST.edu.in Pill + Mega Menu */}
-          <nav className="hidden lg:flex items-center space-x-1">
+          {/* Desktop Navigation Links with FAST.edu.in / Revolut Pill + Mega Menu */}
+          <nav className="hidden lg:flex items-center space-x-1.5">
             {navItems.map((link) => {
               const isRouteActive =
                 location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path));
               const isMenuOpen = activeDropdown === link.name;
+              const isHighlighted = isMenuOpen || (!activeDropdown && isRouteActive);
               const hasMenu = Boolean(link.columns && link.columns.length > 0);
 
               if (!hasMenu) {
@@ -211,10 +212,10 @@ export const Navbar = () => {
                     key={link.name}
                     to={link.path}
                     onMouseEnter={() => setActiveDropdown(null)}
-                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                      isRouteActive
+                    className={`px-4 py-1.5 rounded-full text-[15px] xl:text-base font-medium transition-all ${
+                      isHighlighted
                         ? 'bg-[#191C1F] text-white'
-                        : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                        : 'text-[#111827] hover:bg-slate-100'
                     }`}
                   >
                     {link.name}
@@ -228,17 +229,13 @@ export const Navbar = () => {
                   type="button"
                   onMouseEnter={() => setActiveDropdown(link.name)}
                   onClick={() => setActiveDropdown(isMenuOpen ? null : link.name)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1 cursor-pointer ${
-                    isMenuOpen || isRouteActive
+                  className={`px-4 py-1.5 rounded-full text-[15px] xl:text-base font-medium transition-all cursor-pointer ${
+                    isHighlighted
                       ? 'bg-[#191C1F] text-white'
-                      : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                      : 'text-[#111827] hover:bg-slate-100'
                   }`}
                 >
                   <span>{link.name}</span>
-                  <ChevronDown
-                    size={14}
-                    className={`transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`}
-                  />
                 </button>
               );
             })}
@@ -316,11 +313,11 @@ export const Navbar = () => {
             transition={{ duration: 0.16, ease: 'easeOut' }}
             className="hidden lg:block absolute left-0 right-0 top-full bg-white border-b border-slate-200 shadow-xl z-40"
           >
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <div className="grid grid-cols-3 gap-10 max-w-3xl">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-9">
+              <div className="grid grid-cols-3 gap-12 max-w-4xl">
                 {currentMenu.columns.map((col) => (
                   <div key={col.heading}>
-                    <h4 className="text-xs font-bold text-slate-900 mb-3.5 tracking-tight">
+                    <h4 className="text-base font-bold text-[#111827] mb-3.5 tracking-[-0.02em]">
                       {col.heading}
                     </h4>
                     <ul className="space-y-2.5">
@@ -329,7 +326,7 @@ export const Navbar = () => {
                           <Link
                             to={item.path}
                             onClick={() => setActiveDropdown(null)}
-                            className="text-sm font-normal text-slate-600 hover:text-slate-950 transition-colors block"
+                            className="text-[15px] sm:text-base font-normal text-[#1F2937] hover:text-blue-700 transition-colors block leading-snug"
                           >
                             {item.label}
                           </Link>
@@ -341,14 +338,14 @@ export const Navbar = () => {
               </div>
 
               {currentMenu.footerPath && (
-                <div className="mt-7 pt-4 border-t border-slate-200">
+                <div className="mt-8 pt-5 border-t border-slate-200">
                   <Link
                     to={currentMenu.footerPath}
                     onClick={() => setActiveDropdown(null)}
-                    className="inline-flex items-center justify-between w-full text-sm font-semibold text-slate-900 hover:text-blue-700 transition-colors group"
+                    className="inline-flex items-center justify-between w-full text-base font-bold text-[#111827] hover:text-blue-700 transition-colors group"
                   >
                     <span>{currentMenu.footerLabel}</span>
-                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>
               )}
