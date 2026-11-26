@@ -3127,8 +3127,7 @@ export const Register = () => {
                                 <label htmlFor="workProfile" className="block text-xs font-semibold text-slate-700 mb-1.5">
                                   Work Profile / Domain <span className="text-red-500">*</span>
                                 </label>
-                                <input
-                                  type="text"
+                                <select
                                   id="workProfile"
                                   name="workProfile"
                                   required
@@ -3137,13 +3136,27 @@ export const Register = () => {
                                     setWorkProfile(e.target.value);
                                     if (fieldErrors.workProfile) setFieldErrors(prev => ({ ...prev, workProfile: '' }));
                                   }}
-                                  placeholder="e.g. Statutory Audit, Indirect Tax, FP&A"
                                   className={`w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none bg-white font-medium transition-all ${
                                     fieldErrors.workProfile
                                       ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
                                       : 'border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
                                   }`}
-                                />
+                                >
+                                  <option value="">-- Select Work Profile / Domain --</option>
+                                  <option value="Financial Reporting / FP&A">Financial Reporting / FP&A</option>
+                                  <option value="Taxation - Direct / Indirect">Taxation - Direct / Indirect</option>
+                                  <option value="Corp. Finance / Treasury">Corp. Finance / Treasury</option>
+                                  <option value="Business Finance / Commercial Finance / Sales Finance">Business Finance / Commercial Finance / Sales Finance</option>
+                                  <option value="Internal Audit / Compliance / Risk Officer / Forensic Audit">Internal Audit / Compliance / Risk Officer / Forensic Audit</option>
+                                  <option value="Statutory Audit">Statutory Audit</option>
+                                  <option value="Business Advisory / Consulting">Business Advisory / Consulting</option>
+                                  <option value="M&A / Due Diligence / Transaction Advisory">M&A / Due Diligence / Transaction Advisory</option>
+                                  <option value="Credit Appraisal / Relationship Management Roles">Credit Appraisal / Relationship Management Roles</option>
+                                  <option value="Fund Raising / Project Finance / Loan Syndication">Fund Raising / Project Finance / Loan Syndication</option>
+                                  <option value="Equity Research / Valuation">Equity Research / Valuation</option>
+                                  <option value="Private Equity / Investment Banking / Equity Research">Private Equity / Investment Banking / Equity Research</option>
+                                  <option value="Offshore Audit / Offshore Tax">Offshore Audit / Offshore Tax</option>
+                                </select>
                                 {fieldErrors.workProfile && (
                                   <p className="mt-1 text-xs font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
                                     <AlertCircle size={13} className="shrink-0 text-rose-600" />
