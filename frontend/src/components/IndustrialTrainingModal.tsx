@@ -12,6 +12,7 @@ import { STATES, STATE_CITY_MAP } from '../utils/constants';
 interface IndustrialTrainingModalProps {
   isOpen: boolean;
   onClose: () => void;
+  inline?: boolean;
 }
 
 const CA_INTER_BATCHES = [
@@ -81,7 +82,7 @@ const SECTOR_OPTIONS = [
   'Others'
 ];
 
-export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = ({ isOpen, onClose }) => {
+export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = ({ isOpen, onClose, inline = false }) => {
   const formId = useId();
 
   // Form State
@@ -165,7 +166,7 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
 
-  if (!isOpen) return null;
+  if (!inline && !isOpen) return null;
 
   // Handle Input Changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -607,30 +608,34 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2.5 sm:p-4 animate-in fade-in duration-200">
-      <div 
-        className="my-auto bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden relative"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Modal Header */}
-        <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white flex items-center justify-between shadow-xs shrink-0">
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/20 shrink-0">
-              <Building2 className="text-amber-300" size={18} />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <h2 className="text-base sm:text-xl font-bold tracking-tight">CA Industrial Training Form</h2>
-                <span className="bg-amber-400 text-blue-950 font-extrabold text-[9px] sm:text-[10px] tracking-wide px-1.5 sm:px-2 py-0.5 rounded-full uppercase shadow-2xs">
-                  ICAI NORMS
-                </span>
-              </div>
-              <p className="hidden sm:block text-xs text-blue-100 font-medium">
-                Verified candidate registration for top MNCs, Investment Banks & Big 4s
-              </p>
-            </div>
+  const cardContent = (
+    <div
+      className={
+        inline
+          ? 'bg-white rounded-2xl shadow-xl border border-slate-200 w-full flex flex-col overflow-hidden relative'
+          : 'my-auto bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden relative'
+      }
+      onClick={inline ? undefined : (e) => e.stopPropagation()}
+    >
+      {/* Modal Header */}
+      <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white flex items-center justify-between shadow-xs shrink-0">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/20 shrink-0">
+            <Building2 className="text-amber-300" size={18} />
           </div>
+          <div>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <h2 className="text-base sm:text-xl font-bold tracking-tight">CA Industrial Training Form</h2>
+              <span className="bg-amber-400 text-blue-950 font-extrabold text-[9px] sm:text-[10px] tracking-wide px-1.5 sm:px-2 py-0.5 rounded-full uppercase shadow-2xs">
+                ICAI NORMS
+              </span>
+            </div>
+            <p className="hidden sm:block text-xs text-blue-100 font-medium">
+              Verified candidate registration for top MNCs, Investment Banks & Big 4s
+            </p>
+          </div>
+        </div>
+        {!inline && (
           <button
             type="button"
             onClick={onClose}
@@ -638,10 +643,11 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
           >
             <X size={16} />
           </button>
-        </div>
+        )}
+      </div>
 
-        {/* Modal Body */}
-        <div className="overflow-y-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6 flex-1">
+      {/* Modal Body */}
+      <div className={inline ? 'p-4 sm:p-6 space-y-4 sm:space-y-6' : 'overflow-y-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6 flex-1'}>
           {submitted ? (
             /* Success State Screen */
             <div className="py-10 text-center space-y-4">
@@ -1558,13 +1564,15 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
 
               {/* Action Buttons */}
               <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
+                {!inline && (
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                )}
 
                 <button
                   type="submit"
@@ -1587,8 +1595,17 @@ export const IndustrialTrainingModal: React.FC<IndustrialTrainingModalProps> = (
 
             </form>
           )}
-        </div>
       </div>
+    </div>
+  );
+
+  if (inline) {
+    return cardContent;
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2.5 sm:p-4 animate-in fade-in duration-200">
+      {cardContent}
     </div>
   );
 };

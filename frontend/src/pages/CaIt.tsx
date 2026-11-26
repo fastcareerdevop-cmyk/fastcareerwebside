@@ -5,6 +5,7 @@ import {
   CheckCircle2, ArrowRight, Sparkles, Users, Briefcase, Award
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { IndustrialTrainingModal } from '../components/IndustrialTrainingModal';
 
 // ─── Past Recruiter Companies ─────────────────────────────────────────────────
 const PAST_RECRUITERS = [
@@ -48,26 +49,7 @@ const FadeUp = ({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 export const CaIt: React.FC = () => {
-  const [form, setForm] = useState({ name: '', email: '', phone: '', city: '', message: '' });
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.name || !form.phone) {
-      toast.error('Please fill in your name and phone number.');
-      return;
-    }
-    setSubmitting(true);
-    // Simulate a form submission delay
-    await new Promise((r) => setTimeout(r, 1200));
-    toast.success('Application submitted! Our team will contact you shortly.');
-    setForm({ name: '', email: '', phone: '', city: '', message: '' });
-    setSubmitting(false);
-  };
+  const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen">
@@ -90,12 +72,12 @@ export const CaIt: React.FC = () => {
             </p>
           </FadeUp>
           <FadeUp delay={0.2}>
-            <a
-              href="#apply"
-              className="inline-flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-8 py-3.5 rounded-full text-sm shadow-xl transition-all"
+            <button
+              onClick={() => setModalOpen(true)}
+              className="inline-flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-8 py-3.5 rounded-full text-sm shadow-xl transition-all cursor-pointer"
             >
               Apply Here <ArrowRight size={16} />
-            </a>
+            </button>
           </FadeUp>
         </div>
       </section>
@@ -163,7 +145,7 @@ export const CaIt: React.FC = () => {
           </div>
         </section>
 
-        {/* ── Apply Form ──────────────────────────────────────────────────────── */}
+        {/* ── Apply Form (Full Industrial Training Form inline) ──────────── */}
         <section id="apply">
           <FadeUp>
             <div className="flex items-center gap-2 mb-6">
@@ -172,52 +154,7 @@ export const CaIt: React.FC = () => {
             </div>
           </FadeUp>
           <FadeUp delay={0.1}>
-            <form
-              onSubmit={handleSubmit}
-              className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm grid sm:grid-cols-2 gap-5"
-            >
-              {[
-                { name: 'name', label: 'Full Name *', placeholder: 'e.g. Rahul Sharma', type: 'text' },
-                { name: 'phone', label: 'Phone Number *', placeholder: '+91 98765 43210', type: 'tel' },
-                { name: 'email', label: 'Email Address', placeholder: 'rahul@example.com', type: 'email' },
-                { name: 'city', label: 'City / Location', placeholder: 'e.g. Mumbai', type: 'text' },
-              ].map((field) => (
-                <div key={field.name} className="flex flex-col gap-1">
-                  <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">{field.label}</label>
-                  <input
-                    name={field.name}
-                    type={field.type}
-                    value={(form as any)[field.name]}
-                    onChange={handleChange}
-                    placeholder={field.placeholder}
-                    className="border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all bg-slate-50"
-                  />
-                </div>
-              ))}
-
-              <div className="sm:col-span-2 flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Message / Additional Info</label>
-                <textarea
-                  name="message"
-                  rows={3}
-                  value={form.message}
-                  onChange={handleChange}
-                  placeholder="Tell us about your CA Inter attempts, groups passed, preferred sector, etc."
-                  className="border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all bg-slate-50 resize-none"
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full sm:w-auto px-8 py-3 bg-[#2563EB] hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-full text-sm flex items-center gap-2 justify-center transition-all shadow-lg shadow-blue-200"
-                >
-                  {submitting ? 'Submitting…' : 'Submit Application'}
-                  {!submitting && <ArrowRight size={16} />}
-                </button>
-              </div>
-            </form>
+            <IndustrialTrainingModal isOpen={true} onClose={() => {}} inline={true} />
           </FadeUp>
         </section>
 
@@ -258,6 +195,9 @@ export const CaIt: React.FC = () => {
         </section>
 
       </div>
+
+      {/* Industrial Training Modal (popup from hero Apply Here button) */}
+      <IndustrialTrainingModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 };
