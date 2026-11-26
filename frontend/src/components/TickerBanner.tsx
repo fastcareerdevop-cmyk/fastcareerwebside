@@ -7,8 +7,7 @@ import { ArrowRight, Sparkles } from 'lucide-react';
  * Uses pure CSS GPU-accelerated marquee animation for zero lag.
  */
 export const TickerBanner: React.FC = () => {
-  const tickerText =
-    "Looking for CA-IT? Know More...!  •  We have opportunities with India's Leading Corporates for CA - Industrial Trainings  •  Apply here  •  Past Recruiters: Big 4s & Top Corporates  •  Who can Apply? ICAI Registered Students  •  Are you a Corporate Looking for CA-ITs? Contact Us via WA / Email / Call";
+  const tickerText = "Looking for CA-IT? Know More...!";
 
   return (
     <div
