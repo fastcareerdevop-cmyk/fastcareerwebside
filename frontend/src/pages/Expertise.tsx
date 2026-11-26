@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Landmark, FileCheck, Calculator, Briefcase, TrendingUp, Award, Building2, Sparkles, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { RecruiterMarquee } from '../components/RecruiterMarquee';
+import { ExecutiveLeadershipCards } from '../components/ExecutiveLeadershipCards';
 
 const domains = [
   {
@@ -123,6 +124,24 @@ export const Expertise = () => {
 
       {/* Recruiter Marquee */}
       <RecruiterMarquee showTitle={true} />
+
+      {/* Executive Leadership Contacts */}
+      <section className="py-16 px-4 bg-white border-t border-slate-200">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center max-w-2xl mx-auto mb-8">
+            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-3.5 py-1 rounded-full border border-blue-200 uppercase tracking-wider">
+              Direct Leadership Access
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
+              Executive Leadership Contacts
+            </h2>
+            <p className="text-slate-600 text-sm mt-1">
+              Reach out directly to our directors for corporate partnerships and candidate placement mandates.
+            </p>
+          </div>
+          <ExecutiveLeadershipCards />
+        </div>
+      </section>
 
     </div>
   );

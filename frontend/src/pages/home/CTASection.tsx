@@ -184,12 +184,6 @@ export const CTASection = () => {
       <div className="absolute bottom-10 left-10 w-96 h-96 bg-indigo-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
-        {/* Campus Photo Collage Gallery — Above Sarthak sir & Ritesh sir cards */}
-        <CampusGalleryGrid />
-
-        {/* Executive Leadership Cards (Sarthak sir & Ritesh sir) */}
-        <ExecutiveLeadershipCards className="mb-8 sm:mb-10" />
 
         {/* Bottom Centered CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 text-center">
@@ -215,6 +209,9 @@ export const CTASection = () => {
             </motion.button>
           </Link>
         </div>
+
+        {/* Executive leadership contact cards */}
+        <ExecutiveLeadershipCards className="mt-10 mb-0" />
 
       </div>
     </section>

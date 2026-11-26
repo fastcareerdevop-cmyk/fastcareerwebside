@@ -19,6 +19,7 @@ import {
 import { Button } from '../components/Button';
 import { Link } from 'react-router-dom';
 import { ProcessSection } from './home/ProcessSection';
+import { ExecutiveLeadershipCards } from '../components/ExecutiveLeadershipCards';
 
 interface EventItem {
   id: number;
@@ -448,6 +449,15 @@ export const OurTeam: React.FC = () => {
         {/* How Does FAST CA CAMPUS Work? */}
         <div className="mt-14 mb-6">
           <ProcessSection />
+        </div>
+
+        {/* Executive Leadership Contact Cards */}
+        <div className="mt-14">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900">Executive Leadership</h2>
+            <p className="text-slate-600 text-sm mt-2 max-w-xl mx-auto">Reach out directly to our founders for corporate partnerships and placement mandates.</p>
+          </div>
+          <ExecutiveLeadershipCards className="max-w-4xl mx-auto" />
         </div>
 
         {/* Join FAST Careers CTA */}
