@@ -7,6 +7,7 @@ import { logout, reset } from '../store/authSlice';
 import type { RootState, AppDispatch } from '../store';
 import { IndustrialTrainingModal } from '../components/IndustrialTrainingModal';
 import { SignUpChoiceModal } from '../components/SignUpChoiceModal';
+import { TickerBanner } from '../components/TickerBanner';
 
 interface MenuColumn {
   heading: string;
@@ -187,14 +188,15 @@ export const Navbar = () => {
       ref={headerRef}
       onMouseLeave={() => setActiveDropdown(null)}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 bg-white border-b border-slate-200/90 ${
-        isScrolled ? 'shadow-sm py-2.5' : 'py-3'
+        isScrolled ? 'shadow-sm' : ''
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <TickerBanner />
+      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isScrolled ? 'py-2' : 'py-2.5'}`}>
         <div className="flex justify-between items-center h-12">
-          {/* Logo */}
+          {/* Logo — uses transparent RGBA PNG */}
           <Link to="/" className="flex items-center gap-2.5 shrink-0">
-            <img src="/fast_logo_new.png" alt="FAST CAREERS" className="h-10 sm:h-11 w-auto object-contain" />
+            <img src="/fast_logo.png" alt="FAST CAREERS" className="h-8 sm:h-9 w-auto object-contain" />
             <div className="flex flex-col leading-tight">
               <span className="text-[17px] sm:text-[19px] font-bold text-[#1a3a5c] tracking-[-0.02em]">
                 FAST <span className="text-blue-600">CAREERS</span>

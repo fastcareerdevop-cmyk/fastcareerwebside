@@ -10,16 +10,11 @@ import { TestimonialSection } from './home/TestimonialSection';
 import { FAQSection } from './home/FAQSection';
 import { CTASection } from './home/CTASection';
 
-import { TickerBanner } from '../components/TickerBanner';
-
 export const Home = () => {
   return (
     <div className="w-full bg-white">
       {/* 1. Hero Section */}
       <Hero />
-
-      {/* Ticker Banner – CA‑IT */}
-      <TickerBanner />
 
       {/* 2. Trust Stats & Placement Metrics */}
       <TrustStats />

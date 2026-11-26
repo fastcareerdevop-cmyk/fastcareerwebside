@@ -461,7 +461,7 @@ export const Hero = () => {
   return (
     <>
       <section
-        className="relative bg-gradient-to-b from-[#eaf3fd] via-[#f5f9fe] to-white pt-[74px] pb-2 sm:pt-[80px] sm:pb-3 lg:pt-[84px] lg:pb-3 border-b border-slate-200/80 overflow-hidden"
+        className="relative bg-gradient-to-b from-[#eaf3fd] via-[#f5f9fe] to-white pt-[108px] pb-2 sm:pt-[114px] sm:pb-3 lg:pt-[118px] lg:pb-3 border-b border-slate-200/80 overflow-hidden"
       >
         {/* Background Soft Glow — changes per slide */}
         <motion.div

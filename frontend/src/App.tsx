@@ -5,6 +5,7 @@ import { Navbar } from './layouts/Navbar';
 import { Footer } from './layouts/Footer';
 import { ScrollToTop } from './components/ScrollToTop';
 
+
 // Lazy Loaded Routes
 const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
 const About = lazy(() => import('./pages/About').then(m => ({ default: m.About })));

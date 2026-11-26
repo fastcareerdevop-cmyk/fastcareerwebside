@@ -73,7 +73,7 @@ export const CaIt: React.FC = () => {
     <div className="bg-[#F8FAFC] min-h-screen">
 
       {/* ── Hero Banner ──────────────────────────────────────────────────────── */}
-      <section className="bg-gradient-to-br from-[#0F172A] via-[#1E3A5F] to-[#1d64f2] text-white py-16 sm:py-20 px-4">
+      <section className="bg-gradient-to-br from-[#0F172A] via-[#1E3A5F] to-[#1d64f2] text-white pt-32 pb-16 sm:pt-36 sm:pb-20 px-4">
         <div className="max-w-5xl mx-auto text-center">
           <FadeUp>
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-5">
