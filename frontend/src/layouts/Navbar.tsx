@@ -189,7 +189,7 @@ export const Navbar = () => {
         <div className="flex justify-between items-center h-12">
           {/* Logo — uses transparent RGBA PNG */}
           <Link to="/" className="flex items-center gap-2.5 shrink-0">
-            <img src="/fast_logo_new.png" alt="FAST CAREERS" className="h-8 sm:h-9 w-auto object-contain" />
+            <img src="/fast_logo_new.png" alt="FAST CAREERS" className="h-9 sm:h-10 w-auto object-contain" />
             <div className="flex flex-col leading-tight">
               <span className="text-[17px] sm:text-[19px] font-bold text-[#1a3a5c] tracking-[-0.02em]">
                 FAST <span className="text-blue-600">CAREERS</span>
