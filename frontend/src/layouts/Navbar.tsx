@@ -24,6 +24,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { name: 'Home', path: '/' },
+  { name: 'CA‑IT', path: '/ca-it' },
   {
     name: 'About',
     path: '/about',
@@ -36,7 +37,6 @@ const navItems: NavItem[] = [
           { label: 'Core Expertise', path: '/expertise' },
         ],
       },
-  { name: 'CA‑IT', path: '/ca-it' },
       {
         heading: 'Connect',
         items: [
@@ -44,7 +44,6 @@ const navItems: NavItem[] = [
           { label: 'Contact Us', path: '/contact' },
         ],
       },
-  { name: 'CA‑IT', path: '/ca-it' },
     ],
     footerLabel: 'About FAST Careers',
     footerPath: '/about',
@@ -59,10 +58,9 @@ const navItems: NavItem[] = [
           { label: 'Placement Results', path: '/placement-results' },
           { label: 'Current Job Openings', path: '/jobs' },
           { label: 'Register Free on Portal', path: '/register' },
-          { label: 'Industrial Training (CA-IT)', path: '/industrial-training' },
+          { label: 'Industrial Training (CA‑IT)', path: '/ca-it' },
         ],
       },
-  { name: 'CA‑IT', path: '/ca-it' },
       {
         heading: 'Portal & Assessments',
         items: [
@@ -71,7 +69,6 @@ const navItems: NavItem[] = [
           { label: 'Candidate Sign In', path: '/login' },
         ],
       },
-  { name: 'CA‑IT', path: '/ca-it' },
     ],
     footerLabel: 'All CA Placements',
     footerPath: '/placement-results',
@@ -88,15 +85,13 @@ const navItems: NavItem[] = [
           { label: 'Registered Companies', path: '/candidate/companies' },
         ],
       },
-  { name: 'CA‑IT', path: '/ca-it' },
       {
         heading: 'Campus Tracks',
         items: [
           { label: 'CA Fresher Placements', path: '/placement-results' },
-          { label: 'Industrial Training Drive', path: '/industrial-training' },
+          { label: 'Industrial Training (CA‑IT)', path: '/ca-it' },
         ],
       },
-  { name: 'CA‑IT', path: '/ca-it' },
     ],
     footerLabel: 'Explore CA Campus',
     footerPath: '/ca-campus',
@@ -113,15 +108,13 @@ const navItems: NavItem[] = [
           { label: 'Book a Corporate Drive', path: '/placement-drive' },
         ],
       },
-  { name: 'CA‑IT', path: '/ca-it' },
       {
         heading: 'Specializations',
         items: [
           { label: 'Domain Expertise', path: '/expertise' },
-          { label: 'Industrial Training Hiring', path: '/industrial-training' },
+          { label: 'Industrial Training Hiring', path: '/ca-it' },
         ],
       },
-  { name: 'CA‑IT', path: '/ca-it' },
     ],
     footerLabel: 'All Services',
     footerPath: '/services',
