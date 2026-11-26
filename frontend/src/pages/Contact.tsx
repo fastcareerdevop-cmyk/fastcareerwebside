@@ -61,7 +61,7 @@ export const Contact = () => {
   return (
     <div className="w-full relative">
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-900 pt-20 pb-8 px-4 border-b border-slate-200">
+      <section className="bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-900 pt-32 sm:pt-36 pb-12 px-4 border-b border-slate-200">
         <div className="max-w-7xl mx-auto text-center">
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
