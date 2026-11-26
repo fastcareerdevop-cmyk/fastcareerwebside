@@ -117,6 +117,7 @@ const webhookRoutes_1 = __importDefault(require("./routes/webhookRoutes"));
 const contactRoutes_1 = __importDefault(require("./routes/contactRoutes"));
 const industrialTrainingRoutes_1 = __importDefault(require("./routes/industrialTrainingRoutes"));
 const locationRoutes_1 = __importDefault(require("./routes/locationRoutes"));
+const adminDispatchRoutes_1 = __importDefault(require("./routes/adminDispatchRoutes"));
 // Health Check Routes
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', time: new Date().toISOString() });
@@ -136,6 +137,7 @@ app.use('/api/contact', contactRoutes_1.default);
 app.use('/api/assessments', assessmentRoutes_1.default);
 app.use('/api/industrial-training', industrialTrainingRoutes_1.default);
 app.use('/api/locations', locationRoutes_1.default);
+app.use('/api/admin', adminDispatchRoutes_1.default);
 // Serve frontend React SPA (or fallback API status)
 app.use((req, res) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {

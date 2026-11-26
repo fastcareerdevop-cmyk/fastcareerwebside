@@ -19,6 +19,7 @@ import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
 const PlacementDriveForm = lazy(() => import('./pages/PlacementDriveForm').then(m => ({ default: m.PlacementDriveForm })));
 const IndustrialTrainingPage = lazy(() => import('./pages/IndustrialTrainingPage').then(m => ({ default: m.IndustrialTrainingPage })));
+const CaIt = lazy(() => import('./pages/CaIt').then(m => ({ default: m.CaIt })));
 const IndustrialTrainingAdmin = lazy(() => import('./pages/admin/IndustrialTrainingAdmin').then(m => ({ default: m.IndustrialTrainingAdmin })));
 const PlacementResults = lazy(() => import('./pages/PlacementResults').then(m => ({ default: m.PlacementResults })));
 const CandidateDashboard = lazy(() => import('./pages/candidate/Dashboard').then(m => ({ default: m.CandidateDashboard })));
@@ -47,6 +48,7 @@ import { AdminDashboard } from './pages/admin/Dashboard';
 import { AddCompany } from './pages/admin/AddCompany';
 import { AddEmployee } from './pages/admin/AddEmployee';
 import { CandidateTestResults } from './pages/admin/CandidateTestResults';
+import { StudentBarcodeSheet2 } from './pages/admin/StudentBarcodeSheet2';
 
 function App() {
   return (
@@ -107,6 +109,7 @@ function App() {
             <Route path="/placement-drive" element={<PlacementDriveForm />} />
             <Route path="/industrial-training" element={<IndustrialTrainingPage />} />
             <Route path="/industrial-training-form" element={<IndustrialTrainingPage />} />
+            <Route path="/ca-it" element={<CaIt />} />
             <Route path="/ca-placements" element={<PlacementResults />} />
             <Route path="/placement-results" element={<PlacementResults />} />
             <Route path="/ca-results" element={<PlacementResults />} />
@@ -148,6 +151,7 @@ function App() {
             <Route path="/admin/jobs" element={<ManageJobs />} />
             <Route path="/admin/platform-data" element={<PlatformData />} />
             <Route path="/admin/billing" element={<EmployerBilling />} />
+            <Route path="/admin/student-barcode-sheet-2" element={<StudentBarcodeSheet2 />} />
 
             {/* Fallback Catch-all: Redirect unknown URLs to Home */}
             <Route path="*" element={<Navigate to="/" replace />} />

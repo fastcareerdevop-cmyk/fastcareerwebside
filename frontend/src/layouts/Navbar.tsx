@@ -35,6 +35,7 @@ const navItems: NavItem[] = [
           { label: 'Core Expertise', path: '/expertise' },
         ],
       },
+  { name: 'CA‑IT', path: '/ca-it' },
       {
         heading: 'Connect',
         items: [
@@ -42,6 +43,7 @@ const navItems: NavItem[] = [
           { label: 'Contact Us', path: '/contact' },
         ],
       },
+  { name: 'CA‑IT', path: '/ca-it' },
     ],
     footerLabel: 'About FAST Careers',
     footerPath: '/about',
@@ -59,6 +61,7 @@ const navItems: NavItem[] = [
           { label: 'Industrial Training (CA-IT)', path: '/industrial-training' },
         ],
       },
+  { name: 'CA‑IT', path: '/ca-it' },
       {
         heading: 'Portal & Assessments',
         items: [
@@ -67,6 +70,7 @@ const navItems: NavItem[] = [
           { label: 'Candidate Sign In', path: '/login' },
         ],
       },
+  { name: 'CA‑IT', path: '/ca-it' },
     ],
     footerLabel: 'All CA Placements',
     footerPath: '/placement-results',
@@ -83,6 +87,7 @@ const navItems: NavItem[] = [
           { label: 'Registered Companies', path: '/candidate/companies' },
         ],
       },
+  { name: 'CA‑IT', path: '/ca-it' },
       {
         heading: 'Campus Tracks',
         items: [
@@ -90,6 +95,7 @@ const navItems: NavItem[] = [
           { label: 'Industrial Training Drive', path: '/industrial-training' },
         ],
       },
+  { name: 'CA‑IT', path: '/ca-it' },
     ],
     footerLabel: 'Explore CA Campus',
     footerPath: '/ca-campus',
@@ -106,6 +112,7 @@ const navItems: NavItem[] = [
           { label: 'Book a Corporate Drive', path: '/placement-drive' },
         ],
       },
+  { name: 'CA‑IT', path: '/ca-it' },
       {
         heading: 'Specializations',
         items: [
@@ -113,6 +120,7 @@ const navItems: NavItem[] = [
           { label: 'Industrial Training Hiring', path: '/industrial-training' },
         ],
       },
+  { name: 'CA‑IT', path: '/ca-it' },
     ],
     footerLabel: 'All Services',
     footerPath: '/services',
