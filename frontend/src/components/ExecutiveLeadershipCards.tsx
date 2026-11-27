@@ -35,7 +35,7 @@ export const ExecutiveLeadershipCards: React.FC<ExecutiveLeadershipCardsProps> =
   ];
 
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 gap-5 ${className}`}>
+    <div className={`mx-auto grid w-full grid-cols-1 justify-items-center gap-4 md:grid-cols-2 ${className}`}>
       {cards.map((c, i) => (
         <motion.div
           key={i}
@@ -43,23 +43,18 @@ export const ExecutiveLeadershipCards: React.FC<ExecutiveLeadershipCardsProps> =
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.4, delay: i * 0.07 }}
-          className="relative rounded-2xl bg-white border border-slate-200/80 shadow-[0_8px_30px_rgba(15,23,42,0.10)] overflow-hidden"
+          className="relative w-full max-w-sm rounded-2xl bg-white border border-slate-200/80 shadow-[0_8px_30px_rgba(15,23,42,0.10)]"
         >
-          {/* Top banner bar */}
-          <div className="h-20 bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 relative">
-            {/* Phone icon button on top-right */}
-            <a
-              href={`tel:${c.phone.replace(/\s/g, '')}`}
-              title={`Call ${c.name}`}
-              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/15 backdrop-blur-sm text-white flex items-center justify-center hover:bg-[#2563EB] transition-colors"
-            >
-              <Phone size={16} />
-            </a>
-          </div>
+          <a
+            href={`tel:${c.phone.replace(/\s/g, '')}`}
+            title={`Call ${c.name}`}
+            className="absolute top-2.5 right-2.5 z-10 w-7 h-7 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-[#2563EB] transition-colors"
+          >
+            <Phone size={13} />
+          </a>
 
-          {/* Profile photo - overlapping the banner */}
-          <div className="flex justify-center -mt-12 relative z-10">
-            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white shadow-lg overflow-hidden bg-slate-200">
+          <div className="flex justify-center pt-4">
+            <div className="w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full border-[3px] border-white ring-2 ring-slate-900 shadow-md overflow-hidden bg-slate-200">
               <img
                 src={c.img}
                 alt={c.name}
@@ -70,7 +65,7 @@ export const ExecutiveLeadershipCards: React.FC<ExecutiveLeadershipCardsProps> =
           </div>
 
           {/* Card content */}
-          <div className="px-5 sm:px-6 pt-3 pb-5 text-center">
+          <div className="px-4 sm:px-5 pt-2 pb-4 text-center">
             <h3 className="text-lg sm:text-xl font-extrabold text-slate-950 leading-tight">{c.name}</h3>
             <p className="mt-1 text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em]">
               {c.title}
