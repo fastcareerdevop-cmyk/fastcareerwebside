@@ -916,14 +916,14 @@ export const PlacementResults = () => {
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <a 
-                    href="mailto:esarthak@gmail.com" 
+                    href="mailto:sarthak@fast-india.com" 
                     className="px-6 py-3 bg-white text-amber-900 hover:bg-amber-50 font-black rounded-xl text-sm transition-all shadow-md inline-flex items-center gap-2"
                   >
                     <Mail size={16} />
                     <span>Inquire About Ranker Pool</span>
                   </a>
                   <a 
-                    href="tel:9826023534" 
+                    href="tel:9200079000" 
                     className="px-6 py-3 bg-amber-900/40 hover:bg-amber-900/60 text-white font-bold rounded-xl text-sm transition-all border border-white/20 inline-flex items-center gap-2"
                   >
                     <Phone size={16} />

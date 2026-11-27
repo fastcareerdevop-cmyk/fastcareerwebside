@@ -44,7 +44,7 @@ export const Step3Articleship = ({ caPortfolio, setCaPortfolio, isOptional = fal
     'Audit & Assurance': ['Statutory Audit', 'Internal Audit', 'Tax Audit', 'Forensic Audit & Investigation', 'Bank Audit (Concurrent / Statutory)', 'Information Systems (IS) Audit'],
     'Taxation': ['Transfer Pricing', 'International Taxation', 'GST Compliance & Advisory', 'Income Tax Return Filing & Assessment'],
     'Finance & Advisory': ['Corporate Finance', 'Mergers and Acquisitions (M&A)', 'Due Diligence', 'Valuation Services', 'Risk Advisory Services', 'Financial Reporting & Ind AS Advisory', 'Insolvency & Bankruptcy (IBC)'],
-    'Compliance & Accounting': ['ROC / Secretarial Compliances', 'Bookkeeping and Accounting', 'FEMA & RBI Compliances', 'Other']
+    'Compliance & Accounting': ['FEMA & RBI Compliances', 'Other']
   };
 
   return (

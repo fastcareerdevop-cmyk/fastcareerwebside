@@ -178,7 +178,7 @@ export const CaIt: React.FC = () => {
                   <MessageCircle size={16} /> WhatsApp
                 </a>
                 <a
-                  href="mailto:esarthak@gmail.com?subject=CA-IT%20Enquiry"
+                  href="mailto:sarthak@fast-india.com?subject=CA-IT%20Enquiry"
                   className="flex items-center gap-2 bg-white text-[#1E3A5F] hover:bg-blue-50 font-bold px-5 py-2.5 rounded-full text-sm transition-all shadow-md"
                 >
                   <Mail size={16} /> Email Us

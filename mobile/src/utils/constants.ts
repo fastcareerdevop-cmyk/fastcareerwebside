@@ -128,8 +128,6 @@ export const NATURE_OF_WORK = [
   'Due Diligence',
   'Forensic Audit & Investigation',
   'Valuation Services',
-  'Bookkeeping and Accounting',
-  'ROC / Secretarial Compliances',
   'Bank Audit (Concurrent / Statutory)',
   'Risk Advisory Services',
   'Information Systems (IS) Audit',
