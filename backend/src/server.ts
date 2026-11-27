@@ -17,7 +17,6 @@ import { seedAdmin } from './utils/seeder';
 import prisma, { checkPostgresConnection } from './config/prisma';
 
 dotenv.config();
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // Connect Databases
 connectDB().then(() => {
@@ -93,7 +92,8 @@ if (fs.existsSync(clientPath)) {
 app.get('/uploads/:filename', async (req: Request, res: Response, next) => {
   try {
     const rawFilename = req.params.filename;
-    const filename = Array.isArray(rawFilename) ? rawFilename[0] : (rawFilename || '');
+    const rawName = Array.isArray(rawFilename) ? rawFilename[0] : (rawFilename || '');
+    const filename = path.basename(rawName).replace(/["\r\n]/g, '');
     if (!filename || !filename.toLowerCase().endsWith('.pdf')) {
       return next();
     }

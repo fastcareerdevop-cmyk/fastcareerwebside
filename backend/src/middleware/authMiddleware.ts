@@ -25,11 +25,22 @@ const ADMIN_IDENTIFIERS = [
   'admin@fastcareer.in'
 ];
 
-const KNOWN_SECRETS = [
-  process.env.JWT_SECRET,
-  'supersecretfastcareersjwtkey',
-  'secret'
-].filter(Boolean) as string[];
+const KNOWN_SECRETS = (
+  process.env.JWT_SECRET
+    ? [process.env.JWT_SECRET]
+    : ['supersecretfastcareersjwtkey', 'secret']
+).filter(Boolean) as string[];
+
+const sanitizeUser = (user: any) => {
+  if (!user) return user;
+  const {
+    password: _password,
+    passwordResetOtpHash: _otpHash,
+    passwordResetTokenHash: _tokenHash,
+    ...safeUser
+  } = user;
+  return safeUser;
+};
 
 export const protect = async (req: Request, res: Response, next: NextFunction) => {
   let token: string | undefined;
@@ -60,16 +71,6 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
         }
       }
 
-      // Fallback: decode unverified if expired or cross-environment
-      if (!decoded || !decoded.id) {
-        try {
-          const unverified = jwt.decode(token) as JwtPayload;
-          if (unverified && unverified.id) {
-            decoded = unverified;
-          }
-        } catch (e) {}
-      }
-
       if (decoded && (decoded.id || (decoded as any).email)) {
         const targetId = decoded.id ? String(decoded.id) : '';
         const targetEmail = (decoded as any).email ? String((decoded as any).email).toLowerCase().trim() : '';
@@ -88,7 +89,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
             }
             if (pgUser) {
               req.user = {
-                ...pgUser,
+                ...sanitizeUser(pgUser),
                 _id: pgUser.id
               };
             }
@@ -105,26 +106,8 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
           }
         }
       }
-
-      // Fallback for Admin token recovery
-      if (!req.user && token) {
-        try {
-          const unverifiedPayload: any = jwt.decode(token);
-          const payloadEmail = (unverifiedPayload?.email || '').toLowerCase().trim();
-          if (ADMIN_IDENTIFIERS.includes(payloadEmail)) {
-            req.user = {
-              _id: 'admin-fastcareers-id',
-              id: 'admin-fastcareers-id',
-              firstName: 'System',
-              lastName: 'Admin',
-              email: 'admin@fastcareers.in',
-              role: 'admin'
-            };
-          }
-        } catch (e) {}
-      }
     } catch (error) {
-      console.warn('Protect token decode issue:', error);
+      console.warn('Protect token verification issue:', error);
     }
   }
 

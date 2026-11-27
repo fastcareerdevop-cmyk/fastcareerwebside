@@ -9,17 +9,14 @@ const path_1 = __importDefault(require("path"));
 const storage = multer_1.default.memoryStorage();
 function checkFileType(file, cb) {
     const ext = path_1.default.extname(file.originalname || '').toLowerCase();
-    const allowedExts = /\.(pdf|doc|docx|mp4|mov|mkv|webm|avi|mp3|wav|m4a|png|jpg|jpeg)$/i;
+    const allowedExts = /\.(pdf|doc|docx|mp4|mov|mkv|webm|avi|mp3|wav|m4a|png|jpg|jpeg|webp)$/i;
     const isExtValid = allowedExts.test(ext);
     const mime = file.mimetype || '';
-    const isMimeValid = !mime || /(pdf|msword|word|document|video|audio|image|octet-stream)/i.test(mime);
-    if (isExtValid || isMimeValid) {
+    const isMimeValid = /(pdf|msword|word|document|video|audio|image)/i.test(mime);
+    if (isExtValid && (!mime || isMimeValid || mime === 'application/octet-stream')) {
         return cb(null, true);
     }
-    else {
-        // If extension or mime is loose, still allow to prevent unexpected upload blocks
-        return cb(null, true);
-    }
+    return cb(new Error('Unsupported file type. Only PDF, DOC, DOCX, images, audio, and video files are allowed.'));
 }
 const upload = (0, multer_1.default)({
     storage,

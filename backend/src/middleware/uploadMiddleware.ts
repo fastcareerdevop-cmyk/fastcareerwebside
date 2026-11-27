@@ -6,18 +6,16 @@ const storage = multer.memoryStorage();
 
 function checkFileType(file: Express.Multer.File, cb: multer.FileFilterCallback) {
   const ext = path.extname(file.originalname || '').toLowerCase();
-  const allowedExts = /\.(pdf|doc|docx|mp4|mov|mkv|webm|avi|mp3|wav|m4a|png|jpg|jpeg)$/i;
+  const allowedExts = /\.(pdf|doc|docx|mp4|mov|mkv|webm|avi|mp3|wav|m4a|png|jpg|jpeg|webp)$/i;
   const isExtValid = allowedExts.test(ext);
-  
-  const mime = file.mimetype || '';
-  const isMimeValid = !mime || /(pdf|msword|word|document|video|audio|image|octet-stream)/i.test(mime);
 
-  if (isExtValid || isMimeValid) {
-    return cb(null, true);
-  } else {
-    // If extension or mime is loose, still allow to prevent unexpected upload blocks
+  const mime = file.mimetype || '';
+  const isMimeValid = /(pdf|msword|word|document|video|audio|image)/i.test(mime);
+
+  if (isExtValid && (!mime || isMimeValid || mime === 'application/octet-stream')) {
     return cb(null, true);
   }
+  return cb(new Error('Unsupported file type. Only PDF, DOC, DOCX, images, audio, and video files are allowed.'));
 }
 
 const upload = multer({

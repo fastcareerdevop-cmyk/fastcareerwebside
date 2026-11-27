@@ -27,7 +27,7 @@ export const ExecutiveLeadershipCards: React.FC<ExecutiveLeadershipCardsProps> =
       title: 'Founder, Director & Corporate Head',
       img: '/ritesh_gupta_new.jpg?v=2',
       phone: '+91 92291 13040',
-      email: 'ritesh@gmail.com',
+      email: 'ritesh@fast-india.com',
       website: 'https://fast-india.com',
       whatsapp: '919229113040',
       dept: 'Corporate Recruitments',
@@ -43,18 +43,20 @@ export const ExecutiveLeadershipCards: React.FC<ExecutiveLeadershipCardsProps> =
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.4, delay: i * 0.07 }}
-          className="relative w-full max-w-sm rounded-2xl bg-white border border-slate-200/80 shadow-[0_8px_30px_rgba(15,23,42,0.10)]"
+          className="relative w-full max-w-xs rounded-xl bg-white border border-slate-200 shadow-md"
         >
+          {/* Call button */}
           <a
             href={`tel:${c.phone.replace(/\s/g, '')}`}
             title={`Call ${c.name}`}
-            className="absolute top-2.5 right-2.5 z-10 w-7 h-7 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-[#2563EB] transition-colors"
+            className="absolute top-2.5 right-2.5 z-10 w-7 h-7 rounded-full bg-slate-800 text-white flex items-center justify-center hover:bg-[#2563EB] transition-colors"
           >
-            <Phone size={13} />
+            <Phone size={12} />
           </a>
 
-          <div className="flex justify-center pt-4">
-            <div className="w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full border-[3px] border-white ring-2 ring-slate-900 shadow-md overflow-hidden bg-slate-200">
+          {/* Avatar - no dark banner, just clean top padding */}
+          <div className="flex justify-center pt-5">
+            <div className="w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-full border-2 border-blue-100 ring-2 ring-slate-200 shadow-sm overflow-hidden bg-slate-100">
               <img
                 src={c.img}
                 alt={c.name}
@@ -65,41 +67,41 @@ export const ExecutiveLeadershipCards: React.FC<ExecutiveLeadershipCardsProps> =
           </div>
 
           {/* Card content */}
-          <div className="px-4 sm:px-5 pt-2 pb-4 text-center">
-            <h3 className="text-lg sm:text-xl font-extrabold text-slate-950 leading-tight">{c.name}</h3>
-            <p className="mt-1 text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em]">
+          <div className="px-4 pt-2 pb-4 text-center">
+            <h3 className="text-base sm:text-lg font-extrabold text-slate-900 leading-tight">{c.name}</h3>
+            <p className="mt-0.5 text-[9px] font-bold text-slate-400 uppercase tracking-[0.12em]">
               {c.title}
             </p>
 
             {/* Contact details */}
-            <div className="mt-4 space-y-2 text-[11px] sm:text-xs text-slate-700 text-left max-w-[260px] mx-auto">
-              <a href={`tel:${c.phone.replace(/\s/g, '')}`} className="flex items-center gap-2.5 hover:text-[#2563EB] transition-colors">
-                <Phone size={14} className="shrink-0 text-[#2563EB]" />
+            <div className="mt-3 space-y-1.5 text-[11px] text-slate-600 text-left max-w-[220px] mx-auto">
+              <a href={`tel:${c.phone.replace(/\s/g, '')}`} className="flex items-center gap-2 hover:text-[#2563EB] transition-colors">
+                <Phone size={12} className="shrink-0 text-[#2563EB]" />
                 <span className="font-medium">{c.phone}</span>
               </a>
-              <a href={`mailto:${c.email}`} className="flex items-center gap-2.5 hover:text-[#2563EB] transition-colors">
-                <Mail size={14} className="shrink-0 text-[#2563EB]" />
+              <a href={`mailto:${c.email}`} className="flex items-center gap-2 hover:text-[#2563EB] transition-colors">
+                <Mail size={12} className="shrink-0 text-[#2563EB]" />
                 <span className="truncate font-medium">{c.email}</span>
               </a>
-              <a href={c.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 hover:text-[#2563EB] transition-colors">
-                <Globe size={14} className="shrink-0 text-[#2563EB]" />
+              <a href={c.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-[#2563EB] transition-colors">
+                <Globe size={12} className="shrink-0 text-[#2563EB]" />
                 <span className="truncate font-medium">{c.website.replace(/^https?:\/\//, '')}</span>
               </a>
             </div>
 
             {/* Footer: Department + WhatsApp */}
-            <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold text-[#2563EB]">
-                <Building2 size={14} className="shrink-0" />
+            <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-[#2563EB]">
+                <Building2 size={12} className="shrink-0" />
                 {c.dept}
               </span>
               <a
                 href={`https://wa.me/${c.whatsapp}?text=Hello`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-8 items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-3.5 text-[10px] sm:text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 transition-colors"
+                className="inline-flex h-7 items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-3 text-[9px] sm:text-[10px] font-bold text-emerald-700 hover:bg-emerald-100 transition-colors"
               >
-                <MessageCircle size={13} />
+                <MessageCircle size={12} />
                 WhatsApp
               </a>
             </div>

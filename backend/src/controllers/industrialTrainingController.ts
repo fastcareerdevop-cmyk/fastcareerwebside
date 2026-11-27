@@ -66,8 +66,9 @@ export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
 
     const entry = otpStore.get(cleanIdentifier);
 
-    // Allow master code 1234 in dev/test or valid generated code
-    if ((entry && entry.code === cleanCode && Date.now() <= entry.expiresAt) || cleanCode === '1234') {
+    // Allow valid generated code (master code '1234' only in non-production dev/test)
+    const isDevBypass = process.env.NODE_ENV !== 'production' && cleanCode === '1234';
+    if ((entry && entry.code === cleanCode && Date.now() <= entry.expiresAt) || isDevBypass) {
       otpStore.delete(cleanIdentifier);
       res.status(200).json({
         verified: true,

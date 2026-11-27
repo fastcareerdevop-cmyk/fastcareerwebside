@@ -54,14 +54,19 @@ const uploadBufferToCloudinary = (buffer, originalname, mimetype) => {
         uploadStream.end(buffer);
     });
 };
+const ALLOWED_LOCAL_EXTS = new Set([
+    '.pdf', '.doc', '.docx', '.png', '.jpg', '.jpeg', '.webp',
+    '.mp4', '.mov', '.webm', '.avi', '.mkv', '.mp3', '.wav', '.m4a',
+]);
 // Helper to save buffer to local uploads directory
 const saveBufferToLocal = (buffer, originalname) => {
     const uploadsDir = path_1.default.join(process.cwd(), 'uploads');
     if (!fs_1.default.existsSync(uploadsDir)) {
         fs_1.default.mkdirSync(uploadsDir, { recursive: true });
     }
-    const cleanExt = path_1.default.extname(originalname) || '.pdf';
-    const cleanName = path_1.default.basename(originalname, cleanExt).replace(/[^a-zA-Z0-9]/g, '_');
+    const rawExt = (path_1.default.extname(originalname) || '.pdf').toLowerCase();
+    const cleanExt = ALLOWED_LOCAL_EXTS.has(rawExt) ? rawExt : '.pdf';
+    const cleanName = path_1.default.basename(originalname, path_1.default.extname(originalname)).replace(/[^a-zA-Z0-9]/g, '_');
     const filename = `${cleanName}-${Date.now()}${cleanExt}`;
     const filePath = path_1.default.join(uploadsDir, filename);
     fs_1.default.writeFileSync(filePath, buffer);

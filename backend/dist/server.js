@@ -30,7 +30,6 @@ const db_1 = __importDefault(require("./config/db"));
 const seeder_1 = require("./utils/seeder");
 const prisma_1 = require("./config/prisma");
 dotenv_1.default.config();
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 // Connect Databases
 (0, db_1.default)().then(() => {
     (0, seeder_1.seedAdmin)(); // Ensure admin exists on server start
@@ -96,7 +95,8 @@ if (fs_1.default.existsSync(clientPath)) {
 app.get('/uploads/:filename', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const rawFilename = req.params.filename;
-        const filename = Array.isArray(rawFilename) ? rawFilename[0] : (rawFilename || '');
+        const rawName = Array.isArray(rawFilename) ? rawFilename[0] : (rawFilename || '');
+        const filename = path_1.default.basename(rawName).replace(/["\r\n]/g, '');
         if (!filename || !filename.toLowerCase().endsWith('.pdf')) {
             return next();
         }
@@ -117,7 +117,6 @@ const webhookRoutes_1 = __importDefault(require("./routes/webhookRoutes"));
 const contactRoutes_1 = __importDefault(require("./routes/contactRoutes"));
 const industrialTrainingRoutes_1 = __importDefault(require("./routes/industrialTrainingRoutes"));
 const locationRoutes_1 = __importDefault(require("./routes/locationRoutes"));
-const adminDispatchRoutes_1 = __importDefault(require("./routes/adminDispatchRoutes"));
 // Health Check Routes
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', time: new Date().toISOString() });
@@ -137,7 +136,6 @@ app.use('/api/contact', contactRoutes_1.default);
 app.use('/api/assessments', assessmentRoutes_1.default);
 app.use('/api/industrial-training', industrialTrainingRoutes_1.default);
 app.use('/api/locations', locationRoutes_1.default);
-app.use('/api/admin', adminDispatchRoutes_1.default);
 // Serve frontend React SPA (or fallback API status)
 app.use((req, res) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
