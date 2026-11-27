@@ -310,22 +310,33 @@ export const Navbar = () => {
         {currentMenu && currentMenu.columns && (
           <motion.div
             key={currentMenu.name}
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.16, ease: 'easeOut' }}
+            initial={{ opacity: 0, y: -12, scaleY: 0.96 }}
+            animate={{ opacity: 1, y: 0, scaleY: 1 }}
+            exit={{ opacity: 0, y: -8, scaleY: 0.97 }}
+            transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+            style={{ transformOrigin: 'top center' }}
             className="hidden lg:block absolute left-0 right-0 top-full bg-white border-b border-slate-200 shadow-xl z-40"
           >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-9">
               <div className="grid grid-cols-3 gap-12 max-w-4xl">
-                {currentMenu.columns.map((col) => (
-                  <div key={col.heading}>
+                {currentMenu.columns.map((col, colIdx) => (
+                  <motion.div
+                    key={col.heading}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, delay: colIdx * 0.06, ease: 'easeOut' }}
+                  >
                     <h4 className="text-base font-bold text-[#111827] mb-3.5 tracking-[-0.02em]">
                       {col.heading}
                     </h4>
                     <ul className="space-y-2.5">
-                      {col.items.map((item) => (
-                        <li key={item.label}>
+                      {col.items.map((item, itemIdx) => (
+                        <motion.li
+                          key={item.label}
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.2, delay: colIdx * 0.06 + itemIdx * 0.04, ease: 'easeOut' }}
+                        >
                           <Link
                             to={item.path}
                             onClick={() => setActiveDropdown(null)}
@@ -333,15 +344,20 @@ export const Navbar = () => {
                           >
                             {item.label}
                           </Link>
-                        </li>
+                        </motion.li>
                       ))}
                     </ul>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
 
               {currentMenu.footerPath && (
-                <div className="mt-8 pt-5 border-t border-slate-200">
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25, delay: 0.18, ease: 'easeOut' }}
+                  className="mt-8 pt-5 border-t border-slate-200"
+                >
                   <Link
                     to={currentMenu.footerPath}
                     onClick={() => setActiveDropdown(null)}
@@ -350,7 +366,7 @@ export const Navbar = () => {
                     <span>{currentMenu.footerLabel}</span>
                     <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                   </Link>
-                </div>
+                </motion.div>
               )}
             </div>
           </motion.div>
