@@ -211,7 +211,7 @@ export const CTASection = () => {
         </div>
 
         {/* Executive leadership contact cards */}
-        <ExecutiveLeadershipCards className="mt-10 mb-0" />
+        <ExecutiveLeadershipCards className="mt-10 mb-0 max-w-xs auto-rows-fr md:max-w-[41rem]" />
 
       </div>
     </section>
