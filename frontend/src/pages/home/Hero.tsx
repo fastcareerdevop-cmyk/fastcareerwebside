@@ -276,22 +276,13 @@ export const Hero = () => {
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-3xl sm:text-4xl lg:text-[40px] font-bold text-[#0b192c] leading-[1.15] tracking-[-0.03em] mb-3.5"
+          className="text-3xl sm:text-4xl lg:text-[40px] font-bold text-[#0b192c] leading-[1.15] tracking-[-0.03em] mb-5"
         >
           Recruiters of <br />
           <span className="text-blue-700">Non-IT for India</span> <br />
           Finance, Accounts &amp; <br />
           Commerce Talent
         </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-sm sm:text-base text-slate-600 mb-5 max-w-md leading-relaxed font-normal"
-        >
-          Connecting Finance, Accounts, Banking &amp; Commerce professionals with <strong className="text-blue-700 font-semibold">300+</strong> corporates Pan-India.
-        </motion.p>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
