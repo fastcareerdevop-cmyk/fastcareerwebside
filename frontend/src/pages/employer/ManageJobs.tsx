@@ -27,7 +27,6 @@ export const ManageJobs = () => {
     location: '',
     type: 'Full-time',
     category: '',
-    customCategory: '',
     salaryRange: '',
     description: '',
     requirements: '',
@@ -173,7 +172,6 @@ export const ManageJobs = () => {
       location: '',
       type: 'Full-time',
       category: '',
-      customCategory: '',
       salaryRange: '',
       description: '',
       requirements: '',
@@ -200,16 +198,12 @@ export const ManageJobs = () => {
       ? job.responsibilities.join('\n')
       : (job.responsibilities || '');
 
-    const standardCategories = ['Auditing', 'Taxation', 'Finance', 'Accounting', 'Consulting'];
-    const isCustomCat = job.category && !standardCategories.includes(job.category);
-
     setFormData({
       title: job.title || '',
       company: job.company || '',
       location: job.location || '',
       type: job.type || 'Full-time',
-      category: isCustomCat ? 'Other' : (job.category || ''),
-      customCategory: isCustomCat ? job.category : '',
+      category: job.category || '',
       salaryRange: job.salaryRange || '',
       description: job.description || '',
       requirements: reqs,
@@ -271,15 +265,21 @@ export const ManageJobs = () => {
         return;
       }
 
-      const safeDesc = (formData.description || '').trim() || `${formData.title.trim()} opening at ${formData.company.trim()}${formData.location ? ` in ${formData.location.trim()}` : ''}. Type: ${formData.type || 'Full-time'}. Category: ${formData.category || 'Auditing'}. Salary/Stipend: ${formData.salaryRange || 'Competitive'}.`;
+      const category = formData.category.trim();
+      const salaryRange = formData.salaryRange.trim();
+      if (!category || !salaryRange) {
+        toast.error('Category and Salary Offered are required');
+        return;
+      }
+
+      const safeDesc = (formData.description || '').trim() || `${formData.title.trim()} opening at ${formData.company.trim()}${formData.location ? ` in ${formData.location.trim()}` : ''}. Type: ${formData.type || 'Full-time'}. Category: ${category}. Salary Offered: ${salaryRange}.`;
       const safeReq = (formData.requirements || '').split('\n').map(r => r.trim()).filter(Boolean);
       const safeResp = (formData.responsibilities || '').split('\n').map(r => r.trim()).filter(Boolean);
 
-      const finalCategory = formData.category === 'Other' && formData.customCategory ? formData.customCategory.trim() : formData.category;
-
       const payload = {
         ...formData,
-        category: finalCategory,
+        category,
+        salaryRange,
         title: formData.title.trim(),
         company: formData.company.trim(),
         location: (formData.location || 'Pan India').trim(),
@@ -306,7 +306,6 @@ export const ManageJobs = () => {
         location: '',
         type: 'Full-time',
         category: '',
-        customCategory: '',
         salaryRange: '',
         description: '',
         requirements: '',
@@ -430,39 +429,28 @@ export const ManageJobs = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-                    <select required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 outline-none">
-                      <option value="">Select Category</option>
-                      <option value="Auditing">Auditing</option>
-                      <option value="Taxation">Taxation</option>
-                      <option value="Finance">Finance</option>
-                      <option value="Accounting">Accounting</option>
-                      <option value="Consulting">Consulting</option>
-                      <option value="Other">Other</option>
-                    </select>
-                    {formData.category === 'Other' && (
-                      <input
-                        type="text"
-                        required
-                        placeholder="Please specify category"
-                        value={formData.customCategory || ''}
-                        onChange={e => setFormData({ ...formData, customCategory: e.target.value })}
-                        className="mt-2 w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
-                      />
-                    )}
+                    <label htmlFor="job-category" className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                    <input
+                      id="job-category"
+                      type="text"
+                      required
+                      placeholder="e.g. Financial Operations"
+                      value={formData.category}
+                      onChange={e => setFormData({...formData, category: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 outline-none"
+                    />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Salary / Stipend *</label>
-                    <select required value={formData.salaryRange} onChange={e => setFormData({...formData, salaryRange: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 outline-none">
-                      <option value="">Select Salary / Stipend</option>
-                      <option value="₹5,000 - ₹10,000 / month">₹5,000 - ₹10,000 / month</option>
-                      <option value="₹10,000 - ₹20,000 / month">₹10,000 - ₹20,000 / month</option>
-                      <option value="₹20,000 - ₹50,000 / month">₹20,000 - ₹50,000 / month</option>
-                      <option value="₹3LPA - ₹5LPA">₹3LPA - ₹5LPA</option>
-                      <option value="₹5LPA - ₹10LPA">₹5LPA - ₹10LPA</option>
-                      <option value="₹10LPA+">₹10LPA+</option>
-                      <option value="Not Disclosed">Not Disclosed</option>
-                    </select>
+                    <label htmlFor="job-salaryRange" className="block text-sm font-medium text-gray-700 mb-1">Salary Offered *</label>
+                    <input
+                      id="job-salaryRange"
+                      type="text"
+                      required
+                      placeholder="e.g. 11 LPA"
+                      value={formData.salaryRange}
+                      onChange={e => setFormData({...formData, salaryRange: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 outline-none"
+                    />
                   </div>
                 </div>
 
